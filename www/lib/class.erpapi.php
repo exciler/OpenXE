@@ -36362,6 +36362,13 @@ function Firmendaten($field,$projekt="")
           }
 
         }
+
+        if ($art == 'auftrag') {
+          $dest_country = $this->app->DB->Select("SELECT coalesce(ifnull(lieferland,''), land) FROM auftrag WHERE id='$id' LIMIT 1");
+          $deliverythresholdvatid = $this->app->DB->Select("SELECT ustid FROM lieferschwelle WHERE empfaengerland = '$dest_country' AND verwenden = 1 AND ueberschreitungsdatum <> '' LIMIT 1");
+          if (!empty($deliverythresholdvatid))
+            $this->app->DB->Update("UPDATE auftrag SET deliverythresholdvatid='$deliverythresholdvatid' WHERE id='$id' LIMIT 1");
+        }
         $this->RunHook('ANABREGSNeuberechnenEnde',2, $id, $art);
       }
 
