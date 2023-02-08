@@ -571,7 +571,15 @@ class Briefpapier extends SuperFPDF {
 
     // zolltarif // check ust id
     $ust_befreit = $this->app->DB->Select("SELECT ust_befreit FROM $doctype WHERE id='$doctypeid' LIMIT 1");
-    if(($ust_befreit==2 && ($doctype=='rechnung' || $doctype=='gutschrift')) ||
+    $isExport = $ust_befreit == 2;
+    if ($doctype == 'rechnung') {
+      $dest_country = $this->app->DB->Select("SELECT coalesce(ifnull(l.land,''), r.land) 
+        FROM rechnung r 
+        LEFT OUTER JOIN lieferschein l on r.lieferschein = l.id
+        WHERE r.id='$doctypeid' LIMIT 1");
+      $isExport = $ust_befreit > 0 && !$this->app->erp->IstEU($dest_country);
+    }
+    if(($isExport && ($doctype=='rechnung' || $doctype=='gutschrift')) ||
       ($doctype!='proformarechnung' && $this->getStyleElement('beleg_pos_zolltarifnummer')=='1'))
     {
       if($value['zolltarifnummer']=='' || $value['zolltarifnummer']==0) {
