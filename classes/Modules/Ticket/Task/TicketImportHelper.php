@@ -209,7 +209,7 @@ class TicketImportHelper
                 return($candidate);            
             }
 
-            if ($loopCounter > 99) {
+            if ($loopCounter > 9999) {
                 throw new NumberGeneratorException('ticket number generation failed');
             }
             $loopCounter++;
@@ -289,10 +289,10 @@ class TicketImportHelper
         FROM `ticket_regeln` AS `tr`
         WHERE
           tr.aktiv = 1
-          AND ('".$recipientMail."' LIKE tr.empfaenger_email OR tr.empfaenger_email = '')
-          AND ('".$senderMail."' LIKE tr.sender_email OR tr.sender_email = '')
-          AND ('".$senderMail."' LIKE tr.name OR tr.name = '')
-          AND ('".$subject."' LIKE tr.betreff OR tr.betreff = '')";
+          AND ('".$this->db->real_escape_string($recipientMail)."' LIKE tr.empfaenger_email OR tr.empfaenger_email = '')
+          AND ('".$this->db->real_escape_string($senderMail)."' LIKE tr.sender_email OR tr.sender_email = '')
+          AND ('".$this->db->real_escape_string($senderMail)."' LIKE tr.name OR tr.name = '')
+          AND ('".$this->db->real_escape_string($subject)."' LIKE tr.betreff OR tr.betreff = '')";
 
          $this->logger->debug('ticket rule',['sql' => $sql]);
 
@@ -483,6 +483,9 @@ class TicketImportHelper
     {
         $insertedMailsCount = 0;
         foreach ($inboxMessageIds as $messageNumber) {
+
+            $this->logger->debug("Fetch $messageNumber", ['']);
+
             try {
                 $message = $this->mailClient->fetchMessage((int)$messageNumber);
             } catch (Throwable $e) {
@@ -491,7 +494,8 @@ class TicketImportHelper
             }
             try {
 
-                $this->logger->debug('Start import', ['message' => $message]);
+//                $this->logger->debug('Start import', ['message' => substr(print_r($message,true),1000)]);
+                $this->logger->debug('Start import '.$messageNumber, []);
 
                 $result = $this->importMessage($message);               
 
@@ -503,10 +507,11 @@ class TicketImportHelper
                         $this->mailClient->setFlags((int)$messageNumber, ['\\Seen']);
                     }
                 } else {
-                    $this->logger->error('Error during email import', ['']);
+                    $this->logger->error('Error during email import '.$messageNumber, ['message' => substr(print_r($message,true),0,1000)]);
+                    continue;
                 }
             } catch (Throwable $e) {
-                $this->logger->error('Error during email import', ['exception' => $e]);
+                $this->logger->error('Error during email import '.$messageNumber, ['message' => substr(print_r($message,true),0,1000)]);
                 continue;
             }
         }
@@ -550,7 +555,7 @@ class TicketImportHelper
         if ($plainTextBody == '' && $htmlBody == '') {
             $simple_content = $message->getContent();
             if (empty($simple_content)) {
-                $this->logger->debug('Empty mail',['message' => $message]);    
+                $this->logger->debug('Empty mail',[]);    
             } else {
                 $plainTextBody = $simple_content;
                 $htmlBody = nl2br(htmlentities($simple_content));
@@ -591,9 +596,17 @@ class TicketImportHelper
 
         if ($result == 0) {
 
-            $this->logger->debug('Importing message',['message' => $message]);
+//            $this->logger->debug('Importing message',['message' => substr(print_r($message,true),1000)]);
+            $this->logger->debug('Importing message attachments',[]);
 
-            $attachments = $message->getAttachments();
+            try {   
+                $attachments = $message->getAttachments();
+            }
+            catch (Throwable $e) { 
+                $this->logger->error('Error while getting attachments',['exception' => $e]);            
+                return(false);
+            }
+
             $anhang = count($attachments) > 0 ? 1 : 0;
             $mailacc = $this->mailAccount->getEmailAddress();
             $mailaccid = $this->mailAccount->getId();

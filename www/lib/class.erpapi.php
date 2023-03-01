@@ -1503,9 +1503,11 @@ public function NavigationHooks(&$menu)
   }
 
   // @refactor DbHelper Komponente
-  function FormatMenge($spalte)
+  function FormatMenge($spalte, $decimals = 0)
   {
-    return "replace(trim($spalte)+0,'.',',')";
+    return ('FORMAT('.$spalte.','.$decimals.',\'de_DE\')');
+
+//    return "replace(trim($spalte)+0,'.',',')";
   }
 
   static function add_alias(string $text, $alias = false) {
@@ -7131,6 +7133,7 @@ title: 'Abschicken',
     }
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Import/Export Zentrale','importvorlage','uebersicht');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('W&auml;hrungen','waehrungumrechnung','list');
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Seriennummern','seriennummern','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Chargen','chargen','list');
@@ -22650,7 +22653,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
       }
 
       $isArticleCacheDifferent = $lagerartikel[$ij]['cache_lagerplatzinhaltmenge']
-        != ($verkaufbare_menge_korrektur + $pseudolager);
+        != ((int) $verkaufbare_menge_korrektur + (int) $pseudolager);
 
       $storageCache = $isArticleCacheDifferent
         ? null : $this->getStorageCacheInfosByShopId((int)$shop, (int)$lagerartikel[$ij]['id']);
@@ -22693,9 +22696,9 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
         }
       }
 
-        $this->LogFile('*** UPDATE '.$lagerartikel[$ij]['nummer'].' '.$lagerartikel[$ij]['name_de'].' Shop: '.$shop.' Lagernd: '.$verkaufbare_menge.' Korrektur: '.round($verkaufbare_menge_korrektur - $verkaufbare_menge,7).' Pseudolager: '.round($pseudolager,8));
+        $this->LogFile('*** UPDATE '.$lagerartikel[$ij]['nummer'].' '.$lagerartikel[$ij]['name_de'].' Shop: '.$shop.' Lagernd: '.$verkaufbare_menge.' Korrektur: '.round((float) ($verkaufbare_menge_korrektur - $verkaufbare_menge),7).' Pseudolager: '.round((float) $pseudolager,8));
 
-        $cacheQuantity = $verkaufbare_menge_korrektur + $pseudolager;
+        $cacheQuantity = (int) $verkaufbare_menge_korrektur + (int) $pseudolager;
         $this->app->DB->Update(
           "UPDATE `artikel` SET `cache_lagerplatzinhaltmenge` = '{$cacheQuantity}'
           WHERE `id`= '{$lagerartikel[$ij]['id']}' LIMIT 1"
@@ -28652,12 +28655,6 @@ function Firmendaten($field,$projekt="")
         if(!empty($obj) && method_exists($obj,'GetWaehrungUmrechnungskurs'))
         {
           return $obj->GetWaehrungUmrechnungskurs($von,$nach,$onlytable);
-        }
-        if ($von === 'EUR' && $nach === 'USD') {
-          return 1.20;
-        }
-        if ($von==='EUR' && $nach==='CHF') {
-          return 1.06;
         }
         return 0;
       }

@@ -86,6 +86,18 @@ final class MailMessagePartData implements MailMessagePartInterface, JsonSeriali
     /**
      * @inheritDoc
      */
+    public function getHeaderValue(string $name): ?string
+    {
+        $header = $this->getHeader($name);
+        if ($header == null)   {
+            return (null);
+        } 
+        return($header->getValue());
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getContentType(): string
     {
         $header = $this->getHeader('content-type');
@@ -95,6 +107,33 @@ final class MailMessagePartData implements MailMessagePartInterface, JsonSeriali
         $split = preg_split('/;/', $header->getValue(), -1, 0);
 
         return $split[0];
+    }
+
+   /**
+     * @inheritDoc
+     */
+    public function getCharset(): ?string
+    {
+        $header = $this->getHeader('content-type');
+        if ($header === null) {
+            return '';
+        }
+    	$pattern = "/([a-zA-Z]*[\/]*[a-zA-Z]*);[a-zA-Z\n\t\r0-9 ]*charset=\"([a-zA-Z-0-9]+)\"/i";
+    	$matches = array();               
+        if (preg_match(
+        	$pattern,
+    		$header->getValue(),
+    		$matches
+		)) {
+            if (count($matches) >= 3) {
+                return($matches[2]);
+            } else {
+                return(null);
+            }
+        }
+        else {
+            return(null);
+        }               
     }
 
     /**
@@ -116,17 +155,30 @@ final class MailMessagePartData implements MailMessagePartInterface, JsonSeriali
     /**
      * @return string|null
      */
-    public function getDecodedContent(): ?string
+    public function getDecodedContent(string $to_charset = 'UTF-8'): ?string
     {
+        $result = '';
         if ($this->content === null) {
             return null;
         }
         $encodingHeader = $this->getHeader('content-transfer-encoding');
         if ($encodingHeader === null ) {
-            return $this->content;
+            $result =  $this->content;
+        }
+        else {
+            $result = $this->decode($this->content, $encodingHeader->getValue());
         }
 
-        return $this->decode($this->content, $encodingHeader->getValue());
+        $charset = $this->getCharset();
+
+//        throw new InvalidArgumentException('Charset is '.$charset." Text is: ".$result);                
+
+        $converted = mb_convert_encoding(
+                $result,
+                $to_charset,
+                $charset
+        );
+        return($converted);
     }
 
     /**

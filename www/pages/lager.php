@@ -17,94 +17,14 @@ include __DIR__.'/_gen/lager.php';
 class Lager extends GenLager {
   /** @var Application $app */
   var $app;
-
-  /**
-   * @param string $arttab
-   * @param string $tab1
-   * @param string $tab2
-   *
-   * @return string
-   */
-  static function LetzterEK($arttab = 'art', $tab1 = 'e1', $tab2 = 'e')
-  {
-    return "
-    (
-      SELECT $tab2.artikel, $tab2.waehrung, $tab2.preis FROM
-      (SELECT  max( $tab2.id ) AS id, artikel
-          FROM einkaufspreise $tab2
-          WHERE $tab2.geloescht !=1
-          AND (
-            ifnull($tab2.gueltig_bis,'0000-00-00') = '0000-00-00'
-            OR $tab2.gueltig_bis >= CURDATE( ) 
-            )
-          GROUP BY artikel) ".$tab1." 
-      INNER JOIN einkaufspreise ".$tab2." ON $tab1.id = $tab2.id
-    )
-    ";
-  }
-
+  
   /**
    * @param string $typ
-   * @param bool   $live
    *
    * @return string
    */
-  static function Waehrung($typ = 'letzterek', $live = true)
+  static function Waehrung($typ = 'letzterek')
   {
-    if(!$live)
-    {
-      switch($typ)
-      {
-        case 'letzterek':
-          return "if(ifnull(lw.preis_letzterek,0) <> 0,if(lw.waehrungletzt<>'',lw.waehrungletzt,'EUR'),if(ifnull(ek.waehrung,'')<>'',ek.waehrung,'EUR'))";
-        break;
-        case 'letzerekarchiv':
-          return "if(ifnull(lw.preis_letzterek,0) <> 0,if(lw.waehrungletzt<>'',lw.waehrungletzt,'EUR'),'EUR')";
-          break;
-        case 'inventurwertarchiv':
-          return "if(ifnull(lw.inventurwert,0) <> 0,'EUR',
-           
-            if(ifnull(lw.preis_letzterek,0) <> 0,
-            if(lw.waehrungletzt <> '',lw.waehrungletzt,'EUR'),
-            'EUR'
-            )
-          )";
-          break;
-        case 'inventurwert':
-          return "if(ifnull(lw.inventurwert,0) <> 0,'EUR',
-            if(ifnull(art.inventurekaktiv,0) <> 0
-            ,  'EUR',
-            if(ifnull(lw.preis_letzterek,0) <> 0,
-            if(lw.waehrungletzt <> '',lw.waehrungletzt,'EUR'),
-            if(ifnull(ek.waehrung,'')<>'',ek.waehrung,'EUR')
-            )
-            )
-          )";
-        break;
-        case 'kalkulierterekarchiv':
-          return "
-            if(
-                ifnull(lw.preis_kalkulierterek,0) <> 0
-              ,
-                if(lw.waehrungkalk<>'',lw.waehrungkalk,'EUR')
-              ,   
-                if(ifnull(lw.preis_letzterek,0) <> 0,
-                       if(lw.waehrungletzt<>'',lw.waehrungletzt,'EUR')
-                       ,'EUR'
-                )
-          )";
-          break;
-        default:
-          return "
-            if(ifnull(lw.preis_kalkulierterek,0) <> 0,if(lw.waehrungkalk<>'',lw.waehrungkalk,'EUR'),
-                  if(ifnull(art.verwendeberechneterek,0) <> 0, if(ifnull(art.berechneterekwaehrung,'')<>'',art.berechneterekwaehrung,'EUR')
-                    ,
-                  if(ifnull(lw.preis_letzterek,0) <> 0,if(lw.waehrungletzt<>'',lw.waehrungletzt,'EUR'),if(ifnull(ek.waehrung,'')<>'',ek.waehrung,'EUR'))
-                  )
-          )";
-        break;
-      }
-    }else{
       switch($typ)
       {
         case 'letzterek':
@@ -124,68 +44,41 @@ class Lager extends GenLager {
           ";
         break;
       }
-    }
   }
 
   /**
    * @param string $typ
-   * @param bool   $live
    *
    * @return string
    */
-  public static function EinzelPreis($typ = 'letzterek', $live = true)
-  {
-    if(!$live)
-    {
+  public static function PreisTypErgebnis(string $typ = 'letzterek') : string {
       switch($typ)
-      {
-        case 'letzterekarchiv':
-          return "if(ifnull(lw.preis_letzterek,0) <> 0,lw.preis_letzterek,0)";
-          break;
-        case 'letzterek':
-          return "if(ifnull(lw.preis_letzterek,0) <> 0,lw.preis_letzterek,ifnull(ek.preis,0))";
+      {        
+        case 'kalkulierterek':
+            return("if (art.verwendeberechneterek,'K','E')");
         break;
-        case 'inventurwertarchiv':
-          return "if(ifnull(lw.inventurwert,0) <> 0,lw.inventurwert,
-            ifnull(lw.preis_letzterek,0)
-          )";
-          break;
         case 'inventurwert':
-          return "if(ifnull(lw.inventurwert,0) <> 0,lw.inventurwert,
-            if(ifnull(art.inventurekaktiv,0) <> 0
-            ,  art.inventurek,
-            if(ifnull(lw.preis_letzterek,0) <> 0,lw.preis_letzterek,ifnull(ek.preis,0))
-            )
-          )";
+            return("if (art.inventurekaktiv,'I','E')");
         break;
-        case 'kalkulierterekarchiv':
-          return "
-            if(
-                ifnull(lw.preis_kalkulierterek,0) <> 0,
-                lw.preis_kalkulierterek,
-                ifnull(lw.preis_letzterek,0) 
-             )";
-          break;
-        default:
-          return "
-            if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.preis_kalkulierterek,
-                  if(ifnull(art.verwendeberechneterek,0) <> 0,art.berechneterek
-                    ,if(ifnull(lw.preis_letzterek,0) <> 0,
-                        lw.preis_letzterek,
-                        ifnull(ek.preis,0)
-                    )
-                  )
-          )";
-        break;
-      }
-    }else{
-      switch($typ)
-      {
+        default:       
         case 'letzterek':
-        case 'letzterekarchiv':
+            return("'E'");
+        break;
+        }
+    }
+
+  /**
+   * @param string $typ
+   *
+   * @return string
+   */
+  public static function EinzelPreis($typ = 'letzterek')
+  { 
+    switch($typ)
+    {
+        case 'letzterek':
           return "ifnull(ek.preis,0)";
         break;
-        case 'inventurwertarchiv':
         case 'inventurwert':
           return "if(ifnull(art.inventurekaktiv,0) <> 0,art.inventurek,ifnull(ek.preis,0))";
         break;
@@ -197,193 +90,7 @@ class Lager extends GenLager {
             )
           ";
         break;
-      }
     }
-  }
-
-  /**
-   * @param string $typ
-   * @param bool   $live
-   *
-   * @return string
-   */
-  public static function KursJoin($typ, $live = true)
-  {
-    return " LEFT JOIN (
-              SELECT max(kurs) as kurs, waehrung_von, waehrung_nach FROM waehrung_umrechnung WHERE  (isnull(gueltig_bis) OR gueltig_bis >= now() OR gueltig_bis = '0000-00-00') AND (waehrung_von LIKE 'EUR' OR waehrung_nach LIKE 'EUR') GROUP BY waehrung_von,waehrung_nach
-              ) wt ON wt.waehrung_nach <> 'EUR' AND wt.waehrung_nach = ".self::Waehrung($typ, $live)." OR wt.waehrung_von <> 'EUR' AND wt.waehrung_von = ".self::Waehrung($typ, $live)."  ";
-
-  }
-
-  /**
-   * @param Application $app
-   * @param string      $typ
-   * @param null|bool   $live
-   *
-   * @return string
-   */
-  public static function PreisUmrechnung($app, $typ, $live = null)
-  {
-    $kursusd = $app->erp->GetWaehrungUmrechnungskurs('EUR','USD');
-    $kurschf = $app->erp->GetWaehrungUmrechnungskurs('EUR','CHF');
-    
-    if(!$live)
-    {
-        return '
-              if(
-                ifnull(lw.kursletzt,0)<> 0
-              ,
-                1 / lw.kursletzt
-              ,
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach = '.self::Waehrung($typ, $live).',
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if('.self::Waehrung($typ, $live).' = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if('.self::Waehrung($typ, $live).' = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              )
-              * 
-              '.self::EinzelPreis($typ, $live);
-      
-    }
-    return '
-              
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach =   '.self::Waehrung($typ, $live).',
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if('.self::Waehrung($typ, $live).' = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if('.self::Waehrung($typ, $live).' = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              *
-              '.self::EinzelPreis($typ, $live);
-
-    
-    /*
-    
-    if(!$live)
-    {//aus Cronjob
-      if($typ == 'letzterek')
-      {
-        return '
-              if(
-                ifnull(lw.kursletzt,0)<> 0
-              ,
-                1 / lw.kursletzt
-              ,
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach = lw.waehrungletzt,
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if(lw.waehrungletzt = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if(lw.waehrungletzt = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              )
-              * ifnull(lw.preis_letzterek,0)
-              ';
-      }else{
-        return '
-              if(
-                if(ifnull(lw.preis_kalkulierterek,0) <> 0,ifnull(lw.kurskalk,0),ifnull(lw.kursletzt,0))<> 0
-              ,
-                1 / if(ifnull(lw.preis_kalkulierterek,0) <> 0,ifnull(lw.kurskalk,0),ifnull(lw.kursletzt,0))
-              ,
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach =   if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt),
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if(if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt) = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if(if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt) = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              )
-              * if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.preis_kalkulierterek,ifnull(lw.preis_letzterek,0))
-              ';
-      }
-    }else{
-      if($typ == 'letzterek')
-      {
-        return '
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach = ek.waehrung,
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if(ifnull(ek.waehrung,\'\') = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if(ifnull(ek.waehrung,\'\') = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              
-              * ifnull(ek.preis,0)
-              ';
-      }else{
-        return '
-                if(
-                  ifnull(wt.kurs,0) <> 0
-                ,
-                  if(
-                    wt.waehrung_nach =   if(ifnull(art.berechneterek,0) <> 0,art.berechneterekwaehrung,ifnull(ek.waehrung,\'\')),
-                    (1/wt.kurs),
-                    wt.kurs
-                  )
-                ,
-                  if(if(ifnull(art.berechneterek,0) <> 0,art.berechneterekwaehrung,ifnull(ek.waehrung,\'\')) = \'USD\', 
-                      1.0 / '.$kursusd.',
-                      if(if(ifnull(art.berechneterek,0) <> 0,art.berechneterekwaehrung,ifnull(ek.waehrung,\'\')) = \'CHF\', 
-                        1.0 / '.$kurschf.',
-                      1)
-                  )
-                )
-              
-              * if(ifnull(art.berechneterek,0) <> 0,art.berechneterek,ifnull(ek.preis,0))
-              ';
-      }
-
-    }
-    */
   }
 
   /**
@@ -597,40 +304,27 @@ class Lager extends GenLager {
         $count = "SELECT COUNT(l.id) FROM lager_differenzen l WHERE l.user='" . $app->User->GetID() . "' AND l.lager_platz = 0 ";
         break;
       case "lager_wert":
-        $allowed['lager'] = array('wert');
-        $app->DB->Select("SELECT waehrungkalk,waehrungletzt,kurskalk,kursletzt FROM lagerwert LIMIT 1");
-        if($app->DB->error())
-        {
-          $app->erp->CheckColumn("waehrungkalk", "VARCHAR(16)", "lagerwert", "NOT NULL DEFAULT ''");
-          $app->erp->CheckColumn("waehrungletzt", "VARCHAR(16)", "lagerwert", "NOT NULL DEFAULT ''");
-          $app->erp->CheckColumn("kurskalk","DECIMAL(19,8)", "lagerwert", "NOT NULL DEFAULT '0'");
-          $app->erp->CheckColumn("kursletzt","DECIMAL(19,8)", "lagerwert", "NOT NULL DEFAULT '0'");
-        }
-        $preisart = (String)$app->YUI->TableSearchFilter($name, 1, 'preisart', $app->User->GetParameter("lager_wert_preisart"));
-        if($preisart == '')
-        {
-          $preisart = 'letzterek';
-        }
-        
-        $artikel = (String)$app->YUI->TableSearchFilter($name, 2, 'artikel', $app->User->GetParameter("lager_wert_artikel"));
-        if($artikel)
-        {
-          $artikel = explode(' ', $artikel);
-          $artikel = $app->DB->Select("SELECT id FROM artikel WHERE nummer = '".reset($artikel)."' AND (geloescht = 0 OR isnull(geloescht)) LIMIT 1");
-        }
+        $allowed['lager'] = array('wert');    
 
-        $datum = (String)$app->YUI->TableSearchFilter($name, 3, 'datum', $app->User->GetParameter("lager_wert_datum"));
+        // Get HTML form values
+        $preisart = $app->User->GetParameter('preisart');
+        $datum = $app->User->GetParameter('datum');
+        $gruppierenlager = $app->User->GetParameter('gruppierenlager');
+        $preiseineuro = $app->User->GetParameter('preiseineuro');
+
         if($datum)
         {
           $datum = $app->String->Convert($datum, '%1.%2.%3', '%3-%2-%1');
         }else{
           $datum = date('Y-m-d');
         }
-        $colmenge = 'lw.menge';
+
+        $colgewicht = "ifnull(art.gewicht,'0') * ifnull(lw.menge,0)";
+        $colvolumen = "ifnull(art.laenge,'0')*ifnull(art.breite,'0')*ifnull(art.hoehe,'0')* ifnull(lw.menge,0)";          
+
         if($datum == date('Y-m-d'))
         {
-          $live = true;
-          $colmenge = 'lpi.menge';
+          $live = true;       
         }else{
           $live = false;
           $_datum = $app->DB->Select("SELECT max(datum) FROM lagerwert WHERE datum <= '$datum' AND '$datum' < curdate() ");
@@ -640,304 +334,190 @@ class Lager extends GenLager {
           }
         }
 
-        $lager = (String)$app->YUI->TableSearchFilter($name, 4, 'lager', $app->User->GetParameter("lager_lager"));
-        if($lager)
-        {
-          $lager = $app->DB->Select("SELECT id FROM lager WHERE bezeichnung = '$lager' AND (geloescht = 0 OR isnull(geloescht)) LIMIT 1");
-        }
-        $lagerplatz = (String)$app->YUI->TableSearchFilter($name, 5, 'lagerplatz', $app->User->GetParameter("lager_lagerplatz"));
-        if($lagerplatz)
-        {
-          $lagerplatz = explode(' ', $lagerplatz);
-          $lagerplatz = $app->DB->Select("SELECT id FROM lager_platz WHERE kurzbezeichnung = '".reset($lagerplatz)."' AND (geloescht = 0 OR isnull(geloescht)) LIMIT 1");
-        }
-        $gruppierenlager = (int)$app->YUI->TableSearchFilter($name, 6, 'gruppierenlager', $app->User->GetParameter("lager_wert_gruppierenlager"),0,'checkbox');
-        $preiseineuro = (int)$app->YUI->TableSearchFilter($name, 7, 'preiseineuro', $app->User->GetParameter("lager_wert_preiseineuro"),0,'checkbox');
-        if($preiseineuro)
-        {
-          $kursusd = $app->erp->GetWaehrungUmrechnungskurs('EUR','USD');
-          $kurschf = $app->erp->GetWaehrungUmrechnungskurs('EUR','CHF');
-        }
-        $artikelkategorie = (String)$app->YUI->TableSearchFilter($name, 8, 'artikelkategorie', $app->User->GetParameter("lager_wert_artikelkategorie"));
-        $artikelkategorie = explode(" ", $artikelkategorie);
-        $artikelkategorieid = $artikelkategorie[0];
-        $artikelkategorieid = $app->DB->Select("SELECT id FROM artikelkategorien WHERE id = '$artikelkategorieid' LIMIT 1");
-        if($artikelkategorieid != ''){
-          $artikelkategorie = $artikelkategorieid;
-        }else{
-          $artikelkategorie = 0;
-        }
-        //if($artikelkategorie)$artikelkategorie = $app->DB->Select("SELECT id FROM artikelkategorien WHERE bezeichnung LIKE '%$artikelkategorie%' LIMIT 1");
-        $colgewicht ="if(lw.gewicht = 0,ifnull(art.gewicht,'0') ,lw.gewicht) *lw.menge";
-        $colvolumen = "if(lw.volumen=0,ifnull(art.laenge,'0')*ifnull(art.breite,'0')*ifnull(art.hoehe,'0'),lw.volumen)*lw.menge";
-        $colkurzbezeichnung = 'lp.kurzbezeichnung';
-        $colbezeichnung = 'lag.bezeichnung';
-        if($live)
-        {
-          $colgewicht = "ifnull(art.gewicht,'0') * ifnull(lpi.menge,0)";
-          $colvolumen = "ifnull(art.laenge,'0')*ifnull(art.breite,'0')*ifnull(art.hoehe,'0')* ifnull(lpi.menge,0)";
-          $colkurzbezeichnung = 'lpi.kurzbezeichnung';
-          $colbezeichnung = 'lpi.bezeichnung';
-        }
-        $heading = array('Datum','Artikel-Nr.','Artikel','Artikelkategorie','Lager','Lagerplatz','Menge','Gewicht','Volumen','EK-Preis','Gesamt','W&auml;hrung','letzte Bewegung', '');
-        $width = array('5%','10%','20%','10%','10%','10%','5%','5%','5%','5%','5%','5%','8%', '1%');
-        $findcols = array('lw.datum','art.nummer','art.name_de','(select bezeichnung from artikelkategorien where id=(select SUBSTRING_INDEX(SUBSTRING_INDEX(art.typ, \'kat\', 1), \'_\', 1) as type from artikel where id=art.id))', $colbezeichnung,$colkurzbezeichnung,$colmenge,$colgewicht,$colvolumen);
-        $kursjoin = "";
+        $heading = array('Datum','Artikel-Nr.','Artikel','Artikelkategorie','Lager','Lagerplatz','Menge','Gewicht','Volumen','Preistyp','EK-Preis','W&auml;hrung','Kurs','',  'Gesamt','');
+        $width = array(  '5%',   '05%',        '20%',    '10%',             '10%',  '5%' ,       '5%',   '5%',     '5%',     '1%',      '5%',      '1%',          '1%',  '1%','2%',    '1%');
+        $findcols = array('lw.datum','art.nummer','art.name_de','(select bezeichnung from artikelkategorien where id=(select SUBSTRING_INDEX(SUBSTRING_INDEX(art.typ, \'kat\', 1), \'_\', 1) as type from artikel where id=art.id))', 'lagername', 'name',$colmenge,$colgewicht,$colvolumen);
 
-        $numbercols = array(9, 10);
-        $datecols = array(0);
-
-
-        if($preisart == 'letzterek')
-        {
-          if($preiseineuro){
-            $kursjoin = self::KursJoin($preisart, $datum);
-            $dummy = self::PreisUmrechnung($app, $preisart, $live);
-            /*$dummy = '
-            if(
-              ifnull(lw.kursletzt,0)<> 0
-            ,
-              1 / lw.kursletzt
-            ,
-              if(
-                ifnull(wt.kurs,0) <> 0
-              ,
-                if(
-                  wt.waehrung_nach = lw.waehrungletzt,
-                  (1/wt.kurs),
-                  wt.kurs
-                )
-              ,
-                if(lw.waehrungletzt = \'USD\', 
-                    1.0 / '.$kursusd.',
-                    if(lw.waehrungletzt = \'CHF\', 
-                      1.0 / '.$kurschf.',
-                    1)
-                )
-              )
-            )
-            * ifnull(lw.preis_letzterek,0)
-            ';*/
-          }else{
-            //$dummy = 'ifnull(lw.preis_letzterek,0)';
-            $dummy = self::EinzelPreis($preisart,$live);
-          }
-          $findcols[] = $dummy;
-          $preiscol = $app->erp->FormatPreis($dummy,2);
-          $gesamtcol = "(".$dummy.'*'.$colmenge.")";
-          $findcols[] = $gesamtcol;
-          //$waehrungcol = 'lw.waehrungletzt';
-          $waehrungcol = self::Waehrung($preisart,$live);
-          $findcols[] = $waehrungcol;
-        }elseif($preisart == 'inventurwert'){
-          
-          if($preiseineuro){
-            $dummy = self::PreisUmrechnung($app, $preisart, $live);
-            $kursjoin = self::KursJoin($preisart, $datum);
-          }else{
-            $dummy = 'if(ifnull(lw.inventurwert,0) = 0 AND art.inventurekaktiv = 1, ifnull(art.inventurek,0), ifnull(lw.inventurwert,0))';
-            $dummy = $dummy = self::EinzelPreis($preisart,$live);            
-          }
-          
-
-          $findcols[] = $dummy;
-          $preiscol = $app->erp->FormatPreis($dummy,2);
-          $findcols[] = $dummy.'*'.$colmenge;
-          //$gesamtcol = $app->erp->FormatPreis($dummy.'*'.$colmenge,2);
-          $gesamtcol = "(".$dummy.'*'.$colmenge.")";
-          //$waehrungcol = "'EUR'";
-          $waehrungcol = self::Waehrung($preisart,$live);
-          $findcols[] = $waehrungcol;
-        }else{
-          if($preiseineuro){
-            $kursjoin = self::KursJoin($preisart, $datum);
-
-            /*$dummy = '
-            if(
-              if(ifnull(lw.preis_kalkulierterek,0) <> 0,ifnull(lw.kurskalk,0),ifnull(lw.kursletzt,0))<> 0
-            ,
-              1 / if(ifnull(lw.preis_kalkulierterek,0) <> 0,ifnull(lw.kurskalk,0),ifnull(lw.kursletzt,0))
-            ,
-              if(
-                ifnull(wt.kurs,0) <> 0
-              ,
-                if(
-                  wt.waehrung_nach =   if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt),
-                  (1/wt.kurs),
-                  wt.kurs
-                )
-              ,
-                if(if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt) = \'USD\', 
-                    1.0 / '.$kursusd.',
-                    if(if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.kurskalk,lw.kursletzt) = \'CHF\', 
-                      1.0 / '.$kurschf.',
-                    1)
-                )
-              )
-            )
-            * if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.preis_kalkulierterek,ifnull(lw.preis_letzterek,0))
-            ';*/
-            $dummy = self::PreisUmrechnung($app, $preisart, $live);
-            //$dummy = 'if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.preis_kalkulierterek,ifnull(lw.preis_letzterek,0))';
-          }else{
-            //$dummy = 'if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.preis_kalkulierterek,ifnull(lw.preis_letzterek,0))';
-            $dummy = self::EinzelPreis($preisart,$live);
-          }
-          $findcols[] = $dummy;
-          $preiscol = $app->erp->FormatPreis($dummy,2);
-          $findcols[] = '('.$dummy.'*'.$colmenge.')';
-          //$gesamtcol = $app->erp->FormatPreis('('.$dummy.'*'.$colmenge.')',2);
-          $gesamtcol = '('.$dummy.'*'.$colmenge.')';
-          //$waehrungcol = 'if(ifnull(lw.preis_kalkulierterek,0) <> 0,lw.waehrungkalk,lw.waehrungletzt)';
-          $waehrungcol = self::Waehrung($preisart,$live);
-          $findcols[] = $waehrungcol;
+        if ($preiseineuro) {
+            $preisEUR = "((SELECT preisfinal)*if((SELECT waehrungfinal) = 'EUR' OR (SELECT waehrungfinal) = NULL,1,kurs))";                  
+            $gesamtcol = "(".$preisEUR."* lw.menge)";
+            $kurs = $app->erp->FormatPreis('kurs',2);
+        } else {
+            $gesamtcol = "((SELECT preisfinal)*lw.menge)";
+            $kurs = 1;
         }
-        
-        $findcols[] = 'lw.letzte_bewegung';
+
+        $findcols[] = self::PreisTypErgebnis($preisart);        
+        $findcols[] = $preis;
+        $findcols[] = 'waehrung';
+        $findcols[] = 'kurs';
+        $findcols[] = '';
+        $findcols[] = $gesamtcol;
         $findcols[] = 'art.id';
         
-        //$searchsql = array('art.nummer','art.name_de','lag.bezeichnung','lp.kurzbezeichnung');
         $searchsql = $findcols;
         $searchsql[0] = "date_format(lw.datum,'%d.%m.%Y')";
-        $searchsql[11] = "date_format(lw.letzte_bewegung,'%d.%m.%Y %H:%i:%s')";
 
-        //$columnfilter = true;
         $defaultorder = 1;
         $defaultorderdesc = 0;
-        $alignright = array(7,8,9,10,11);
-        $sumcol = array(8,9,11);
+        $alignright = array(7,8,9,10,11,11,13,15);
+        $sumcol = array(7,15);
+        $numbercols = array(7,8,9,11,13,15);
+        $datecols = array(0);     
         $onequeryperuser = true;
-        $joinek = ' LEFT JOIN '.self::LetzterEK('art', 'e1','e2').' ek ON art.id = ek.artikel';
 
-        if($artikelkategorie > 0){
-          $joinartikelbaum = ' LEFT JOIN artikelbaum_artikel aba ON art.id = aba.artikel';
-        }
-
-        $waehrungcolanz = $waehrungcol;
-        if($preiseineuro){
-          $waehrungcolanz = "'EUR'";
-        }
-        
-        if(!$live)
+        if (!$live)
         {
-          $sql = "SELECT DISTINCT SQL_CALC_FOUND_ROWS art.id, date_format(lw.datum,'%d.%m.%Y'), art.nummer, art.name_de, (select bezeichnung from artikelkategorien where id=(select SUBSTRING_INDEX(SUBSTRING_INDEX(art.typ, 'kat', 1), '_', 1) as type from artikel where id=art.id)) as artikelkategorie, lag.bezeichnung, lp.kurzbezeichnung, 
-          ".$app->erp->FormatMenge('lw.menge',2).",".$app->erp->FormatPreis($colgewicht,2).",".$app->erp->FormatPreis($colvolumen,2)."
-          , $preiscol, ".$app->erp->FormatPreis($gesamtcol,2).", $waehrungcolanz ,ifnull(date_format(lw.letzte_bewegung,'%d.%m.%Y %H:%i:%s'), ''), art.id 
-          FROM artikel art
-          INNER JOIN lagerwert lw  ON lw.artikel = art.id AND (isnull(art.geloescht) OR art.geloescht = 0) AND art.lagerartikel = 1
-          $joinek
-          $kursjoin
-          $joinartikelbaum
-          
-          ";
-          $where = " lw.datum = '$datum' ";
-          if($gruppierenlager)
-          {
-            $sql .= "INNER JOIN (SELECT '' as kurzbezeichnung ) lp ON lp.kurzbezeichnung = ''
-              INNER JOIN lager lag ON lw.lager = lag.id 
-              ";
-            
-            $where .= " AND lw.lager <> 0";
-            if($lager)
-            {
-              $where .= " AND lw.lager = '$lager' ";
-            }
-            if($lagerplatz)
-            {
-              $where .= " AND lw.lager_platz = '$lagerplatz' ";
-            }
-          }else{
-            $sql .= "INNER JOIN lager_platz lp ON lp.id = lw.lager_platz
-                    INNER JOIN lager lag ON lag.id = lp.lager
-            ";
-            $where .= " AND lw.lager = 0";
-            if($lager)
-            {
-              $where .= " AND lw.lager = '$lager' ";
-            }
-            if($lagerplatz)
-            {
-              $where .= " AND lw.lager_platz = '$lagerplatz' ";
-            }
-          }
-        }else{
+          $lagermengen_sql = "(SELECT datum, artikel, menge, lager_platz FROM lagerwert WHERE datum = '$datum')";
+          $where = "1";
 
-          $findcols[0] = 'curdate()';
+        } else { // LIVE
 
-          $sql = "SELECT DISTINCT SQL_CALC_FOUND_ROWS art.id, date_format(curdate(),'%d.%m.%Y'), art.nummer, art.name_de, (select bezeichnung from artikelkategorien where id=(select SUBSTRING_INDEX(SUBSTRING_INDEX(art.typ, 'kat', 1), '_', 1) as type from artikel where id=art.id)) as artikelkategorie, lpi.bezeichnung, lpi.kurzbezeichnung, 
-          ".$app->erp->FormatMenge($colmenge,2).",".$app->erp->FormatPreis($colgewicht,2).",".$app->erp->FormatPreis($colvolumen,2)."
-          , $preiscol, ".$app->erp->FormatPreis($gesamtcol,2).", $waehrungcolanz ,ifnull(date_format(lbew.zeit,'%d.%m.%Y %H:%i:%s'), ''), art.id 
-          FROM artikel art
-          $joinek
-          $joinartikelbaum
-          LEFT JOIN lagerwert lw ON lw.artikel = art.id AND lw.datum = '$datum' AND lw.datum < curdate()
-          $kursjoin
-          ";
-          $where = " (isnull(art.geloescht) OR art.geloescht = 0) AND art.lagerartikel = 1 ";
-          if($gruppierenlager)
-          {
-            $sql .= "INNER JOIN (
-              SELECT lager_platz_inhalt.artikel, sum(lager_platz_inhalt.menge) as menge, '' as kurzbezeichnung,lager.bezeichnung, lager.id as lager 
-              FROM lager_platz_inhalt
-              INNER JOIN lager_platz ON lager_platz_inhalt.lager_platz = lager_platz.id
-              INNER JOIN lager ON lager_platz.lager = lager.id
-              GROUP BY lager_platz_inhalt.artikel, lager.id
-            ) lpi ON lpi.artikel = art.id AND (isnull(art.geloescht) OR art.geloescht = 0) AND art.lagerartikel = 1
-            LEFT JOIN (
-              SELECT max(lb1.logdatei) as zeit, lb1.artikel, lp1.lager as lager
-              FROM lager_bewegung lb1 
-              INNER JOIN lager_platz lp1 ON lb1.lager_platz = lp1.id AND ifnull(lp1.geloescht, 0) = 0
-              INNER JOIN lager l1 ON lp1.lager = l1.id AND ifnull(l1.geloescht,0) = 0
-              GROUP BY lb1.artikel,lp1.lager
-            ) lbew ON lpi.artikel = lbew.artikel AND lpi.lager = lbew.lager
-            ";
-            
-            $where .= " AND lpi.lager <> 0";
-            if($lager)
-            {
-              $where .= " AND lpi.lager = '$lager' ";
-            }
-            //if($lagerplatz)$where .= " AND lpi.lager_platz = '$lagerplatz' ";        
-          }else{
-            $sql .= "INNER JOIN (
-              SELECT lager_platz_inhalt.artikel, sum(lager_platz_inhalt.menge) as menge, lager_platz.kurzbezeichnung,lager.bezeichnung, lager.id as lager,lager_platz.id as lager_platz
-              FROM lager_platz_inhalt
-              INNER JOIN lager_platz ON lager_platz_inhalt.lager_platz = lager_platz.id
-              INNER JOIN lager ON lager_platz.lager = lager.id
-              GROUP BY lager_platz_inhalt.artikel, lager.id, lager_platz.id
-            ) lpi ON lpi.artikel = art.id
-            LEFT JOIN (
-              SELECT max(lb1.logdatei) as zeit, lb1.artikel, lp1.id as lager_platz
-              FROM lager_bewegung lb1 
-              INNER JOIN lager_platz lp1 ON lb1.lager_platz = lp1.id AND ifnull(lp1.geloescht, 0) = 0
-              INNER JOIN lager l1 ON lp1.lager = l1.id AND ifnull(l1.geloescht,0) = 0
-              GROUP BY lb1.artikel,lp1.id
-            ) lbew ON lpi.artikel = lbew.artikel AND lpi.lager_platz = lbew.lager_platz            
-            ";
-            
-            $where .= " AND lpi.lager <> 0";
-            if($lager)
-            {
-              $where .= " AND lpi.lager = '$lager' ";
-            }
-          }
+          $lagermengen_sql = "(
+                SELECT
+                    NOW() as datum,
+                    lager_platz_inhalt.artikel,
+                    SUM(lager_platz_inhalt.menge) AS menge,
+                    lager_platz_inhalt.lager_platz AS lager_platz                 
+                FROM
+                    lager_platz_inhalt
+                GROUP BY
+                    DATE_FORMAT(NOW(), '%d.%m.%Y'),
+                    lager_platz_inhalt.artikel,
+                    lager_platz_inhalt.lager_platz
+                ) ";
 
-          $findcols[10] = "CAST($gesamtcol as DECIMAL(10,2))";
-          $findcols[11] = $waehrungcol;
-          $findcols[12] = "ifnull(lbew.zeit, '')";
-          $searchsql[12] = "date_format(lbew.zeit,'%d.%m.%Y %H:%i:%s')";
-          
-        }
+          $where = "1 ";
+   
+        } // LIVE
+
+        // Subselect to obtain the relevant (minimum) currency conversion rates for a given date       
+        $currency_sql = "       
+            SELECT
+                waehrung_umrechnung.waehrung_von,
+                waehrung_umrechnung.waehrung_nach,
+                MIN(kurs) kurs
+            FROM
+                waehrung_umrechnung
+            WHERE
+                DATE(
+                REPLACE
+                    (
+                        COALESCE(gueltig_bis, '9999-12-31'),
+                        '0000-00-00',
+                        '9999-12-31'
+                    )
+            ) =(
+                SELECT
+                    MIN(
+                        DATE(
+                        REPLACE
+                            (
+                                COALESCE(wu4min.gueltig_bis, '9999-12-31'),
+                                '0000-00-00',
+                                '9999-12-31'
+                            )
+                    )
+                    )
+                FROM
+                    waehrung_umrechnung wu4min
+                WHERE
+                    waehrung_umrechnung.waehrung_von = wu4min.waehrung_von AND waehrung_umrechnung.waehrung_nach = wu4min.waehrung_nach AND DATE(
+                    REPLACE
+                        (
+                            COALESCE(wu4min.gueltig_bis, '9999-12-31'),
+                            '0000-00-00',
+                            '9999-12-31'
+                        )
+                ) >= DATE('".$datum."')
+            )
+            GROUP BY 
+	            waehrung_umrechnung.waehrung_von,
+                waehrung_umrechnung.waehrung_nach
+        "; 
+
+        // Subselect to obtain the relevant (minimum) prices per article
+        $prices_sql = "
+            SELECT
+                artikel,
+                waehrung,
+                preis
+            FROM
+                einkaufspreise
+            WHERE
+                preis =(
+                SELECT
+                    MIN(preis)
+                FROM
+                    einkaufspreise minek
+                WHERE
+                    einkaufspreise.artikel = minek.artikel AND DATE(
+                    REPLACE
+                        (
+                            COALESCE(gueltig_bis, '9999-12-31'),
+                            '0000-00-00',
+                            '9999-12-31'
+                        )
+                ) =(
+                SELECT
+                    MIN(
+                        DATE(
+                        REPLACE
+                            (
+                                COALESCE(ek4min.gueltig_bis, '9999-12-31'),
+                                '0000-00-00',
+                                '9999-12-31'
+                            )
+                    )
+                    )
+                FROM
+                    einkaufspreise ek4min
+                WHERE
+                    minek.artikel = ek4min.artikel AND ek4min.geloescht != 1 AND minek.geloescht != 1 AND DATE(
+                    REPLACE
+                        (
+                            COALESCE(ek4min.gueltig_bis, '9999-12-31'),
+                            '0000-00-00',
+                            '9999-12-31'
+                        )
+                ) >= DATE('".$datum."')
+            )
+            )
+            GROUP BY
+                artikel,
+                waehrung
+        ";        
+
+        $sql = "SELECT DISTINCT SQL_CALC_FOUND_ROWS 
+                            art.id, 
+                            ".$app->erp->FormatDate('lw.datum')." as datum, 
+                            art.nummer, 
+                            art.name_de, 
+                            (select bezeichnung from artikelkategorien where id=(select SUBSTRING_INDEX(SUBSTRING_INDEX(art.typ, 'kat', 1), '_', 1) as type from artikel where id=art.id)) as artikelkategorie,
+                            lagerplatz.lagername,
+                            lagerplatz.name, 
+                            ".$app->erp->FormatMenge('lw.menge',2).",".$app->erp->FormatPreis($colgewicht,2).",".$app->erp->FormatPreis($colvolumen,2)." as menge,
+                            ".self::PreisTypErgebnis($preisart)." as preisart,
+                            ".self::EinzelPreis($preisart)." AS preisfinal,
+                            ".self::Waehrung($preisart)." AS waehrungfinal,
+                            ".$kurs." AS kurs,
+                            '' as hidden,
+                            ".$app->erp->FormatPreis($gesamtcol,2)." as gesamt,
+                            art.id 
+                        FROM 
+                            artikel art 
+                        INNER JOIN ".$lagermengen_sql." AS lw ON lw.artikel = art.id AND (isnull(art.geloescht) OR art.geloescht = 0) AND art.lagerartikel = 1
+                        LEFT JOIN (".$prices_sql.") AS ek ON art.id = ek.artikel AND ".self::Waehrung($preisart)." = ek.waehrung
+                        LEFT JOIN (".$currency_sql.") AS kurs ON kurs.waehrung_von = ".self::Waehrung($preisart)." AND kurs.waehrung_nach = 'EUR'
+        ";
+   
+        $lagerplatz_sql = "(SELECT lager_platz.id, lager.bezeichnung lagername, lager_platz.kurzbezeichnung name from lager INNER JOIN lager_platz on lager_platz.lager = lager.id) lagerplatz";
+
+        $sql .= "INNER JOIN ".$lagerplatz_sql." ON lw.lager_platz = lagerplatz.id";       
+
+        $where .= " AND (isnull(art.geloescht) OR art.geloescht = 0) AND art.lagerartikel = 1 ";      
         
-        if($artikel)
-        {
-          $where .= " AND art.id = '$artikel' ";
-        }
-        if($artikelkategorie > 0){
-          $where .= " AND (aba.kategorie = '$artikelkategorie' OR art.typ = '".$artikelkategorie."_kat') "; 
-          //$where .= " AND art.typ = '".$artikelkategorie."_kat' ";
-        }
-        $sql = $app->YUI->CodiereSQLForOneQuery($sql, $name);
+        $sql = $app->YUI->CodiereSQLForOneQuery($sql, $name);     
 
         $groupby = "";
         $count = "";
@@ -1521,7 +1101,8 @@ class Lager extends GenLager {
     $this->app->ActionHandler("artikelentfernenreserviert", "LagerArtikelEntfernenReserviert");
     $this->app->ActionHandler("letztebewegungen", "LagerLetzteBewegungen");
     $this->app->ActionHandler("schnelleinlagern", "LagerSchnellEinlagern");
-    
+    $this->app->ActionHandler("wert", "LagerWert");
+    $this->app->ActionHandler("wert2", "LagerWert2");
     $this->app->ActionHandler("schnellumlagern", "LagerSchnellUmlagern");
     $this->app->ActionHandler("schnellauslagern", "LagerSchnellAuslagern");
     
@@ -2073,10 +1654,41 @@ class Lager extends GenLager {
   public function LagerWert()
   {
       $this->LagerHauptmenu();
-      $this->app->Tpl->Set('VERS','Professional');
+/*      $this->app->Tpl->Set('VERS','Professional');
       $this->app->Tpl->Set('MODUL','Professional');
-      $this->app->Tpl->Parse('PAGE', 'only_version.tpl');
+      $this->app->Tpl->Parse('PAGE', 'only_version.tpl');    
+
+    ROFLMAO
+
+*/
+
+    // Transfer Parameters to TableSearch
+    $gruppierenlager = $this->app->Secure->GetPOST('gruppierenlager');
+    $this->app->User->SetParameter('gruppierenlager', $gruppierenlager);
+
+    $preiseineuro = $this->app->Secure->GetPOST('preiseineuro');
+    $this->app->User->SetParameter('preiseineuro', $preiseineuro);    
+
+    $datum = $this->app->Secure->GetPOST('datum');
+    $this->app->User->SetParameter('datum', $datum);
+
+    $preisart = $this->app->Secure->GetPOST('preisart');
+    $this->app->User->SetParameter('preisart', $preisart);
+
+    $this->app->YUI->DatePicker("datum");
+ 
+  	$this->app->Tpl->Set('DATUM', $datum);
+  	$this->app->Tpl->Set('PREISEINEURO', $preiseineuro==1?"checked":"");
+    $this->app->Tpl->Set('GRUPPIERENLAGER', $gruppierenlager==1?"checked":"");
+
+  	$this->app->Tpl->Set(strtoupper($preisart), 'selected');
+
+    $this->app->erp->MenuEintrag('index.php?module=lager&action=list','zur&uuml;ck zur &Uuml;bersicht');
+    $this->app->erp->Headlines('','Bestand');
+    $this->app->YUI->TableSearch('TAB1', 'lager_wert', 'show','','',basename(__FILE__), __CLASS__);
+    $this->app->Tpl->Parse('PAGE','lager_wert.tpl');  
   }
+
 
   public function LagerBuchenZwischenlagerDelete()
   {
@@ -2362,7 +1974,6 @@ class Lager extends GenLager {
       $alles_komplett++;
     }
 
-
     $artikel_tmp = $this->app->DB->Select("SELECT id FROM artikel WHERE nummer='$nummer' AND nummer!='' AND geloescht!=1 AND lagerartikel=1 LIMIT 1");
     $ean = $this->app->DB->Select("SELECT id FROM artikel WHERE ean='$nummer' AND ean!='' AND geloescht!=1 AND lagerartikel=1 LIMIT 1");
     if($artikel_tmp <=0 && $ean > 0) 
@@ -2381,8 +1992,12 @@ class Lager extends GenLager {
 
     // gibts regal
     $regalcheck = $this->app->DB->Select("SELECT id FROM lager_platz WHERE id='$regal' LIMIT 1");
-    if ($regalcheck != $regal || $regal == '' || $regal == 0) {
+    if ($regalcheck != $regal) {
       $grund.= "<li>Regal gibt es nicht!</li>";
+      $alles_komplett++;
+    }
+    if ($regal == '' || $regal == 0) {
+      $grund.= "<li>Bitte Regal angeben.</li>";
       $alles_komplett++;
     }
 
