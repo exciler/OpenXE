@@ -1,5 +1,11 @@
 <?php
 
+/*
+ * SPDX-FileCopyrightText: 2022 Andreas Palm
+ *
+ * SPDX-License-Identifier: LicenseRef-EGPL-3.1
+ */
+
 class Shopimporter_Presta extends ShopimporterBase
 {
   private $app;
@@ -211,6 +217,11 @@ class Shopimporter_Presta extends ShopimporterBase
       $customer = $this->prestaRequest('GET', "customers/$order->id_customer");
       $cart['email'] = strval($customer->customer->email);
 
+      $language = $this->prestaRequest('GET', "languages/{$customer->customer->id_lang}");
+      if ($language->language->iso_code == "en") {
+        $cart['kunde_sprache'] = 'englisch';
+      }
+
       $invoiceAddress = $this->prestaRequest('GET', "addresses/$order->id_address_invoice");
       $invoiceAddress = $invoiceAddress->address;
       $invoiceCountry = $this->prestaRequest('GET', "countries/$invoiceAddress->id_country");
@@ -273,17 +284,20 @@ class Shopimporter_Presta extends ShopimporterBase
 
       $cart['articlelist'] = [];
       foreach ($order->associations->order_rows->order_row as $order_row) {
-
-        $steuersatz = (strval($order_row->unit_price_tax_incl) / strval($order_row->unit_price_tax_excl)) - 1;
-        $steuersatz = round($steuersatz, 1);
-
-        $cart['articlelist'][] = [
+        $article = [
             'articleid' => strval($order_row->product_reference),
             'name' => strval($order_row->product_name),
             'quantity' => strval($order_row->product_quantity),
             'price_netto' => strval($order_row->unit_price_tax_excl),
-            'steuersatz' => $steuersatz
         ];
+
+        if ($order_row->unit_price_tax_excl > 0) {
+          $steuersatz = (strval($order_row->unit_price_tax_incl) / strval($order_row->unit_price_tax_excl)) - 1;
+          $steuersatz = round($steuersatz, 1);
+          $article['steuersatz'] = $steuersatz;
+        }
+
+        $cart['articlelist'][] = $article;
       }
 
       $fetchedOrders[] = [
