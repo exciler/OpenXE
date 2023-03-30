@@ -1,9 +1,16 @@
+<!--
+SPDX-FileCopyrightText: 2023 Andreas Palm
+SPDX-FileCopyrightText: 2019 Xentral ERP Software GmbH, Fuggerstrasse 11, D-86150 Augsburg
+
+SPDX-License-Identifier: LicenseRef-EGPL-3.1
+-->
+
 <!DOCTYPE html>
 <html lang="de">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' xentral.com *.xentral.com xentral.biz *.xentral.biz *.wawision.de *.embedded-projects.net maps.googleapis.com maps.gstatic.com www.youtube.com thumbs.ebaystatic.com [ADDITIONALCSPHEADER];">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' xentral.com *.xentral.com xentral.biz *.xentral.biz *.wawision.de *.embedded-projects.net maps.googleapis.com maps.gstatic.com www.youtube.com thumbs.ebaystatic.com localhost:5173 [ADDITIONALCSPHEADER];">
     <title>[HTMLTITLE]</title>
     <link rel="stylesheet" href="./themes/[THEME]/css/normalize.min.css?v=6">
     <link rel="stylesheet" href="./themes/[THEME]/css/[COLORCSSFILE]?v=7">
@@ -97,6 +104,7 @@ $(document).ready(function() {
 </style>
 [FINALCSSLINKS]
 [MODULEJAVASCRIPTHEAD]
+[JAVASCRIPTMODULES]
 [MODULESTYLESHEET]
   </head>
   <body class="[LAYOUTFIXMARKERCLASS]" data-module="[MODULE]" data-action="[ACTION]" data-version="[REVISION]">
