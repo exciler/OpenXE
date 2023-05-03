@@ -6,7 +6,9 @@
 		<li><a href="#tabs-3">{|Zeiterfassung|}</a></li>
 		<li><a href="#tabs-4">{|Wiedervorlagen|}</a></li>
 		<li><a href="#tabs-5">{|Notizen|}</a></li>
-		<li><a href="#tabs-6">{|Kontorahmen|}</a></li>
+		<li><a href="#tabs-6">{|Kontenrahmen|}</a></li>
+		<li><a href="#tabs-7">{|Kontoauszug|}</a></li>
+		<li><a href="#tabs-8">{|St&uuml;ckliste|}</a></li>
 	</ul>
 
 	<div id="tabs-1">
@@ -508,7 +510,7 @@
 	    <div class="row">
 		    <div class="col-xs-12 col-sm-1 col-sm-height">
 			    <div class="inside inside-full-height">
-				    <fieldset><legend>{|Kontorahmen|}</legend>
+				    <fieldset><legend>{|Kontenrahmen|}</legend>
 					    <table class="mkTable">
 						    <tr>
 							    <th>Variable</th>
@@ -551,4 +553,143 @@
 		    </div>
 	    </div>
 	</div>
+    <div id="tabs-7">
+	    <div class="row">
+		    <div class="col-xs-12 col-sm-1 col-sm-height">
+			    <div class="inside inside-full-height">
+				    <fieldset><legend>{|Kontoauszug|}</legend>
+					    <table class="mkTable">
+						    <tr>
+							    <th>Variable</th>
+							    <th>Beschreibung</th>
+							    <th>Kommentar</th>
+						    </tr>
+						    <tr>
+							    <td>konto</td>
+							    <td>Konto-Kurzbezeichnung</td>
+							    <td></td>
+						    </tr>
+						    <tr>
+							    <td>buchung</td>
+							    <td>Buchungsdatum</td>
+							    <td>Im Format DD.MM.YYYY</td>
+						    </tr>
+						    <tr>
+							    <td>betrag</td>
+							    <td>Betrag</td>
+							    <td></td>
+						    </tr>
+						    <tr>
+							    <td>betrag2</td>
+							    <td>Betrag (wenn z.B. Soll / Haben getrennt)</td>
+							    <td></td>
+						    </tr>
+						    <tr>
+							    <td>waehrung</td>
+							    <td>W&auml;hrung</td>
+							    <td>Muss in den W&auml;hrungen vorhanden sein</td>
+						    </tr>
+						    <tr>
+							    <td>buchungstext</td>
+							    <td>Buchungstext</td>
+							    <td>Wird für die Zuordnung verwendet</td>
+						    </tr>
+						    <tr>
+							    <td>buchungstext2</td>
+							    <td>Buchungstext</td>
+							    <td>Wird für die Zuordnung verwendet</td>
+						    </tr>
+						    <tr>
+							    <td>buchungstext3</td>
+							    <td>Buchungstext</td>
+							    <td>Wird für die Zuordnung verwendet</td>
+						    </tr>
+						    <tr>
+							    <td>buchungstext4</td>
+							    <td>Buchungstext</td>
+							    <td>Wird für die Zuordnung verwendet</td>
+						    </tr>
+					    </table>
+				    </fieldset>
+			    </div>
+		    </div>
+	    </div>    
+	</div>
+    <div id="tabs-8">
+	    <div class="row">
+		    <div class="col-xs-12 col-sm-1 col-sm-height">
+			    <div class="inside inside-full-height">
+				    <fieldset><legend>{|St&uuml;ckliste|}</legend>
+					    <table class="mkTable">
+						    <tr>
+							    <th>Variable</th>
+							    <th>Beschreibung</th>
+							    <th>Kommentar</th>
+						    </tr>
+						    <tr>
+							    <td>stuecklistevonartikel</td>
+							    <td>Hauptartikel (muss eine St&uuml;ckliste sein)</td>
+							    <td>Artikelnummer</td>
+						    </tr>
+						    <tr>
+							    <td>artikel</td>
+							    <td></td>
+							    <td>Artikelnummer</td>
+						    </tr>						    
+						    <tr>
+							    <td>menge</td>
+							    <td>Zahl</td>
+							    <td></td>
+						    </tr>
+                            <tr>
+							    <td>referenz</td>
+							    <td>Text</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+                            <tr>
+							    <td>place</td>
+							    <td>Leer oder 'DNP' = Nicht platzieren</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+						    <tr>
+							    <td>layer</td>
+							    <td>"top" oder "bottom"</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+						    <tr>
+							    <td>wert</td>
+							    <td>Text</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+						    <tr>
+							    <td>bauform</td>
+							    <td>Text</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+						    <tr>
+							    <td>zachse</td>
+							    <td>Zahl</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>                           						   
+						    <tr>
+							    <td>xpos</td>
+							    <td>Zahl</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>
+						    <tr>
+							    <td>ypos</td>
+							    <td>Zahl</td>
+							    <td>F&uuml;r Best&uuml;ckungen</td>
+						    </tr>                           
+						    <tr>
+							    <td>art</td>
+							    <td>Einkaufsteil "et",Informationsteil "it" oder Beistellung "bt"</td>
+							    <td>Alternativposition?</td>
+						    </tr>
+					    </table>
+				    </fieldset>
+			    </div>
+		    </div>
+	    </div>
+    </div>
 </div>
