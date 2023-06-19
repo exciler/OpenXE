@@ -1252,7 +1252,7 @@ Options -Indexes
 # Deny access to all *.php
 Order deny,allow
 Allow from all
-<FilesMatch "\.(css|jpg|jpeg|gif|png|svg|js)$">
+<FilesMatch "\.(css|jpg|jpeg|gif|png|svg|js|ico|css.map)$">
     Order Allow,Deny
     Allow from all
 </FilesMatch>
@@ -1268,6 +1268,10 @@ Allow from all
 </Files>
 # Allow access to inline PDF viewer
 <Files viewer.html>
+    Order Allow,Deny
+    Allow from all
+</Files>
+<Files robots.txt>
     Order Allow,Deny
     Allow from all
 </Files>

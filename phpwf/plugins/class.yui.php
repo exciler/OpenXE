@@ -1259,7 +1259,7 @@ class YUI {
             }elseif($check[0]['sort'] < $check2[0]['pos'])
             {
               $kinderartikel = $this->app->DB->SelectArr("SELECT id,sort FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."' ORDER BY sort ASC");
-              if(count($kinderartikel)){
+              if((empty($kinderartikel)?0:count($kinderartikel))){
                 $maxsortkind = $this->app->DB->Select("SELECT max(sort) FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."'");
                 $zuverschiebendezwischenpositionen = $this->app->DB->SelectArr("SELECT ID,pos FROM beleg_zwischenpositionen WHERE doctype='$module' AND doctypeid='$id' AND pos <='$maxsortkind' AND pos >= '".$check[0]['sort']."'");
                 $zwipos = "(".implode(",", $zuverschiebendezwischenpositionen).")";
@@ -1273,13 +1273,13 @@ class YUI {
               $this->app->DB->Update("UPDATE ".$module."_position SET sort = ".$check2[0]['pos']." WHERE $module = '$id' AND id = '".$check[0]['id']."'");
               if(!empty($kinderartikel)){
                 $elternsort = $check[0]['sort'];
-                $ckinderartikel = count($kinderartikel);
+                $ckinderartikel = (empty($kinderartikel)?0:count($kinderartikel));
                 for ($i=0; $i < $ckinderartikel; $i++) {
                   $this->app->DB->Update("UPDATE beleg_zwischenpositionen SET pos = pos - 1 WHERE doctype = '".$module."' AND doctypeid = '$id' AND pos < '".($check2[0]['pos'])."' AND pos >= '".$check[0]['sort']."'");
                   $this->app->DB->Update("UPDATE ".$module."_position SET sort = sort - 1 WHERE $module = '$id' AND sort > '$elternsort' AND sort <= '".$check2[0]['pos']."'");
                   $this->app->DB->Update("UPDATE ".$module."_position SET sort = '".($check2[0]['pos']-$i)."' WHERE $module = '$id' AND id = '".$kinderartikel[$i]['id']."' LIMIT 1");
                 }
-                if(count($zuverschiebendezwischenpositionen)){
+                if((empty($zuverschiebendezwischenpositionen)?0:count($zuverschiebendezwischenpositionen))){
                   $positionsanzahl = $this->app->DB->Select("SELECT sort-".$check[0]['sort']." FROM auftrag_position WHERE id = '".$check[0]['id']."'");
                   foreach ($zuverschiebendezwischenpositionen as $zkey => $zvalue) {
                     $this->app->DB->Update("UPDATE beleg_zwischenpositionen SET pos = ".$zvalue['pos']." + $positionsanzahl WHERE id = '".$zvalue['ID']."'");
@@ -1293,7 +1293,7 @@ class YUI {
               {
                 $kinderartikel = $this->app->DB->SelectArr("SELECT id,sort FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."' ORDER BY sort ASC");
                 $zuverschiebendezwischenpositionen= array(0);
-                if(count($kinderartikel)){
+                if((empty($kinderartikel)?0:count($kinderartikel))){
                   $maxsortkind = $this->app->DB->Select("SELECT max(sort) FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."'");
                   $zuverschiebendezwischenpositionentmp = $this->app->DB->SelectArr("SELECT ID FROM beleg_zwischenpositionen WHERE doctype='$module' AND doctypeid='$id' AND pos <='$maxsortkind' AND pos >= '".$check[0]['sort']."'");
                   $zuverschiebendezwischenpositionen = array(0);
@@ -1319,7 +1319,7 @@ class YUI {
                 if(!empty($kinderartikel)){
                   $elternsort = $check2[0]['pos']+1;
                   $zielpos = $elternsort+1;
-                  $ckinderartikel = count($kinderartikel);
+                  $ckinderartikel = (empty($kinderartikel)?0:count($kinderartikel));
                   for ($i=0; $i < $ckinderartikel; $i++) {
                     $this->app->DB->Update("UPDATE ".$module."_position SET sort = sort + 1 WHERE $module = '$id' AND sort < '".$kinderartikel[$i]['sort']."' AND sort > '".($elternsort+$i)."'");
                     $this->app->DB->Update("UPDATE ".$module."_position SET sort = '".($zielpos+$i)."' WHERE $module = '$id' AND id =  '".$kinderartikel[$i]['id']."' LIMIT 1");
@@ -1355,12 +1355,12 @@ class YUI {
             if($check[0]['sort'] < $check2[0]['sort'])
             {
               $maxsort = $check[0]['sort'];
-              $zuverschiebendezwischenpositionen = '';
+              $zuverschiebendezwischenpositionen = array(0);
               $kinderartikel = $this->app->DB->SelectArr("SELECT id,sort FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."' ORDER BY sort ASC");
-              if(count($kinderartikel)){
+              if((empty($kinderartikel)?0:count($kinderartikel))){
                 $maxsortkind = $this->app->DB->Select("SELECT max(sort) FROM ".$module."_position WHERE explodiert_parent ='".$check[0]['id']."'");
                 $zuverschiebendezwischenpositionentmp = $this->app->DB->SelectArr("SELECT ID FROM beleg_zwischenpositionen WHERE doctype='$module' AND doctypeid='$id' AND pos >='$maxsort' AND pos <= '$maxsortkind'");
-                $zuverschiebendezwischenpositionen = array();
+                $zuverschiebendezwischenpositionen = array(0);
                 if(is_array($zuverschiebendezwischenpositionentmp)){
                   foreach ($zuverschiebendezwischenpositionentmp as $key => $value) {
                     $zuverschiebendezwischenpositionen[] = $value['ID'];
@@ -1376,10 +1376,10 @@ class YUI {
               $this->app->DB->Update("UPDATE ".$module."_position SET sort = '".$check2[0]['sort']."' WHERE $module = '$id' AND id =  '".$check[0]['id']."' LIMIT 1");
 
               if(!empty($kinderartikel)){
-                $differenzwert = $check2[0]['sort'] - $check[0]['sort']-count($kinderartikel);
+                $differenzwert = $check2[0]['sort'] - $check[0]['sort']-(empty($kinderartikel)?0:count($kinderartikel));
                 $this->app->DB->Update("UPDATE beleg_zwischenpositionen SET pos=pos+$differenzwert WHERE id IN $zwipos");
                 $elternsort = $check2[0]['sort'];
-                $ckinderartikel = count($kinderartikel);
+                $ckinderartikel = (empty($kinderartikel)?0:count($kinderartikel));
                 for ($i=0; $i < $ckinderartikel; $i++) {
                   $this->app->DB->Update("UPDATE ".$module."_position SET sort = sort - 1 WHERE $module = '$id' AND sort > '".$kinderartikel[$i]['sort']."' AND sort < '$elternsort'");
                   $this->app->DB->Update("UPDATE ".$module."_position SET sort = '$elternsort' WHERE $module = '$id' AND id =  '".$kinderartikel[$i]['id']."' LIMIT 1");
@@ -1412,7 +1412,7 @@ class YUI {
                 $differenzwert = $check[0]['sort'] - ($check2[0]['sort'] + 1);
                 $this->app->DB->Update("UPDATE beleg_zwischenpositionen SET pos=pos-$differenzwert WHERE id IN $zwipos");
                 $elternsort = $check2[0]['sort']+1;
-                $ckinderartikel = count($kinderartikel);
+                $ckinderartikel = (empty($kinderartikel)?0:count($kinderartikel));
                 for ($i=0; $i < $ckinderartikel; $i++) {
                   $this->app->DB->Update("UPDATE beleg_zwischenpositionen SET pos = pos  + 1 WHERE doctype = '".$module."' AND doctypeid = '$id' AND pos >= '".$check2[0]['sort']."' AND pos <= '$maxsortkind' AND NOT id IN $zwipos");
                   $this->app->DB->Update("UPDATE ".$module."_position SET sort = sort + 1 WHERE $module = '$id' AND sort < '".$maxsortkind."' AND sort > '$elternsort'");
@@ -1454,7 +1454,9 @@ class YUI {
       $intern = false;
       $cmd = $this->app->Secure->GetGET('cmd');
     }
-    
+
+    $priceCol = 'b.preis';
+
     if($cmd === 'getpreise') {
       $ret = null;
       //$scol = $this->app->Secure->GetPOST('scol');
@@ -1472,7 +1474,6 @@ class YUI {
         $projekt = $moduleArr['projekt'];//$this->app->DB->Select("SELECT projekt FROM $module WHERE id = '$id' LIMIT 1");
         $adresse = $moduleArr['adresse'];//$this->app->DB->Select("SELECT adresse FROM $module WHERE id = '$id' LIMIT 1");
         $funktion = ucfirst($module).'MitUmsatzeuer';
-        $priceCol = 'b.preis';
         $join = '';
         $anrede = 'firma';
         if(!$this->app->erp->AnzeigeBelegNettoAdresse($anrede, $module, $projekt, $adresse, $id)
@@ -1507,7 +1508,7 @@ class YUI {
       $positionsIds = [];
       foreach($prices as $priceInForm) {
         $priceSplit = explode(':', $priceInForm);
-        if(count($priceSplit) == 2) {
+        if((empty($priceSplit)?0:count($priceSplit)) == 2) {
           $elementId = $priceSplit[0];
           $price = trim($priceSplit[1]);
           $idSplit = explode('split', $elementId);
@@ -1519,7 +1520,7 @@ class YUI {
       }
       foreach($quantities as $quantityInForm) {
         $quantitySplittet = explode(':', $quantityInForm);
-        if(count($quantitySplittet) == 2) {
+        if((empty($quantitySplittet)?0:count($quantitySplittet)) == 2) {
           $elementId = $quantitySplittet[0];
           $quantity = $this->app->erp->ReplaceMenge(1, trim($quantitySplittet[1]), 1);
           if(!is_numeric($quantity)) {
@@ -1541,7 +1542,7 @@ class YUI {
       if(!empty($positionsIds)) {
         $positions = $this->app->DB->SelectArr(
           sprintf(
-            "SELECT b.id, %s AS `preis`, b.menge  
+            "SELECT b.id, %s AS `preis`, round(b.menge) as menge  
             FROM `%s` AS `b` 
             %s 
             WHERE b.`%s` = %d AND b.id IN (%s)",
@@ -1560,8 +1561,8 @@ class YUI {
             ) {
               $price = rtrim(number_format($position['preis'], 8, ',', '.'), '0');
               $priceSplit = explode(',', $price);
-              if(strlen($priceSplit[count($priceSplit)-1]) < 2) {
-                $price .= str_repeat('0',2-strlen($priceSplit[count($priceSplit)-1]));
+              if(strlen($priceSplit[(empty($priceSplit)?0:count($priceSplit))-1]) < 2) {
+                $price .= str_repeat('0',2-strlen($priceSplit[(empty($priceSplit)?0:count($priceSplit))-1]));
               }
               $ret[] = ['elid' => $arr[$positionId]['price_id'], 'value' => $price];
             }
@@ -2251,7 +2252,7 @@ class YUI {
               $allestaffelpreise = array();
               $allestaffelpreise = $this->app->DB->SelectArr("SELECT * FROM verkaufspreise WHERE artikel='$artikel_id' AND geloescht = 0 AND (gueltig_bis >= '".date("Y-m-d")."' OR gueltig_bis = '0000-00-00') AND (gueltig_ab <= '".date("Y-m-d")."' OR gueltig_ab = '0000-00-00') AND (adresse='0' OR adresse='$adresse') AND (gruppe='0') AND inbelegausblenden=0");
               $anzeigepreise = array();
-              for ($i=0; $i < count($allestaffelpreise); $i++) {
+              for ($i=0; $i < (empty($allestaffelpreise)?0:count($allestaffelpreise)); $i++) {
                 if(!isset($anzeigepreise[$allestaffelpreise[$i]['ab_menge']])){
                   $anzeigepreise[$allestaffelpreise[$i]['ab_menge']] = $allestaffelpreise[$i];
                 }else{
@@ -2260,7 +2261,7 @@ class YUI {
                   }
                 }
               }
-              if(count($anzeigepreise)>1){
+              if((empty($anzeigepreise)?0:count($anzeigepreise))>1){
                 ksort($anzeigepreise);
                 $staffelpreistext = '';
                 $belegsprache = $this->app->DB->Select("SELECT sprache FROM $module WHERE id='$id' LIMIT 1");
@@ -2580,7 +2581,7 @@ class YUI {
 
 
 
-               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, ".$this->app->erp->FormatMenge('b.menge')." as menge, ".$this->FormatPreis($preiscell)." as preis,b.waehrung, ".$this->FormatPreis('b.rabatt')." as rabatt, ";
+               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, round(b.menge) as menge, ".$this->FormatPreis($preiscell)." as preis,b.waehrung, ".$this->FormatPreis('b.rabatt')." as rabatt, ";
         
                
         $sql .= "b.id as id
@@ -2600,7 +2601,7 @@ class YUI {
             as Artikel,
 
 
-               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, ".$this->app->erp->FormatMenge('b.menge')." as menge, if(b.geliefert, ".$this->app->erp->FormatMenge('b.geliefert')." ,'-') as geliefert, b.id as id
+               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, round(b.menge) as menge, if(b.geliefert, ".$this->app->erp->FormatMenge('b.geliefert')." ,'-') as geliefert, b.id as id
                  FROM $table b
                  LEFT JOIN artikel a ON a.id=b.artikel LEFT JOIN projekt p ON b.projekt=p.id
                  WHERE b.$module='$id'";
@@ -2655,7 +2656,7 @@ class YUI {
 
 
                p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, 
-               ".$this->app->erp->FormatMenge('b.menge')." as menge, 
+               round(b.menge) as menge, 
                if(b.geliefert, ".$this->app->erp->FormatMenge('b.geliefert')." ,'-') as geliefert,
                if(b.menge_eingang, ".$this->app->erp->FormatMenge('b.menge_eingang')." ,'-') as `Eingang`,
                if(b.menge_gutschrift, ".$this->app->erp->FormatMenge('b.menge_gutschrift')." ,'-') as `Menge Gutschrift`,
@@ -2677,7 +2678,7 @@ class YUI {
             as Artikel,
 
 
-               p.abkuerzung as projekt, b.nummer as nummer, ".$this->app->erp->FormatMenge('b.menge')."  as menge, 
+               p.abkuerzung as projekt, b.nummer as nummer, round(b.menge) as menge, 
                ".$this->FormatPreis(' b.preis')." as preis,
 
                b.id as id
@@ -2694,7 +2695,7 @@ class YUI {
             as Artikel,
 
 
-               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(b.lieferdatum,'%d.%m.%Y') as lieferdatum, ".$this->app->erp->FormatMenge('b.menge')." as menge,
+               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(b.lieferdatum,'%d.%m.%Y') as lieferdatum, round(b.menge) as menge,
 
                b.id as id
                  FROM $table b
@@ -2716,7 +2717,7 @@ class YUI {
           if(CHAR_LENGTH(b.bezeichnunglieferant)>" . $this->app->erp->MaxArtikelbezeichnung() . ",CONCAT(SUBSTR(CONCAT(b.bezeichnunglieferant,' *'),1," . $this->app->erp->MaxArtikelbezeichnung() . "),'...'),CONCAT(b.bezeichnunglieferant,' *')),
             if(CHAR_LENGTH(b.bezeichnunglieferant)>" . $this->app->erp->MaxArtikelbezeichnung() . ",CONCAT(SUBSTR(b.bezeichnunglieferant,1," . $this->app->erp->MaxArtikelbezeichnung() . "),'...'),b.bezeichnunglieferant)))
               as Artikel,
-                 p.abkuerzung as projekt,  a.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum,".$this->app->erp->FormatMenge('b.menge')." as menge, ".$this->FormatPreis(' b.preis')."  as preis, b.waehrung, b.id as id
+                 p.abkuerzung as projekt,  a.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, round(b.menge) as menge, ".$this->FormatPreis(' b.preis')."  as preis, b.waehrung, b.id as id
                    FROM $table b
                    LEFT JOIN artikel a ON a.id=b.artikel LEFT JOIN projekt p ON b.projekt=p.id
                    WHERE b.$module='$id'";
@@ -3419,7 +3420,7 @@ class YUI {
           $check = $this->app->DB->Select("SELECT id FROM `auftragsampel_auftrageinstellungen` LIMIT 1");
           $deaktivertok = false;
           if(!$this->app->DB->error())$deaktivertok = true;
-          $anzahl3 = count($auftragsampel);
+          $anzahl3 = (empty($auftragsampel)?0:count($auftragsampel));
           $anzahl += $anzahl3;
           $ifextra2a[] = " a.status = 'abgeschlossen' ";
           foreach($auftragsampel as $k => $ampel)
@@ -3440,7 +3441,7 @@ class YUI {
             if($deaktivertok) $_extra2e = "),'<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/abgeschlossen.png\" title=\"Auftragsampel deaktivert\" border=\"0\" style=\"margin-right:1px\">'
             
             )";
-            if($deaktivertok) $_extra2e = "),'".str_repeat($_extra2icon,count($auftragsampel))."')";
+            if($deaktivertok) $_extra2e = "),'".str_repeat($_extra2icon,(empty($auftragsampel)?0:count($auftragsampel)))."')";
             $extra3 .= ",'".$abgeschlossen."'";
             $ifextra2a[] = " 
             substring(ifnull(aac.status,'".str_repeat('0', $anzahl3)."'),$k2,1) = '1' ";
@@ -3452,7 +3453,7 @@ class YUI {
             $check = $this->app->DB->Select("SELECT id FROM `auftragsampel_auftrageinstellungen` LIMIT 1");
             $deaktivertok = false;
             if(!$this->app->DB->error())$deaktivertok = true;
-            $anzahl3 = count($auftragsampel);
+            $anzahl3 = (empty($auftragsampel)?0:count($auftragsampel));
             $anzahl += $anzahl3;
             $ifextra2a[] = " a.status = 'abgeschlossen' ";
             foreach($auftragsampel as $ampel)
@@ -3462,7 +3463,7 @@ class YUI {
               if($deaktivertok) $_extra2a = ",if(isnull((SELECT aae.id FROM auftragsampel_auftrageinstellungen aae WHERE aae.auftrag = a.id AND aae.deaktiviert = 1 LIMIT 1)),concat(''";
               $extra2 .= "IF(isnull( (SELECT aampa.id FROM auftragsampel_auftrag aampa WHERE aampa.auftrag = a.id AND aampa.auftragsampel = '".$ampel['id']."' AND aampa.erledigt = 1) ), "."'<img src=\"./pages/icons/".str_replace('_go_','_stop_',$ampel['icon'])."\" title=\"".$ampel['beschriftung']."\" border=\"0\" style=\"margin-right:1px\">'".","."'<img src=\"./pages/icons/".$ampel['icon']."\" title=\"".$ampel['beschriftung']."\" border=\"0\" style=\"margin-right:1px\">'". ") ";
               if($deaktivertok) $_extra2e = "),'<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/abgeschlossen.png\" title=\"Auftragsampel deaktivert\" border=\"0\" style=\"margin-right:1px\">')";
-              if($deaktivertok) $_extra2e = "),'".str_repeat($_extra2icon,count($auftragsampel))."')";
+              if($deaktivertok) $_extra2e = "),'".str_repeat($_extra2icon,(empty($auftragsampel)?0:count($auftragsampel)))."')";
               $extra3 .= ",'".$abgeschlossen."'";
               $ifextra2a[] = " 
               not isnull( (SELECT aampa.id FROM auftragsampel_auftrag aampa WHERE aampa.auftrag = a.id AND aampa.auftragsampel = '".$ampel['id']."' AND aampa.erledigt = 1) ) ";
@@ -3747,7 +3748,7 @@ class YUI {
         $module = $this->app->Secure->GetGET("module");
         $this->app->Tpl->Add('JAVASCRIPT', 'function ' . $name . 'fnFormatDetails ( nTr ) {
                     //var aData =  oTable' . $name . '.fnGetData( nTr );
-                    var str = aData[' . (isset($menucol)?$menucol:count($heading)-1) . '];
+                    var str = aData[' . (isset($menucol)?$menucol:(empty($heading)?0:count($heading))-1) . '];
 
                     var match = str.match(/[1-9]{1}[0-9]*/);
 
@@ -3770,14 +3771,14 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
                 }
 ');
       }
-      $colspan = count($heading);
+      $colspan = (empty($heading)?0:count($heading));
 
     //<tr><th colspan="' . $colspan . '"><br></th></tr>
       $this->app->Tpl->Add($parsetarget, '
     <table cellpadding="0" cellspacing="0" border="0" class="display" id="' . $name . '">
     <thead>
     <tr>');
-      for ($i = 0;$i < count($heading);$i++) {
+      for ($i = 0;$i < (empty($heading)?0:count($heading));$i++) {
         $this->app->Tpl->Add($parsetarget, '<th width="' . $width[$i] . '">' . $heading[$i] . '</th>');
       }
       $this->app->Tpl->Add($parsetarget, '</tr>
@@ -3791,7 +3792,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
     <tfoot>
     <tr>
     ');
-      for ($i = 0;$i < count($heading);$i++) {
+      for ($i = 0;$i < (empty($heading)?0:count($heading));$i++) {
         $this->app->Tpl->Add($parsetarget, '<th>' . $heading[$i] . '</th>');
       }
       $this->app->Tpl->Add($parsetarget, '
@@ -5816,7 +5817,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         if ($more_data3 == 1) $subwhere[] = " l.lieferantenretoure=1 ";
 
         // ENDE EXTRA more
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $where = " l.id!='' AND l.status!='angelegt' $tmp " . $this->app->erp->ProjektRechte('p.id', true, 'l.vertriebid');
 
         /* STAMMDATEN */
@@ -6184,7 +6185,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
 
 	$tmp = '';
 	if (!is_null($subwhere)) {
-	        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+	        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
 	}
 
         $where = " r.status!='angelegt' AND  r.id!='' ".$tmp ." ". $this->app->erp->ProjektRechte('p.id', true, 'r.vertriebid');
@@ -6575,7 +6576,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
                 r.zahlungsweise as zahlungsweise,
                 FORMAT(r.soll,2{$extended_mysql55} ) as soll,
                 ifnull(r.waehrung,'EUR'),
-                if(r.soll-r.ist=0 AND r.ist > 0 AND r.zahlungsstatus!='bezahlt','teilbezahlt',r.zahlungsstatus) as zahlung, 
+                r.zahlungsstatus as zahlung, 
                 if(r.soll-r.ist!=0 AND r.ist > 0,FORMAT(r.ist-r.soll,2{$extended_mysql55}),FORMAT((r.soll-r.ist)*-1,2{$extended_mysql55})) as fehlt,
                 if(r.status = 'storniert' AND r.teilstorno = 1,'TEILSTORNO',UPPER(r.status))  as status,
                 ".(!empty($zusatzcols)?implode(', ',$zusatzcols).',':'')." 
@@ -6611,7 +6612,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
         if ($more_data4 == 1) {
           $subwhere[] = " r.status='storniert' ";
         }
-        $csubwhere = !empty($subwhere)?count($subwhere):0;
+        $csubwhere = !empty($subwhere)?(empty($subwhere)?0:count($subwhere)):0;
         for ($j = 0;$j < $csubwhere;$j++) {
           $tmp.= " AND " . $subwhere[$j];
         }
@@ -6880,7 +6881,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
         if ($more_data1 == 1) $subwhere[] = " a.lagerartikel='1' ";
 
         $tmp = '';
-        $csubwhere = !empty($subwhere)?count($subwhere):0;
+        $csubwhere = !empty($subwhere)?(empty($subwhere)?0:count($subwhere)):0;
         for ($j = 0;$j < $csubwhere;$j++) $tmp.= " AND " . $subwhere[$j];
 
         if($liefertermine)
@@ -7062,7 +7063,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
         $more_data7 = $this->app->Secure->GetGET("more_data7");
         
         // SQL statement
-        $sql = "SELECT 
+        $sql = "SELECT SQL_CALC_FOUND_ROWS
               b.id,'<img src=./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/details_open.png class=details>' AS `open`, 
               CONCAT('<input type=\"checkbox\" name=\"auswahl[]\" value=\"',b.id,'\" />') AS `auswahl`,    
               IF(b.status='storniert',CONCAT(b.belegnr),b.belegnr) AS `belegnr`, 
@@ -7217,7 +7218,7 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
         }
 
 	if (!is_null($subwhere)) {
-	        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+	        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
 	}
 
         // START EXTRA more
@@ -7672,7 +7673,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         if($fteilprojektfilter) {
           $subwhere[] = " a.teilprojekt = '$fteilprojektfilter' ";
         }
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
 
         $where = " a.projekt='" . $id."'".$tmp;
         $count = "SELECT COUNT(a.id) FROM aufgabe a WHERE $where ";
@@ -7760,7 +7761,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }
 
 
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $where = " (z.adresse_abrechnung='" . $id . "' OR p.kunde='$id') $tmp";
 
         $count = "SELECT COUNT(z.id) FROM zeiterfassung z LEFT JOIN adresse a ON a.id=z.adresse LEFT JOIN projekt p ON p.id=z.projekt WHERE  $where";
@@ -7851,7 +7852,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }else{
           $subwhere[] = " z.abgerechnet <> 1 ";
         }
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $where = "   z.projekt ='" . $id . "' $tmp";
         $count = "SELECT COUNT(z.id) FROM zeiterfassung z LEFT JOIN arbeitspaket arb ON z.arbeitspaket = arb.id WHERE $where";
 
@@ -7991,7 +7992,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
 
 
         $tmp = '';
-        $csubwhere = !empty($subwhere)?count($subwhere):0;
+        $csubwhere = !empty($subwhere)?(empty($subwhere)?0:count($subwhere)):0;
         for ($j = 0;$j < $csubwhere;$j++) $tmp.= " AND " . $subwhere[$j];
         $where = " a.id!='' AND a.status!='angelegt' $tmp " . $this->app->erp->ProjektRechte();
 
@@ -8351,7 +8352,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         
         //        $more_data2 = $this->app->Secure->GetGET("more_data2"); if($more_data2==1) $subwhere[] = " a.datum=CURDATE() AND a.status='freigegeben'";
 
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $id = $this->app->Secure->GetGET("id");
         $where = " ap.aufgabe IS NOT NULL $tmp AND ap.projekt='$id' GROUP by Datum,ap.id ";
 
@@ -8414,7 +8415,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         $more_data1 = $this->app->Secure->GetGET("more_data1");
         
         if ($more_data1 == 1) $subwhere[] = " OR ( ap.abgenommen='1')  ";
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= "  " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= "  " . $subwhere[$j];
 
         //              if($tmp!="")$tmp .= " AND e.geloescht='1' ";
         
@@ -8633,7 +8634,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
 
 	if (!is_null($subwhere)) 
 	{
-	        for ($j = 0;$j < count($subwhere);$j++) $tmp.= "  AND " . $subwhere[$j];
+	        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= "  AND " . $subwhere[$j];
 	}
  
         if ($more_data1 == 1) 
@@ -8699,7 +8700,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         if ($more_data1 == 1) $subwhere[] = " AND ap.status='abgerechnet' ";
         else $subwhere[] = " AND ap.status!='abgerechnet' ";
 
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= "  " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= "  " . $subwhere[$j];
 
         
         // Fester filter
@@ -8792,7 +8793,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         if ($more_data1 == 1) $subwhere[] = " z.abrechnen='1' AND z.abgerechnet!='1' ";
 
         //        $more_data2 = $this->app->Secure->GetGET("more_data2"); if($more_data2==1) $subwhere[] = " a.datum=CURDATE() AND a.status='freigegeben'";
-        for ($j = 0;$j < count($subwhere);$j++) $tmp.= " AND " . $subwhere[$j];
+        for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $where = " z.id!='' AND z.adresse='" . $id . "' $tmp";
         $count = "SELECT COUNT(z.id) FROM zeiterfassung z WHERE z.adresse='" . $id . "'";
         $moreinfo = true;
@@ -9477,7 +9478,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
                 if(bearbeiter!="",bearbeiter,a2.name) as bearbeiter,
                 CONCAT(UCASE(LEFT(d.typ, 1)), SUBSTRING(d.typ, 2)) as art,
                 CONCAT(IF(d.sent = 1, "JA", "NEIN"),"<a data-type=dokumente data-id=", d.id, "></a>") as gesendet,
-                "" as pdf,
+                concat("<a href=\"index.php?module=dateien&action=send&id=",(SELECT datei FROM datei_stichwoerter WHERE subjekt="anhang" AND objekt="dokument" AND parameter = d.id LIMIT 1),"\"><img src=./themes/' . $this->app->Conf->WFconf['defaulttheme'] . '/images/pdf.svg></a>") as pdf,
                 concat("1","-",d.id) as did,d.content as suchtext,d.internebezeichnung
               FROM
                 dokumente d
@@ -9821,7 +9822,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
 */
         $this->app->User->SetParameter('stammdatenbereinigen_list_param', implode(';',$paramsGroupBy));
 
-        if(count($groupABy)>0)
+        if((empty($groupABy)?0:count($groupABy))>0)
         {
           $groupby = '
             GROUP BY ' . implode(',', $groupABy) . '
@@ -10844,7 +10845,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }
         if(isset($alignright))
         {
-          for ($aligni = 0;$aligni < count($alignright);$aligni++) {
+          for ($aligni = 0;$aligni < (empty($alignright)?0:count($alignright));$aligni++) {
             $this->app->Tpl->Add('YUICSS', '
   #' . $name . ' > tbody > tr > td:nth-child(' . $alignright[$aligni] . ') {
                     text-align: right;
@@ -10854,7 +10855,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }
         if(isset($aligncenter))
         {
-          for ($aligni = 0;$aligni < count($aligncenter);$aligni++) {
+          for ($aligni = 0;$aligni < (empty($aligncenter)?0:count($aligncenter));$aligni++) {
             $this->app->Tpl->Add('YUICSS', '
   #' . $name . ' > tbody > tr > td:nth-child(' . $aligncenter[$aligni] . ') {
                     text-align: center;
@@ -10864,7 +10865,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }
         if(isset($hide320))
         {
-          for ($h = 0;$h < count($hide320);$h++) {
+          for ($h = 0;$h < (empty($hide320)?0:count($hide320));$h++) {
             $this->app->Tpl->Add('YUICSS', '
             @media screen and (max-width: 320px){
               #' . $name . ' > thead > tr >  th:nth-child(' . $hide320[$h] . ') {
@@ -10883,7 +10884,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         
         if(isset($nowrap) && is_array($nowrap))
         {
-          for ($h = 0;$h < count($nowrap);$h++) {
+          for ($h = 0;$h < (empty($nowrap)?0:count($nowrap));$h++) {
             $this->app->Tpl->Add('YUICSS', '
             @media screen and (max-width: 767px){
               #' . $name . ' > tbody > tr > td:nth-child(' . $hide767[$h] . '){
@@ -10897,7 +10898,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         
         if(isset($hide767))
         {
-          for ($h = 0;$h < count($hide767);$h++) {
+          for ($h = 0;$h < (empty($hide767)?0:count($hide767));$h++) {
             $this->app->Tpl->Add('YUICSS', '
             @media screen and (max-width: 767px){
               #' . $name . ' > thead > tr > th:nth-child(' . $hide767[$h] . ') {
@@ -10916,7 +10917,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
         }
         if(isset($hide480))
         {
-          for ($h = 0;$h < count($hide480);$h++) {
+          for ($h = 0;$h < (empty($hide480)?0:count($hide480));$h++) {
             $this->app->Tpl->Add('YUICSS', '
             @media screen and (max-width: 479px){
               #' . $name . ' > thead > tr > th:nth-child(' . $hide480[$h] . ') {
@@ -10961,7 +10962,7 @@ a.land as land, p.abkuerzung as projekt, a.zahlungsweise as zahlungsweise,
           }
         }
         
-        if(isset($hidecolumns) && $hidecolumns && is_array($hidecolumns) && count($hidecolumns) > 2)
+        if(isset($hidecolumns) && $hidecolumns && is_array($hidecolumns) && (empty($hidecolumns)?0:count($hidecolumns)) > 2)
         {
           $hidecolumnsitem = $hidecolumns[0];
           if(!is_array($hidecolumns[2]))$hidecolumns[2][0] = $hidecolumns[2];
@@ -11328,7 +11329,7 @@ $directlink=0;
 if( (($this->app->erp->RechteVorhanden($_module,"edit") && $_action=="list") ||
     (!empty($forcerowclick))) && !empty($rowclick))
 {
-  if($menucol > 0 || count($heading) > 0) {
+  if($menucol > 0 || (empty($heading)?0:count($heading)) > 0) {
     if(!empty($doppelteids)){
       $doppelteids = '\-[1-9]{1}[0-9]*';
       }else{
@@ -11338,11 +11339,11 @@ if( (($this->app->erp->RechteVorhanden($_module,"edit") && $_action=="list") ||
     {
       $tmpmenucol=$menucol;
     } else {
-      $tmpmenucol=!empty($heading)?count($heading)-1:0;
+      $tmpmenucol=!empty($heading)?(empty($heading)?0:count($heading))-1:0;
     }
 
 
-if(!empty($menucol) && $menucol > 0 || count($heading) > 0) {
+if(!empty($menucol) && $menucol > 0 || (empty($heading)?0:count($heading)) > 0) {
   if(isset($doppelteids)&& $doppelteids){
     $doppelteids = '\-[1-9]{1}[0-9]*';
   }
@@ -11353,7 +11354,7 @@ if(!empty($menucol) && $menucol > 0 || count($heading) > 0) {
   {
     $tmpmenucol=$menucol;
   } else {
-    $tmpmenucol=count($heading)-1;
+    $tmpmenucol=(empty($heading)?0:count($heading))-1;
   }
 
   if(empty($rowclickaction) || $rowclickaction=="")
@@ -11411,7 +11412,7 @@ if((isset($extra_anzahl_datensaetze) && (int)$extra_anzahl_datensaetze > 0) || (
       {
         if(!empty($aLengthMenuArr))
         {
-          if($aLengthMenuArr[count($aLengthMenuArr)-1] < $maxrows)
+          if($aLengthMenuArr[(empty($aLengthMenuArr)?0:count($aLengthMenuArr))-1] < $maxrows)
           {
             $aLengthMenuArr[] = (int)$maxrows;
             break;
@@ -12050,7 +12051,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
                       }
 ');
         }
-        $colspan = !empty($heading)?count($heading):1;
+        $colspan = !empty($heading)?(empty($heading)?0:count($heading)):1;
     //<tr><th colspan="' . $colspan . '"><br></th></tr>
         $this->app->Tpl->Add($parsetarget, '
         <div class="table-responsive">
@@ -12058,7 +12059,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
     <thead>
     <tr>');
         if(!empty($heading)){
-          $cHeading = count($heading);
+          $cHeading = (empty($heading)?0:count($heading));
           for ($i = 0; $i < $cHeading; $i++) {
             $this->app->Tpl->Add(
               $parsetarget,
@@ -12072,7 +12073,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         if(empty($columnfilter) && !(isset($columnfilter) && $columnfilter === false)) {
           $this->app->Tpl->Add($parsetarget, '</tr><tr>');
           if(!empty($heading)){
-            $cHeading = count($heading);
+            $cHeading = (empty($heading)?0:count($heading));
             for ($i = 0; $i < $cHeading; $i++) {
               $this->app->Tpl->Add(
                 $parsetarget,
@@ -12095,7 +12096,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
     <tr>
     ');
         if(!empty($heading)){
-          $cheader = count($heading);
+          $cheader = (empty($heading)?0:count($heading));
           for ($i = 0; $i < $cheader; $i++) {
             $this->app->Tpl->Add(
               $parsetarget,
@@ -13837,7 +13838,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
     function ChartDB($sql, $parsetarget, $width, $height, $limitmin = 0, $limitmax = 100, $gridy = 5) {
 
       $result = $this->app->DB->SelectArr($sql);
-      for ($i = 0;$i < count($result);$i++) {
+      for ($i = 0;$i < (empty($result)?0:count($result));$i++) {
         $lables[] = $result[$i]['legende'];
         $values[] = $result[$i]['wert'];
       }
@@ -13850,7 +13851,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
     function Chart($parsetarget, $labels, $width = 400, $height = 200, $limitmin = 0, $limitmax = 100, $gridy = 5) {
       $werte = '';
       $values = $labels;
-      for ($i = 0;$i < count($values) - 1;$i++) {
+      for ($i = 0;$i < (empty($values)?0:count($values)) - 1;$i++) {
         $werte = $werte . "'" . $values[$i] . "',";
       }
       $werte = $werte . "'" . $values[$i + 1] . "'";
@@ -13859,7 +13860,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
       $this->app->Tpl->Set('CHART_HEIGHT', $height);
       $this->app->Tpl->Set('LIMITMIN', $limitmin);
       $this->app->Tpl->Set('LIMITMAX', $limitmax);
-      $this->app->Tpl->Set('GRIDX', count($values));
+      $this->app->Tpl->Set('GRIDX', (empty($values)?0:count($values)));
       $this->app->Tpl->Set('GRIDY', $gridy);
       $this->app->Tpl->Parse($parsetarget, "chart.tpl");
     }
@@ -13888,7 +13889,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
     
     function ChartAdd($color, $values) {
       $werte = '';
-      for ($i = 0;$i < count($values) - 1;$i++) {
+      for ($i = 0;$i < (empty($values)?0:count($values)) - 1;$i++) {
         $werte = $werte . $values[$i] . ",";
       }
       $werte = $werte . $values[$i + 1];
@@ -13953,7 +13954,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
             LEFT JOIN datei_version v ON v.datei=v2.datei AND v.version = v2.version WHERE $where ORDER BY s.sort DESC LIMIT 2 ";
         $query = $this->app->DB->SelectArr($sql);
         $status = 0;
-        if($query && count($query) == 2)
+        if($query && (empty($query)?0:count($query)) == 2)
         {
           $status = 1;
           $this->app->DB->Update("UPDATE datei_stichwoerter SET sort = '".$query[1]['sort']."' WHERE id = '".$query[0]['id']."' LIMIT 1");
@@ -13986,7 +13987,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
             LEFT JOIN datei_version v ON v.datei=v2.datei AND v.version = v2.version WHERE $where ORDER BY s.sort LIMIT 2 ";
         $query = $this->app->DB->SelectArr($sql);
         $status = 0;
-        if($query && count($query) == 2)
+        if($query && (empty($query)?0:count($query)) == 2)
         {
           $status = 1;
           $this->app->DB->Update("UPDATE datei_stichwoerter SET sort = '".$query[1]['sort']."' WHERE id = '".$query[0]['id']."' LIMIT 1");
@@ -14097,7 +14098,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
             }
             if(!$found)unset($auswahl[$k]);
           }
-          if(!$auswahl || count($auswahl) == 0)
+          if(!$auswahl || (empty($auswahl)?0:count($auswahl)) == 0)
           {
             echo 'Keine PDF-Dateien ausgew&auml;hlt!';
             exit; 
@@ -14168,7 +14169,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
             }
             if(!$found)unset($auswahl[$k]);
           }
-          if(!$auswahl || count($auswahl) == 0)
+          if(!$auswahl || (empty($auswahl)?0:count($auswahl)) == 0)
           {
             echo 'Keine Dateien ausgew&auml;hlt!';
             exit; 
@@ -14289,7 +14290,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
 
 /* 
       $tmp = $this->app->DB->SelectArr("SELECT * FROM datei_stichwortvorlagen WHERE modul='' ORDER by beschriftung");
-      for($i=0;$i<count($tmp);$i++)
+      for($i=0;$i<(empty($tmp)?0:count($tmp));$i++)
         $this->app->Tpl->Add('EXTRASTICHWOERTER','<option value="'.$tmp[$i]['beschriftung'].'">'.$tmp[$i]['beschriftung'].'</option>');
 */
       $maxsize = 0;
@@ -15102,7 +15103,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
       $summenarray[] = '<input type="hidden" id="mcol" value="'.$mengencol.'" /><input type="hidden" id="rcol" value="'.$rabattcol.'" /><input type="hidden" id="scol" value="'.$summencol.'" /><span id="zwischensumme">'.number_format($zwischensumme,4,'.','').'</span>';
       if($module != 'verbindlichkeit')$summenarray[] = '';
       $summenarray[] = '';
-      $summenarray[count($summenarray)-1] .= $js;
+      $summenarray[(empty($summenarray)?0:count($summenarray))-1] .= $js;
       if($mengencol && $summencol && $module!='produktion')$table->AddRow($summenarray);
 
       //$this->app->YUI->AutoComplete(ARTIKELAUTO,"artikel",array('name_de','warengruppe'),"nummer");
@@ -15624,11 +15625,11 @@ function IframeDialog($width, $height, $src = "") {
     }
     
     </script>
-    <div id=\"preistabellediv\" style=\"display:none;\"><div id=\"preiserror\">".(count($waehrungen) > 1?"":"Bitte legen Sie erst W&auml;hrungen an!")."</div>
+    <div id=\"preistabellediv\" style=\"display:none;\"><div id=\"preiserror\">".((empty($waehrungen)?0:count($waehrungen)) > 1?"":"Bitte legen Sie erst W&auml;hrungen an!")."</div>
     
     ";
     $i = -1;
-    if(count($waehrungen) > 1)
+    if((empty($waehrungen)?0:count($waehrungen)) > 1)
     {
       $htmltabelle .= "<table><tr><th>W&auml;hrung</th><th>Kurs</th><th>umgerechnter Preis</th><th>Aktion</th></tr>";
       foreach($waehrungen as $waehrung => $kurs)

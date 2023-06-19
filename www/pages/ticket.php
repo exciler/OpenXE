@@ -313,6 +313,10 @@ class Ticket {
             // Clear this first
             $this->app->Tpl->Set('NACHRICHT_ANHANG',"");         
 
+            if (empty($message['betreff'])) {
+                $message['betreff'] = "...";
+            }
+
             // Xentral 20 compatibility
             if ($message['textausgang'] != '') {
               // Sent message 
@@ -341,7 +345,7 @@ class Ticket {
                     }
                     $this->app->Tpl->Set("NACHRICHT_BETREFF",htmlentities($message['betreff']." (Entwurf)"));
                 } else {
-                  $this->app->Tpl->Set("NACHRICHT_BETREFF",'<a href="index.php?module=ticket&action=text&mid='.$message['id'].'" target="_blank">'.htmlentities($message['betreff']).'</a>');
+                  $this->app->Tpl->Set("NACHRICHT_BETREFF",'<a href="index.php?module=ticket&action=text&mid='.$message['id'].'&insecure=1" target="_blank">'.htmlentities($message['betreff']).'</a>');
                 }
                 $this->app->Tpl->Set("NACHRICHT_SENDER",htmlentities($message['verfasser']." <".$message['mail_replyto'].">"));
                 $this->app->Tpl->Set("NACHRICHT_RECIPIENTS",htmlentities($message['mail']));
@@ -407,6 +411,12 @@ class Ticket {
         }
 
         if ($insecure) {
+            // Adjust cid images
+            $attachments = $this->app->erp->GetDateiSubjektObjekt('Anhang','Ticket',$mid);
+            foreach($attachments as $attachment) {
+                $filename = $this->app->erp->GetDateiName($attachment);
+                $messages[0]['text'] = str_replace($filename,'index.php?module=dateien&action=send&id='.$attachment,$messages[0]['text']);
+            }
             $this->app->Tpl->Set("TEXT",$messages[0]['text']);
         } else {
 
@@ -479,6 +489,22 @@ class Ticket {
         $input['adresse'] = $this->app->erp->ReplaceAdresse(true,$input['adresse'],true); // Parameters: Target db?, value, from form?
         $input['warteschlange'] = explode(" ",$input['warteschlange'])[0]; // Just the label
         $input['zeit'] = date('Y-m-d H:i:s', time());
+
+        $tags = explode(',',$input['tags']);
+        // Replace multiple '!' and '?'
+        foreach ($tags as &$tag) {
+            $pos = strpos($tag, '?');
+            if ($pos !== false) {
+                $tag = substr($tag,0,$pos+1) . str_replace('?','',substr($tag,$pos+1));
+            }
+            $tag = preg_replace("/([?!])\\1+/", "$1", $tag);
+        }        
+        $input['tags'] = implode(',',$tags);
+
+        $input['tags'] = str_replace(' ?','?',$input['tags']);
+        $input['tags'] = str_replace(' !','!',$input['tags']);
+        $input['tags'] = str_replace('?!','?',$input['tags']);
+        $input['tags'] = str_replace('!?','?',$input['tags']);
 
         $columns = "id, ";
         $values = "$id, ";
@@ -805,7 +831,7 @@ class Ticket {
             // Attachments
             $files = $this->app->erp->GetDateiSubjektObjektDateiname('Anhang','Ticket',$drafted_messages[0]['id'],"");
 
-            $pattern = '/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,63})(?:\.[a-z]{2})?/i';
+            $pattern = '/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,63})(?:\.[a-z]{2,63})?/i';
 
             preg_match_all($pattern, $drafted_messages[0]['mail'], $matches);
             $to = $matches[0];
