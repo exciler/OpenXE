@@ -7320,6 +7320,10 @@ class Artikel extends GenArtikel {
           $this->app->erp->MenuEintrag('index.php?module=artikel&action=eigenschaften&id='.$id, 'Eigenschaften');
         }
 
+        if ($tmp[0]['matrixprodukt']==1) {
+          $this->app->erp->MenuEintrag("index.php?module=matrixprodukt&action=artikel&id=$id", 'Matrixprodukt');
+        }
+
         if($rabatt!='1'){
           $this->app->erp->MenuEintrag("index.php?module=artikel&action=einkauf&id=$id",'Einkauf');
           if($this->app->erp->RechteVorhanden('einkaufabgleich','einkaufapi'))

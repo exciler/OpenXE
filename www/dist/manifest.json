@@ -1,0 +1,29 @@
+{
+  "classes/Modules/MatrixProduct/www/js/entry.css": {
+    "file": "assets/entry-706b8930.css",
+    "src": "classes/Modules/MatrixProduct/www/js/entry.css"
+  },
+  "classes/Modules/MatrixProduct/www/js/entry.jsx": {
+    "css": [
+      "assets/entry-706b8930.css"
+    ],
+    "file": "assets/modules/MatrixProduct-4edbd84c.js",
+    "imports": [
+      "www/themes/new/js/main.js"
+    ],
+    "isEntry": true,
+    "src": "classes/Modules/MatrixProduct/www/js/entry.jsx"
+  },
+  "www/themes/new/js/main.css": {
+    "file": "assets/main-01c56a74.css",
+    "src": "www/themes/new/js/main.css"
+  },
+  "www/themes/new/js/main.js": {
+    "css": [
+      "assets/main-01c56a74.css"
+    ],
+    "file": "assets/main-a492780c.js",
+    "isEntry": true,
+    "src": "www/themes/new/js/main.js"
+  }
+}
