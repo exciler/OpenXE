@@ -24,12 +24,8 @@ onMounted(async () => {
         ? 'index.php?module=matrixprodukt&action=artikel&cmd=optionedit'
         : 'index.php?module=matrixprodukt&action=optionenlist&cmd=edit';
     model.value = await axios.get(url, {
-      params: {
-        optionId: props.optionId
-      }
+      params: props
     }).then(response => response.data)
-  } else {
-    model.value = {...props}
   }
 })
 
@@ -37,7 +33,7 @@ async function save() {
   const url = props.articleId > 0
       ? 'index.php?module=matrixprodukt&action=artikel&cmd=optionsave'
       : 'index.php?module=matrixprodukt&action=optionenlist&cmd=save';
-  await axios.post(url, model.value)
+  await axios.post(url, {...props, ...model.value})
       .catch(error => alert(error.response.data))
       .then(response => {emit('save')});
 }

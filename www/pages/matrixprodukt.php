@@ -171,14 +171,14 @@ class Matrixprodukt {
         $group = $this->service->GetGlobalGroupById($id);
         return new JsonResponse($group);
       case "save":
-        $json = json_decode($this->request->getContent());
-        $group = new Group($json->name, $json->id ?? null, $json->active, $json->nameExternal, $json->projectId ?? 0, $json->required ?? false);
+        $json = $this->request->getJson();
+        $group = new Group($json->name, $json->id ?? null, $json->active ?? false, $json->nameExternal ?? '', $json->projectId ?? 0, $json->required ?? false);
         $this->service->SaveGlobalGroup($group);
-        return new JsonResponse(['status' => true]);
+        return JsonResponse::NoContent();
       case "delete":
-        $json = json_decode($this->request->getContent());
+        $json = $this->request->getJson();
         $this->service->DeleteGlobalGroup($json->groupId);
-        return new JsonResponse(['status' => true]);
+        return JsonResponse::NoContent();
       case "selectoptions":
         $sql = "SELECT mg.id, mg.name FROM matrixprodukt_eigenschaftengruppen mg WHERE mg.aktiv = 1 ORDER BY mg.name";
         $groups = $this->app->DB->SelectPairs($sql);
@@ -202,7 +202,7 @@ class Matrixprodukt {
         $option = $this->service->GetGlobalOptionById($id);
         return new JsonResponse($option);
       case "save":
-        $json = json_decode($this->request->getContent());
+        $json = $this->request->getJson();
         $option = new Option($json->name, $json->groupId, $json->id, $json->active ?? false,
             $json->nameExternal ?? '', $json->sort ?? 0, $json->articleNumber ?? '',
             $json->articleNumberSuffix ?? '');
@@ -220,15 +220,14 @@ class Matrixprodukt {
   }
 
   public function ActionArticle() {
-    $articleId = intval($this->app->Secure->GetGET('id'));
     $cmd = $this->app->Secure->GetGET('cmd');
     $articleModule = $this->app->erp->LoadModul('artikel');
     $articleModule?->ArtikelMenu();
     switch ($cmd) {
       case "addoptions":
-        $optionIds = $this->app->Secure->GetPOST('options');
-        $this->service->AddGlobalOptionsForArticle($articleId, $optionIds);
-        return new JsonResponse(['status' => true]);
+        $json = $this->request->getJson();
+        $this->service->AddGlobalOptionsForArticle($json->articleId, $json->optionIds);
+        return JsonResponse::NoContent();
       case "groupedit":
         $groupId = intval($this->app->Secure->GetGET('groupId'));
         if (!$groupId)
@@ -236,41 +235,30 @@ class Matrixprodukt {
         $group = $this->service->GetArticleGroupById($groupId);
         return new JsonResponse($group);
       case "groupsave":
-        $groupId = intval($this->app->Secure->GetPOST('groupId'));
-        $articleId = intval($this->app->Secure->GetPOST('articleId'));
-        $name = $this->app->Secure->GetPOST('name');
-        $nameExt = $this->app->Secure->GetPOST('nameExternal');
-        $projektId = intval($this->app->Secure->GetPOST('projectId'));
-        $active = boolval($this->app->Secure->GetPOST('active'));
-        $sort = intval($this->app->Secure->GetPOST('sort'));
-        $required = boolval($this->app->Secure->GetPOST('required'));
-        $group = new Group($name, $groupId, $active, $nameExt, $projektId, $required, $articleId, $sort);
+        $json = $this->request->getJson();
+        $group = new Group($json->name, $json->groupId, $json->active ?? false, $json->nameExternal ?? '',
+            $json->projectId ?? 0, $json->required ?? false, $json->articleId, $json->sort ?? 0);
         $this->service->SaveArticleGroup($group);
-        return new JsonResponse(['status' => true]);
+        return JsonResponse::NoContent();
       case "groupdelete":
-        $groupId = intval($this->app->Secure->GetPOST('groupId'));
-        $this->service->DeleteArticleGroup($groupId);
-        return new JsonResponse(['status' => true]);
+        $json = $this->request->getJson();
+        $this->service->DeleteArticleGroup($json->groupId);
+        return JsonResponse::NoContent();
       case "optionedit":
         $optionId = intval($this->app->Secure->GetGET('optionId'));
         $option = $this->service->GetArticleOptionById($optionId);
         return new JsonResponse($option);
       case "optionsave":
-        $articleId = intval($this->app->Secure->GetPOST('articleId'));
-        $optionId = intval($this->app->Secure->GetPOST('optionId'));
-        $groupId = intval($this->app->Secure->GetPOST('groupId'));
-        $name = $this->app->Secure->GetPOST('name');
-        $nameExt = $this->app->Secure->GetPOST('name_ext');
-        $articleNumberSuffix = $this->app->Secure->GetPOST('articlenumber_suffix');
-        $sort = intval($this->app->Secure->GetPOST('sort'));
-        $active = $this->app->Secure->GetPOST('aktiv');
-        $option = new Option($name, $groupId, $optionId, $active, $nameExt, $sort, null, $articleNumberSuffix, null, $articleId);
+        $json = $this->request->getJson();
+        $option = new Option($json->name, $json->groupId, $json->optionId, $json->active ?? false,
+            $json->nameExternal ?? '', $json->sort ?? 0, '',
+            $json->articleNumberSuffix ?? '', 0, $json->articleId);
         $this->service->SaveArticleOption($option);
-        return new JsonResponse(['status' => true]);
+        return JsonResponse::NoContent();
       case "optiondelete":
-        $optionId = intval($this->app->Secure->GetPOST('optionId'));
-        $this->service->DeleteArticleOption($optionId);
-        return new JsonResponse(['status' => true]);
+        $json = $this->request->getJson();
+        $this->service->DeleteArticleOption($json->optionId);
+        return JsonResponse::NoContent();
       case "variantedit":
         $articleId = $this->request->get->getInt('articleId');
         $variantId = $this->request->get->getInt('variantId');
@@ -303,11 +291,11 @@ class Matrixprodukt {
             $optionIds[] = intval($group->selected);
         }
         $res = $this->service->saveVariant($json->articleId, $json->variantId, $optionIds, $json->oldVariantId);
-        return new JsonResponse(['status' => $res === true, 'statusText' => $res]);
+        return JsonResponse::NoContent();
       case "variantdelete":
         $json = $this->request->getJson();
         $this->service->DeleteVariant($json->variantId);
-        return new JsonResponse(['status' => true]);
+        return JsonResponse::NoContent();
       case "acarticles":
         $query = $this->app->Secure->GetGET('query');
         $result = $this->app->DB->SelectArr("SELECT id, nummer, name_de FROM artikel WHERE (nummer LIKE '%$query%' OR name_de LIKE '%$query%') AND geloescht = 0");
@@ -319,12 +307,12 @@ class Matrixprodukt {
       $this->app->YUI->TableSearch('TAB1', 'matrixprodukt_article_groups', "show", "", "", basename(__FILE__), __CLASS__);
       $this->app->Tpl->Set('ADDEDITFUNCTION', 'groupEdit');
     } else {
+      $articleId = $this->app->Secure->GetGET('id');
       $this->app->erp->MenuEintrag("index.php?module=matrixprodukt&action=artikel&id=$articleId", 'Zur&uuml;ck zur Gruppen&uuml;bersicht');
       $this->app->YUI->TableSearch('TAB1', 'matrixprodukt_article_options', "show", "", "", basename(__FILE__), __CLASS__);
       $this->app->Tpl->Set('SID', $groupId);
       $this->app->Tpl->Set('ADDEDITFUNCTION', 'optionEdit');
     }
-    $this->app->YUI->AutoComplete('matrixprodukt_variant_article', 'artikelnummer', 1);
     $this->app->YUI->TableSearch('TAB2', 'matrixprodukt_variants', "show", "", "", basename(__FILE__), __CLASS__);
     $this->app->Tpl->Parse('PAGE', "matrixprodukt_article.tpl");
   }
