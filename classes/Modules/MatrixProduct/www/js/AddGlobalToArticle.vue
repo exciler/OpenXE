@@ -9,6 +9,9 @@ import {ref, onMounted} from "vue";
 import Modal from "@theme/vue/Modal.vue";
 import axios from "axios";
 
+const props = defineProps({
+  articleId: String
+})
 const emit = defineEmits(['save', 'close']);
 
 const model = ref(null);
@@ -19,8 +22,9 @@ onMounted(async () => {
       .then(x => x.json())
 })
 async function save() {
-  await axios.post('index.php?module=matrixprodukt&action=artikel&id=[ID]&cmd=addoptions', {
-    options: selected
+  await axios.post('index.php?module=matrixprodukt&action=artikel&cmd=addoptions', {
+    articleId: props.articleId,
+    optionIds: selected
   })
       .catch(error => alert(error.response.data))
       .then(response => {emit('save')});

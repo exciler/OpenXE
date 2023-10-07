@@ -24,18 +24,18 @@ onMounted(async () => {
         ? 'index.php?module=matrixprodukt&action=artikel&cmd=groupedit'
         : 'index.php?module=matrixprodukt&action=list&cmd=edit';
     model.value = await axios.get(url, {
-      params: {
-        groupId: props.groupId
-      }
+      params: props
     }).then(response => response.data)
   }
 })
 
 async function save() {
+  if (!parseInt(props.groupId) > 0)
+    model.value.groupId = 0;
   const url = props.articleId > 0
       ? 'index.php?module=matrixprodukt&action=artikel&cmd=groupsave'
       : 'index.php?module=matrixprodukt&action=list&cmd=save';
-  await axios.post(url, model.value)
+  await axios.post(url, {...props, ...model.value})
       .catch(error => alert(error.response.data))
       .then(response => {emit('save')});
 }

@@ -22,7 +22,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
                     <fieldset>
                         <legend>{|Aktionen|}</legend>
                         <input type="button" class="btnGreenNew vueAction" data-action="addGlobalToArticle" value="&#10010; Optionen übernehmen">
-                        <input type="button" class="btnGreenNew vueAction" data-action="[ADDEDITFUNCTION]" data-group-id="0" data-article-id="[ID]" value="&#10010; Neuer Eintrag">
+                        <input type="button" class="btnGreenNew vueAction" data-action="[ADDEDITFUNCTION]" data-group-id="[SID]" data-article-id="[ID]" value="&#10010; Neuer Eintrag">
                         <input type="button" class="btnGreenNew" name="matrixprodukt_module"
                                value="&#10140; Vordefinierte Gruppen/Optionen" onclick="window.location.href='index.php?module=matrixprodukt&action=list';">
                     </fieldset>
