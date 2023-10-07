@@ -23,7 +23,7 @@ onMounted(async () => {
 })
 
 async function save() {
-  await axios.post('index.php?module=matrixprodukt&action=artikel&cmd=variantsave', {...model.value, oldVariantId: props.variantId})
+  await axios.post('index.php?module=matrixprodukt&action=artikel&cmd=variantsave', {...props, ...model.value})
       .catch(error => alert(error.response.data))
       .then(response => {emit('save')});
 }
@@ -51,7 +51,7 @@ async function searchArticle(event) {
     <div class="flex" autofocus>
       <label class="col-md-3">Artikel</label>
       <div class="col-md-9">
-        <AutoComplete v-model="model.article"
+        <AutoComplete v-model="model.variant"
                       :suggestions="articleSuggestions"
                       @complete="searchArticle"
                       :optionLabel="(item) => [item.nummer, item.name_de].join(' ')"

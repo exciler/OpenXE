@@ -6,6 +6,7 @@
 
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Components\Http\Request;
+use Xentral\Components\Http\Response;
 use Xentral\Modules\MatrixProduct\Data\Group;
 use Xentral\Modules\MatrixProduct\Data\Option;
 use Xentral\Modules\MatrixProduct\MatrixProductService;
@@ -142,7 +143,7 @@ class Matrixprodukt {
                    FROM $optsqlFrom WHERE $optsqlWhere";
         $artsql = "SELECT a.id, a.nummer, group_concat(mota.option_id order by mota.option_id separator ',') idlist
                    FROM matrixprodukt_optionen_zu_artikel mota
-                   JOIN artikel a ON mota.artikel = a.id group by mota.artikel";
+                   JOIN artikel a ON mota.artikel = a.id WHERE a.variante_von = $id group by mota.artikel";
         $sqlNameCols = join(',', $nameColumns);
         $sql = "SELECT SQL_CALC_FOUND_ROWS art.id, art.nummer, $sqlNameCols, art.id
                 FROM ($artsql) art
@@ -278,10 +279,10 @@ class Matrixprodukt {
           if (in_array($option->id, $selected))
             $result[$option->groupId]['selected'] = $option->id;
         }
-        $article = $this->app->DB->SelectRow("SELECT id, nummer, name_de FROM artikel WHERE id = $variantId");
+        $variant = $this->app->DB->SelectRow("SELECT id, nummer, name_de FROM artikel WHERE id = $variantId");
         return new JsonResponse([
             'groups' => $result,
-            'article' => $article
+            'variant' => $variant
         ]);
       case "variantsave":
         $json = $this->request->getJson();
@@ -290,8 +291,12 @@ class Matrixprodukt {
           if ($group->selected > 0)
             $optionIds[] = intval($group->selected);
         }
-        $res = $this->service->saveVariant($json->articleId, $json->variantId, $optionIds, $json->oldVariantId);
-        return JsonResponse::NoContent();
+        if (empty($optionIds))
+          return JsonResponse::BadRequest();
+        $res = $this->service->saveVariant($json->articleId, $json->variant->id, $optionIds, $json->variantId);
+        if ($res === true)
+          return JsonResponse::NoContent();
+        return new JsonResponse([$res], Response::HTTP_BAD_REQUEST);
       case "variantdelete":
         $json = $this->request->getJson();
         $this->service->DeleteVariant($json->variantId);

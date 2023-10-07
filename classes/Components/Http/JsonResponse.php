@@ -40,4 +40,9 @@ class JsonResponse extends Response
     {
       return new JsonResponse([], Response::HTTP_NO_CONTENT, $headers);
     }
+
+  public static function BadRequest(array $headers = []) : JsonResponse
+  {
+    return new JsonResponse([], Response::HTTP_BAD_REQUEST, $headers);
+  }
 }
