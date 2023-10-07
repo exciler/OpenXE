@@ -244,6 +244,8 @@ final class MatrixProductGateway
   }
 
   public function GetVariantIdByOptions(array $optionIds) : ?int {
+    if (empty($optionIds))
+      return null;
     sort($optionIds);
     $sql = "SELECT artikel
             FROM matrixprodukt_optionen_zu_artikel

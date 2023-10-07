@@ -1,13 +1,13 @@
 {
   "classes/Modules/MatrixProduct/www/js/entry.css": {
-    "file": "assets/entry-706b8930.css",
+    "file": "assets/entry-cb22fc4e.css",
     "src": "classes/Modules/MatrixProduct/www/js/entry.css"
   },
   "classes/Modules/MatrixProduct/www/js/entry.jsx": {
     "css": [
-      "assets/entry-706b8930.css"
+      "assets/entry-cb22fc4e.css"
     ],
-    "file": "assets/modules/MatrixProduct-8c24b87b.js",
+    "file": "assets/modules/MatrixProduct-517792a7.js",
     "imports": [
       "www/themes/new/js/main.js"
     ],
