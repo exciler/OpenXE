@@ -112,6 +112,11 @@ class Matrixprodukt {
         $groups = $this->app->DB->SelectPairs("SELECT id, name FROM matrixprodukt_eigenschaftengruppen_artikel WHERE artikel = $id");
         $heading[] = 'Artikel';
         $width[] = '5%';
+        $nameColumns = [];
+        $optIdColumns = [];
+        $optNameColumns = [];
+        $optFrom = [];
+        $optWhere = [];
         foreach ($groups as $groupId => $groupName) {
           $heading[] = $groupName;
           $width[] = '5%';
