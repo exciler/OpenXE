@@ -32,7 +32,7 @@ onMounted(async () => {
 })
 
 async function save() {
-  const url = model.articleId > 0
+  const url = props.articleId > 0
       ? 'index.php?module=matrixprodukt&action=artikel&cmd=groupsave'
       : 'index.php?module=matrixprodukt&action=list&cmd=save';
   await axios.post(url, model.value)
