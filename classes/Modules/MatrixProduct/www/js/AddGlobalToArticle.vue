@@ -6,8 +6,11 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 
 <script setup>
 import {ref, onMounted} from "vue";
-import Modal from "@theme/vue/Modal.vue";
 import axios from "axios";
+import Dialog from "primevue/dialog";
+import Listbox from "primevue/listbox";
+import Button from "primevue/button";
+import {AlertErrorHandler} from '@res/js/ajaxErrorHandler';
 
 const props = defineProps({
   articleId: String
@@ -26,40 +29,27 @@ async function save() {
     articleId: props.articleId,
     optionIds: selected
   })
-      .catch(error => alert(error.response.data))
-      .then(response => {emit('save')});
+      .then(response => {emit('save')})
+      .catch(AlertErrorHandler);
 }
-
-const buttons = {
-  abbrechen: () => emit('close'),
-  speichern: save
-}
-
 </script>
 
 <template>
-  <Modal title="Globale Optionen hinzufügen" width="400px" :buttons="buttons" @close="emit('close')">
-    <table v-if="model">
-      <tr>
-        <td>Gruppe:</td>
-        <td>
-          <div class="ui-widget">
-          <select name="matrixproduktGroup_name" id="matrixproduktGroup_name" v-model="group">
-            <option v-for="(value,key) in model.groups" :value="key">{{value}}</option>
-          </select>
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td style="vertical-align: top;">Optionen:</td>
-        <td>
-          <select multiple name="matrixprodukt_options" id="matrixprodukt_options" v-model="selected">
-            <template  v-for="item in model.options">
-              <option :value="item.id" v-if="item.gruppe === group">{{item.name}}</option>
-            </template>
-          </select>
-        </td>
-      </tr>
-    </table>
-  </Modal>
+  <Dialog visible modal header="Globale Optionen hinzufügen" style="width: 500px" @update:visible="emit('close')">
+    <div v-if="model" class="grid gap-1" style="grid-template-columns: 25% 75%">
+      <label for="matrixProductOptions" style="padding-top: 5px;">Optionen:</label>
+      <Listbox multiple
+               :options="model"
+               optionGroupLabel="name"
+               optionGroupChildren="options"
+               optionLabel="name"
+               optionValue="id"
+               listStyle="height: 200px"
+               v-model="selected" />
+    </div>
+    <template #footer>
+      <Button label="ABBRECHEN" @click="emit('close')" />
+      <Button label="HINZUFÜGEN" @click="save" :disabled="selected.length == 0"/>
+    </template>
+  </Dialog>
 </template>
