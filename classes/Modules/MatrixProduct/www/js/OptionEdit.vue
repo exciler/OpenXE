@@ -6,8 +6,10 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 
 <script setup>
 import {ref, onMounted} from "vue";
-import Modal from "@theme/vue/Modal.vue";
 import axios from "axios";
+import Button from "primevue/button";
+import Dialog from "primevue/dialog";
+import {AlertErrorHandler} from "@res/js/ajaxErrorHandler";
 
 const props = defineProps({
   optionId: String,
@@ -34,38 +36,28 @@ async function save() {
       ? 'index.php?module=matrixprodukt&action=artikel&cmd=optionsave'
       : 'index.php?module=matrixprodukt&action=optionenlist&cmd=save';
   await axios.post(url, {...props, ...model.value})
-      .catch(error => alert(error.response.data))
-      .then(response => {emit('save')});
-}
-const buttons = {
-  abbrechen: () => emit('close'),
-  speichern: save
+      .then(response => {emit('save')})
+      .catch(AlertErrorHandler);
 }
 </script>
 
 <template>
-  <Modal title="Option anlegen/bearbeiten" width="500px" :buttons="buttons" @close="emit('close')">
-    <table>
-      <tr>
-        <td>Name:</td>
-        <td><input type="text" size="40" v-model="model.name"></td>
-      </tr>
-      <tr>
-        <td>Name Extern:</td>
-        <td><input type="text" size="40" v-model="model.nameExternal"></td>
-      </tr>
-      <tr>
-        <td>Artikelnummer-Suffix:</td>
-        <td><input type="text" v-model="model.articleNumberSuffix" /></td>
-      </tr>
-      <tr>
-        <td>Sortierung:</td>
-        <td><input type="text" size="8" v-model="model.sort"></td>
-      </tr>
-      <tr>
-        <td>Aktiv:</td>
-        <td><input type="checkbox" v-model="model.active"></td>
-      </tr>
-    </table>
-  </Modal>
+  <Dialog visible modal header="Option anlegen/bearbeiten" style="width: 500px" @update:visible="emit('close')">
+    <div class="grid gap-1" style="grid-template-columns: 25% 75%">
+      <label for="matrixProduct_option_name">Name:</label>
+      <input id="matrixProduct_option_name" type="text" v-model="model.name" required />
+      <label for="matrixProduct_option_nameExternal">Name Extern:</label>
+      <input id="matrixProduct_option_nameExternal" type="text" v-model="model.nameExternal" />
+      <label for="matrixProduct_option_articleNumberSuffix">Artikelnummer-Suffix:</label>
+      <input id="matrixProduct_option_articleNumberSuffix" type="text" v-model="model.articleNumberSuffix" />
+      <label for="matrixProduct_option_sort">Sortierung:</label>
+      <input id="matrixProduct_option_sort" type="text" v-model="model.sort" />
+      <label for="matrixProduct_option_active">Aktiv:</label>
+      <input id="matrixProduct_option_active" type="checkbox" v-model="model.active" class="justify-self-start" />
+    </div>
+    <template #footer>
+      <Button label="ABBRECHEN" @click="emit('close')" />
+      <Button label="SPEICHERN" @click="save" :disabled="!model.name" />
+    </template>
+  </Dialog>
 </template>

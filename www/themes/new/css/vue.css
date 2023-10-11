@@ -8,3 +8,30 @@
     cursor: pointer;
 }
 
+.flex {
+    display: flex;
+}
+
+.grid {
+    display: grid;
+}
+
+.flex-align-center {
+    align-items: center;
+}
+
+.justify-self-start {
+    justify-self: start;
+}
+
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.grid label {
+    padding-top: 5px;
+}
+
+.grid input {
+    width: 100%;
+}

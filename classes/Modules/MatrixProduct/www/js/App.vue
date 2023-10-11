@@ -5,20 +5,17 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 -->
 
 <script setup>
-import AddGlobalToArticle from "./AddGlobalToArticle.vue"
+import axios from "axios";
 import {ref} from 'vue'
+import {reloadDataTables} from "@res/js/jqueryBridge";
+import AddGlobalToArticle from "./AddGlobalToArticle.vue"
 import GroupEdit from "./GroupEdit.vue";
 import OptionEdit from "./OptionEdit.vue";
-import axios from "axios";
 import Variant from "./Variant.vue";
 
-const props = defineProps({
-  updateTables: Function
-})
 const model = ref(null);
 
 document.getElementById('main').addEventListener('click', async (ev) => {
-  console.log(ev);
   const target = ev.target;
   if (!target || !target.classList.contains('vueAction'))
     return;
@@ -46,19 +43,28 @@ document.getElementById('main').addEventListener('click', async (ev) => {
         await axios.post(url, {variantId: ds.variantId});
         break;
     }
-    props.updateTables();
+    onSave();
     return;
   }
 
   model.value = ds;
 });
+
+function onSave() {
+  reloadDataTables();
+  onClose();
+}
+
+function onClose() {
+  model.value = null;
+}
 </script>
 
 <template>
   <template v-if="model">
-    <AddGlobalToArticle v-if="model.action === 'addGlobalToArticle'" @close="model=null" @save="updateTables(); model=null;" />
-    <GroupEdit v-else-if="model.action === 'groupEdit'" v-bind="model" @close="model=null" @save="updateTables(); model=null;" />
-    <OptionEdit v-else-if="model.action === 'optionEdit'" v-bind="model" @close="model=null" @save="updateTables(); model=null;" />
-    <Variant v-else-if="model.action === 'variantEdit'" v-bind="model" @close="model=null" @save="updateTables(); model=null;" />
+    <AddGlobalToArticle v-if="model.action === 'addGlobalToArticle'" v-bind="model" @close="onClose" @save="onSave" />
+    <GroupEdit v-else-if="model.action === 'groupEdit'" v-bind="model" @close="onClose" @save="onSave" />
+    <OptionEdit v-else-if="model.action === 'optionEdit'" v-bind="model" @close="onClose" @save="onSave" />
+    <Variant v-else-if="model.action === 'variantEdit'" v-bind="model" @close="onClose" @save="onSave" />
   </template>
 </template>
