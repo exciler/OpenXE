@@ -27,7 +27,7 @@ onMounted(async () => {
 async function save() {
   await axios.post('index.php?module=matrixprodukt&action=artikel&cmd=addoptions', {
     articleId: props.articleId,
-    optionIds: selected
+    optionIds: selected.value
   })
       .then(response => {emit('save')})
       .catch(AlertErrorHandler);
