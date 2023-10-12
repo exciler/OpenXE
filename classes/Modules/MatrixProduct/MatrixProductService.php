@@ -122,7 +122,8 @@ final class MatrixProductService
       $groupId = $this->gateway->GetArticleGroupIdByName($articleId, $option['groupname']);
       if (!$groupId) {
         $obj = new Group($option['groupname'], nameExternal: $option['groupnameext'], projectId: $option['groupprojekt'], articleId: $articleId);
-        $groupId = $this->gateway->InsertArticleGroup($obj);
+        $group = $this->gateway->InsertArticleGroup($obj);
+        $groupId = $group->id;
       }
       $optionId = $this->gateway->GetArticleOptionIdByName($articleId, $groupId, $option['name']);
       if (!$optionId) {
