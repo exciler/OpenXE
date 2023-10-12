@@ -17,8 +17,8 @@ final class Option implements JsonSerializable
       public bool $active = true,
       public string $nameExternal = '',
       public int $sort = 0,
-      public ?string $articleNumber = null,
-      public ?string $articleNumberSuffix = null,
+      public string $articleNumber = '',
+      public string $articleNumberSuffix = '',
       public readonly ?int $globalOptionId = null,
       public readonly ?int $articleId = null
   )
