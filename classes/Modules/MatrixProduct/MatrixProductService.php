@@ -113,7 +113,7 @@ final class MatrixProductService
   public function AddGlobalOptionsForArticle(int $articleId, int|array $optionIds): void
   {
     $optionIdList = join(',', $optionIds);
-    $sql = "SELECT mg.name groupname, mg.name_ext groupnameext, mg.projekt as groupprojekt, mo.*
+    $sql = "SELECT mg.name groupname, mg.name_ext groupnameext, mg.projekt as groupprojekt, mg.pflicht as grouprequired, mo.*
             FROM matrixprodukt_eigenschaftenoptionen mo
             JOIN matrixprodukt_eigenschaftengruppen mg on mo.gruppe=mg.id
             WHERE mo.id IN (:optionIdList)";
@@ -121,7 +121,7 @@ final class MatrixProductService
     foreach ($optionArr as $option) {
       $groupId = $this->gateway->GetArticleGroupIdByName($articleId, $option['groupname']);
       if (!$groupId) {
-        $obj = new Group($option['groupname'], nameExternal: $option['groupnameext'], projectId: $option['groupprojekt'], articleId: $articleId);
+        $obj = new Group($option['groupname'], nameExternal: $option['groupnameext'], projectId: $option['groupprojekt'], required: $option['grouprequired'], articleId: $articleId);
         $group = $this->gateway->InsertArticleGroup($obj);
         $groupId = $group->id;
       }
