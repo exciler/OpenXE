@@ -75,7 +75,8 @@ abstract class Versanddienstleister
       $ret['lieferscheinId'] = $lieferscheinId;
 
       $addressfields = ['name', 'adresszusatz', 'abteilung', 'ansprechpartner', 'unterabteilung', 'ort', 'plz',
-          'strasse', 'land'];
+          'strasse', 'land'];       
+
       $ret['original'] = array_filter($docArr, fn($key) => in_array($key, $addressfields), ARRAY_FILTER_USE_KEY);
 
       $ret['name'] = empty(trim($docArr['ansprechpartner'])) ? trim($docArr['name']) : trim($docArr['ansprechpartner']);
@@ -127,7 +128,7 @@ abstract class Versanddienstleister
       if (!empty($docArr['ihrebestellnummer'])) {
         $orderNumberParts[] = $docArr['ihrebestellnummer'];
       }
-      $orderNumberParts[] = $docArr['belegnr'];
+      $orderNumberParts[] = ucfirst($sid)." ".$docArr['belegnr'];
       $ret['order_number'] = implode(' / ', $orderNumberParts);
     }
 
@@ -369,7 +370,7 @@ abstract class Versanddienstleister
     return true;
   }
 
-  public function Paketmarke(string $target, string $docType, int $docId): void
+  public function Paketmarke(string $target, string $docType, int $docId, $versandpaket = null): void
   {
     $address = $this->GetAdressdaten($docId, $docType);
     if (isset($_SERVER['CONTENT_TYPE']) && ($_SERVER['CONTENT_TYPE'] === 'application/json')) {
@@ -378,25 +379,65 @@ abstract class Versanddienstleister
       if ($json->submit == 'print') {
         $result = $this->CreateShipment($json, $address);
         if ($result->Success) {
-          $sql = "INSERT INTO versand 
-          (adresse, lieferschein, versandunternehmen, gewicht, tracking, tracking_link, anzahlpakete) 
-          VALUES 
-          ({$address['addressId']}, {$address['lieferscheinId']}, '$this->type',
-           '$json->weight', '$result->TrackingNumber', '$result->TrackingUrl', 1)";
-          $this->app->DB->Insert($sql);
+            if (empty($versandpaket)) {
+                $sql = "INSERT INTO versandpakete 
+                      (
+                        lieferschein_ohne_pos,
+                        gewicht,
+                        tracking,
+                        tracking_link,
+                        status,
+                        versandart,
+                        versender
+                      ) 
+                      VALUES 
+                      (
+                        {$address['lieferscheinId']},
+                        '$json->weight',
+                        '$result->TrackingNumber',
+                        '$result->TrackingUrl',
+                        'neu',
+                        '$this->type',
+                        '".$this->app->User->GetName()."'
+                    )";
+                $this->app->DB->Insert($sql);
+                $versandpaket = $this->app->DB->GetInsertID();
+            }
+            else {
+                $sql = "UPDATE versandpakete SET 
+                            gewicht = '".$json->weight."',
+                            tracking = '".$result->TrackingNumber."',
+                            tracking_link = '".$result->TrackingUrl."'
+                        WHERE id = '".$versandpaket."'
+                        ";             
+                $this->app->DB->Update($sql);      
+            }       
 
-          $filename = $this->app->erp->GetTMP() . join('_', [$this->type, 'Label', $result->TrackingNumber]) . '.pdf';
-          file_put_contents($filename, $result->Label);
-          $this->app->printer->Drucken($this->labelPrinterId, $filename);
+            $filename = join('_', [$this->type, 'Label', $result->TrackingNumber]) . '.pdf';
+            $filefullpath = $this->app->erp->GetTMP() . $filename;
+            file_put_contents($filefullpath, $result->Label);
+            $this->app->erp->CreateDateiWithStichwort(
+                $filename,
+                'Paketmarke '.$this->type.' '.$result->TrackingNumber,
+                'Paketmarke Versandpaket Nr. '.$versandpaket,
+                '',
+                $filefullpath,
+                $this->app->User->GetName(),
+                'paketmarke',
+                'versandpaket',
+                $versandpaket
+            );
 
-          if (isset($result->ExportDocuments)) {
-            $filename = $this->app->erp->GetTMP() . join('_', [$this->type, 'ExportDoc', $result->TrackingNumber]) . '.pdf';
-            file_put_contents($filename, $result->ExportDocuments);
-            $this->app->printer->Drucken($this->documentPrinterId, $filename);
-          }
-          $ret['messages'][] = ['class' => 'info', 'text' => "Paketmarke wurde erfolgreich erstellt: $result->TrackingNumber"];
+            $this->app->printer->Drucken($this->labelPrinterId, $filefullpath);
+
+            if (isset($result->ExportDocuments)) {
+                $filefullpath = $this->app->erp->GetTMP() . join('_', [$this->type, 'ExportDoc', $result->TrackingNumber]) . '.pdf';
+                file_put_contents($filefullpath, $result->ExportDocuments);
+                $this->app->printer->Drucken($this->documentPrinterId, $filefullpath);
+            }
+            $ret['messages'][] = ['class' => 'info', 'text' => "Paketmarke wurde erfolgreich erstellt: $result->TrackingNumber"];
         } else {
-          $ret['messages'] = array_map(fn(string $item) => ['class' => 'error', 'text' => $item], array_unique($result->Errors));
+            $ret['messages'] = array_map(fn(string $item) => ['class' => 'error', 'text' => $item], array_unique($result->Errors));
         }
       }
       header('Content-Type: application/json');
@@ -410,7 +451,12 @@ abstract class Versanddienstleister
     $address['product'] = $products[0]->Id ?? '';
 
     $countries = $this->app->DB->SelectArr("SELECT iso, bezeichnung_de name, eu FROM laender ORDER BY bezeichnung_de");
-    $countries = array_combine(array_column($countries, 'iso'), $countries);
+    if(!empty($countries)) {
+        $countries = array_combine(array_column($countries, 'iso'), $countries);    
+    } else {
+        $countries = Array();        
+        $this->app->Tpl->addMessage('error', 'L&auml;nderliste ist leer. Siehe Einstellungen -> L&auml;nderliste.', false, 'PAGE');
+    }  
 
     $json['form'] = $address;
     $json['countries'] = $countries;

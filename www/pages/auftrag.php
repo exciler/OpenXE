@@ -1990,8 +1990,52 @@ class Auftrag extends GenAuftrag
       $gebuchtezeit = str_replace(".", ",", round($gebuchtezeit,2));
     }
     $summebrutto = $this->app->DB->Select("SELECT gesamtsumme FROM auftrag WHERE id='$id' LIMIT 1");
-    $this->app->Tpl->Set('DECKUNGSBEITRAG',0);
-    $this->app->Tpl->Set('DBPROZENT',0);
+
+    // Deckungsbeitrag
+    if (!$this->app->erp->RechteVorhanden('auftrag','einkaufspreise')) {
+        $this->app->Tpl->Set('DBHIDDEN','hidden');
+    } else {
+        $sql = "
+                SELECT
+                    umsatz_netto_gesamt,
+                    artikel,
+                    menge,
+                    einkaufspreis
+                FROM
+                    `auftrag_position`
+                WHERE
+                    `auftrag` = ".$id."
+            ";
+
+        $positionen = $this->app->DB->SelectArr($sql);
+
+        $umsatz_gesamt = 0;
+        $kosten_gesamt = 0;
+        $db_gesamt = 0;    
+        foreach ($positionen as $position) {
+            if (empty($position['einkaufspreis'])) {
+                $position['einkaufspreis'] = $this->app->erp->GetEinkaufspreis($position['artikel'],$position['menge']);
+            }
+            $kosten = ($position['einkaufspreis']*$position['menge']);
+            $db_gesamt += $position['umsatz_netto_gesamt']-$kosten;
+            $kosten_gesamt += $kosten;
+            $umsatz_gesamt += $position['umsatz_netto_gesamt'];
+        }
+
+        $this->app->Tpl->Set('NETTOGESAMT',$this->app->erp->number_format_variable($umsatz_gesamt,2));
+        $this->app->Tpl->Set('KOSTEN',$this->app->erp->number_format_variable($kosten_gesamt,2));
+        $this->app->Tpl->Set('DECKUNGSBEITRAG',$this->app->erp->number_format_variable($db_gesamt,2));
+        $this->app->Tpl->Set(   'DBPROZENT',
+                                $umsatz_gesamt==0?
+                                "-":
+                                $this->app->erp->number_format_variable(
+                                    round(
+                                        $db_gesamt/$umsatz_gesamt*100,2
+                                    )                                
+                                )."%"
+                            );
+    }
+   
     $this->app->Tpl->Set('GEBUCHTEZEIT',0);
 
     if($auftragArr[0]['ust_befreit']==0){
@@ -2270,7 +2314,7 @@ class Auftrag extends GenAuftrag
       }
       $this->app->Tpl->Set('PREISANFRAGE', implode('<br />', $priceRequestsHtml));
     }
-
+/*
     $tmpVersand = !$hasDeliveryNotes?[]: $this->app->DB->SelectFirstCols(
       "SELECT if(v.versendet_am!='0000-00-00', 
         CONCAT(DATE_FORMAT( v.versendet_am,'%d.%m.%Y'),' ',v.versandunternehmen),
@@ -2353,6 +2397,39 @@ class Auftrag extends GenAuftrag
     else {
       $this->app->Tpl->Set('TRACKING',$tmpVersand);
     }
+*/
+
+
+      $sql = "SELECT SQL_CALC_FOUND_ROWS
+                v.id,                   
+                v.tracking as tracking,
+                v.tracking_link
+            FROM 
+                versandpakete v
+            LEFT JOIN
+                versandpaket_lieferschein_position vlp ON v.id = vlp.versandpaket
+            LEFT JOIN
+                lieferschein_position lp ON lp.id = vlp.lieferschein_position
+            LEFT JOIN
+                lieferschein l ON lp.lieferschein = l.id
+            LEFT JOIN
+                lieferschein lop ON lop.id = v.lieferschein_ohne_pos 
+            WHERE 
+                l.auftragid = ".$id." OR lop.auftragid = ".$id."
+            GROUP BY 
+               v.id
+            ";
+    $tracking = $this->app->DB->SelectArr($sql);
+
+    $tracking_list = array();
+    foreach ($tracking as $single_tracking) {
+        $tracking_list[] =  '<a href="index.php?module=versandpakete&action=edit&id='.$single_tracking['id'].'">Paket Nr.'.$single_tracking['id'].'</a>'.
+                            ' ('.'<a href="'.$single_tracking['tracking_link'].'">'.$single_tracking['tracking'].'</a>'.')';
+    }
+
+    $this->app->Tpl->Set('TRACKING',implode('<br>',$tracking_list));
+
+
 
 
     $icons = $this->app->YUI->IconsSQL();
@@ -4916,6 +4993,10 @@ class Auftrag extends GenAuftrag
       $this->app->erp->AdresseAlsLieferadresseButton($adresse);
     }
 
+    if ($schreibschutz != 1 AND $status != 'abgeschlossen') {
+        $this->app->erp->BerechneDeckungsbeitrag($id,'auftrag');
+    }
+
     if($nummer!='') {
       $this->app->Tpl->Set('NUMMER',$nummer);
       if($this->app->erp->RechteVorhanden('adresse','edit')){
@@ -5694,8 +5775,13 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
         }
 
         $this->app->DB->Update("UPDATE lieferschein SET 
-            belegnr='$ls_belegnr', status='freigegeben', versand='".$this->app->User->GetDescription()."' 
-            WHERE id='$lieferschein' LIMIT 1");
+                                    belegnr='$ls_belegnr',  
+                                    status='freigegeben',
+                                    versand='".$this->app->User->GetDescription()."',
+                                    versand_status = 1
+                                WHERE id='$lieferschein' LIMIT 1");
+
+        // Versand_status: 1 = process in versandpakete, 2 = finished, 3 = finished manually
 
         $this->app->erp->LieferscheinProtokoll($lieferschein, 'Lieferschein freigegeben');
 
@@ -6342,7 +6428,7 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
     $this->app->erp->MenuEintrag('index.php?module=auftrag&action=list','&Uuml;bersicht');
     $this->app->erp->MenuEintrag('index.php?module=auftrag&action=create','Neuen Auftrag anlegen');
     $this->app->erp->MenuEintrag('index.php?module=auftrag&action=offene','Offene Positionen');
-    $this->app->erp->MenuEintrag('index.php?module=auftrag&action=versandzentrum','Versandzentrum');
+    $this->app->erp->MenuEintrag('index.php?module=auftrag&action=versandzentrum','Versand&uuml;bergabe');
 
     if(strlen($backurl)>5){
       $this->app->erp->MenuEintrag("$backurl", 'Zur&uuml;ck zur &Uuml;bersicht');
@@ -6387,7 +6473,7 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
     $this->AuftraguebersichtMenu();
     $targetMessage = 'AUTOVERSANDBERECHNEN';
 
-    $this->app->Tpl->Add('MESSAGE','<div class="info">Auftr&auml;ge an Versand übergeben mit automatischem Druck und Mailversand.</div>');
+    $this->app->Tpl->Add('MESSAGE','<div class="info">Auftr&auml;ge an Versand übergeben mit automatischem Druck und Mailversand. <a class="button" href="index.php?module=versandpakete&action=lieferungen">Zum Versand</a></div>');
 
     $autoshipmentEnabled = true;
     $this->app->erp->RunHook('OrderAutoShipment', 2, $targetMessage, $autoshipmentEnabled);

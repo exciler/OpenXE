@@ -28,6 +28,15 @@ class YUI {
     $this->app = $app;
   }
 
+  function dateien_module_objekt_map($module) : string {
+    $dateien_module_objekt_map_array = array(
+        'adresse' => 'adressen',
+        'ticket'  => 'ticket_header' 
+    );
+
+    return (isset($dateien_module_objekt_map_array[$module]) ? $dateien_module_objekt_map_array[$module] : $module);
+  }
+
   function PasswordCheck($passwordFieldID, $repassFieldID, $accountNameFieldID, $submitButtonID, $extra = ''){
         $this->app->Tpl->Add('JQUERYREADY', "
                 function checkPassword(){
@@ -2578,11 +2587,19 @@ class YUI {
                 if(CHAR_LENGTH(b.bezeichnung)>" . $this->app->erp->MaxArtikelbezeichnung() . ",CONCAT(SUBSTR(b.bezeichnung,1," . $this->app->erp->MaxArtikelbezeichnung() . "),'...'),b.bezeichnung))
             ) $erweiterte_ansicht)
             as Artikel,
+            p.abkuerzung as projekt,
+            b.nummer as nummer,
+            DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum,
+            trim(b.menge)+0 as menge,
+            ".$this->FormatPreis($preiscell)." as preis,
+            b.waehrung,
+            ".$this->FormatPreis('b.rabatt')." as rabatt,";
 
-
-
-               p.abkuerzung as projekt, b.nummer as nummer, DATE_FORMAT(lieferdatum,'%d.%m.%Y') as lieferdatum, trim(b.menge)+0 as menge, ".$this->FormatPreis($preiscell)." as preis,b.waehrung, ".$this->FormatPreis('b.rabatt')." as rabatt, ";
-        
+            if ($this->app->erp->RechteVorhanden('auftrag','einkaufspreise')) {
+                $sql .= $this->FormatPreis('einkaufspreis')." as einkaufspreis,
+                        CONCAT(".$this->app->erp->FormatPreis("ROUND(deckungsbeitrag*100,2)",2).",'%') AS DB,
+                        ";
+            }             
                
         $sql .= "b.id as id
                  FROM $table b
@@ -3614,6 +3631,121 @@ class YUI {
             '</td></tr></table>')";
     }
 
+    function IconsSQL_versandpaket() {
+/*
+    status:
+        neu -> 
+   
+    Lagergo
+    lagergo_stop
+    lagerstop
+
+    Schein
+    summe_go
+    summe_stop
+
+    Auto
+    liefersperrego
+    liefersperrestop
+
+    marke
+    portogo
+    portostop
+
+    produktion_usn_gut
+    storno*/
+    
+
+        $lieferschein_kein = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/summe_stop.png\" title=\"Kein Lieferschein\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_ohne_pos = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/summe_go.png\" title=\"Lieferschein ohne Positionen\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_voll = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/lagergo.png\" title=\"Lieferschein vollst&auml;ndig\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_teil = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/lagergo_teil.png\" title=\"Lieferschein teilweise\" border=\"0\" style=\"margin-right:1px\">";
+
+        $versendet = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/liefersperrego.png\" title=\"Versendet\" border=\"0\" style=\"margin-right:1px\">";
+        $versendet_nicht = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/liefersperrestop.png\" title=\"Nicht versendet\" border=\"0\" style=\"margin-right:1px\">";
+
+        $paketmarke = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/portogo.png\" style=\"margin-right:1px\" title=\"Paketmarke\" border=\"0\">";
+        $paketmarke_keine = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/portostop.png\" style=\"margin-right:1px\" title=\"Keine Paketmarke\" border=\"0\">";
+
+        $ausgeliefert = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delivery_ok.png\" style=\"margin-right:1px\" title=\"Ausgeliefert\" border=\"0\">";
+        $ausgeliefert_nicht = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delivery.png\" style=\"margin-right:1px\" title=\"Nicht ausgeliefert\" border=\"0\">";
+
+        $storno = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/storno.png\" style=\"margin-right:1px\" title=\"Storniert\" border=\"0\">";
+
+        for ($z = 0;$z < 4;$z++) {
+            $abgeschlossen .= $ausgeliefert; 
+            $storniert .= $storno; 
+        }
+
+        return "CONCAT('<table><tr><td nowrap>',
+            CASE 
+                WHEN status = 'storniert' THEN '$storniert'
+            ELSE CONCAT(                                
+                CASE 
+                    WHEN lieferscheine <> '' AND vmenge = lmenge THEN '$lieferschein_voll'
+                    WHEN lieferschein_ohne_pos <> '' AND vmenge IS NULL THEN '$lieferschein_ohne_pos'
+                    WHEN lieferscheine <> '' THEN '$lieferschein_teil'
+                ELSE 
+                    '$lieferschein_kein'
+                END,
+                CASE 
+                    WHEN tracking <> '' THEN '$paketmarke'
+                ELSE 
+                    '$paketmarke_keine'
+                END,
+                CASE 
+                    WHEN status = 'versendet' THEN '$versendet'
+                    WHEN status = 'abgeschlossen' THEN '$versendet'
+                ELSE 
+                    '$versendet_nicht'
+                END,
+                CASE 
+                    WHEN status = 'abgeschlossen' THEN '$ausgeliefert'
+                ELSE 
+                    '$ausgeliefert_nicht'
+                END
+            )
+            END,
+            '</td></tr></table>')";
+    }
+    function IconsSQL_lieferung() {
+
+        $lieferschein_kein = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/lagerstop.png\" title=\"Keine Artikel in Versandpaketen\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_ohne_pos = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/summe_go.png\" title=\"Lieferschein ohne Positionen\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_voll = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/lagergo.png\" title=\"Artikel vollst&auml;ndig in Versandpaketen\" border=\"0\" style=\"margin-right:1px\">";
+        $lieferschein_teil = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/lagergo_stop.png\" title=\"Artikel teilweise in Versandpaketen\" border=\"0\" style=\"margin-right:1px\">";
+
+        $versendet = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/liefersperrego.png\" title=\"Versendet\" border=\"0\" style=\"margin-right:1px\">";
+        $versendet_nicht = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/liefersperrestop.png\" title=\"Nicht versendet\" border=\"0\" style=\"margin-right:1px\">";
+        $versendet_teil = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/liefersperregostop.png\" title=\"Teilweise versendet\" border=\"0\" style=\"margin-right:1px\">";
+
+        $ausgeliefert = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delivery_ok.png\" style=\"margin-right:1px\" title=\"Ausgeliefert\" border=\"0\">";
+        $ausgeliefert_nicht = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delivery.png\" style=\"margin-right:1px\" title=\"Nicht ausgeliefert\" border=\"0\">";
+        $ausgeliefert_teil = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delivery_pending.png\" style=\"margin-right:1px\" title=\"Teilweise ausgeliefert\" border=\"0\">";
+
+        $storno = "<img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/storno.png\" style=\"margin-right:1px\" title=\"Storniert\" border=\"0\">";
+
+        return "CONCAT(
+                '<table><tr><td nowrap>',
+                CASE 
+                    WHEN vmenge >= lmenge THEN '$lieferschein_voll'
+                    WHEN vmenge < lmenge AND vmenge <> 0 THEN '$lieferschein_teil'
+                    ELSE '$lieferschein_kein'
+                END,
+                CASE 
+                    WHEN alle_abgeschlossen THEN '$versendet'
+                    WHEN alle_versendet THEN '$versendet'
+                    WHEN eins_versendet THEN '$versendet_teil'
+                    ELSE '$versendet_nicht'
+                END,
+                CASE 
+                    WHEN alle_abgeschlossen THEN '$ausgeliefert'
+                    WHEN eins_abgeschlossen THEN '$ausgeliefert_teil'
+                    ELSE '$ausgeliefert_nicht'
+                END,
+                '</td></tr></table>')";
+    }
+
   function TablePositionSearch($parsetarget, $name, $callback = "show", $gener) {
 
     $id = $this->app->Secure->GetGET("id");
@@ -3951,6 +4083,7 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         $allowed['wiki'] = array('dateien');
         $allowed['geschaeftsbrief_vorlagen'] = array('dateien');
         $allowed['kasse'] = array('dateien');
+        $allowed['ticket'] = array('dateien');
 
         $id = $this->app->Secure->GetGET("id");
         $sid = $this->app->Secure->GetGET("sid");
@@ -3959,13 +4092,8 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         }
 
         parse_str(parse_url($_SERVER['HTTP_REFERER'], PHP_URL_QUERY), $queries);
-        switch($queries['module'])
-        {
-          case "adresse": $objekt="adressen"; break;
-          default: $objekt=$queries['module'];
-        }
 
-        //if(!ctype_alpha($objekt))$objekt="";
+        $objekt = $this->dateien_module_objekt_map($queries['module']);
 
         if(!preg_match('/[A-Za-z_]/', $objekt)) {
           $objekt='';
@@ -5702,12 +5830,8 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
           }
         }
         // Fester filter
-        $more_data6 = $this->app->Secure->GetGET("more_data6");
-        $more_data7 = $this->app->Secure->GetGET("more_data7");
-        $more_data8 = $this->app->Secure->GetGET("more_data8");
-        
         $more_data4 = $this->app->Secure->GetGET("more_data4");
-
+/*
         $versandjoin = "";
         if(isset($parameter['offenversandzentrum'])  && !empty($parameter['offenversandzentrum']))
         {
@@ -5741,8 +5865,8 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         }
         
         if($versandjoin)$sql .= $versandjoin;
-        
-        
+        */
+       
         if($more_data4 || (isset($parameter['ohnerechnung']) && !empty($parameter['ohnerechnung']))) {
 
             $paramsArray[] = " l.status !='storniert' ";
@@ -5817,6 +5941,21 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         if ($more_data3 == 1) $subwhere[] = " l.lieferantenretoure=1 ";
 
         // ENDE EXTRA more
+        $more_data6 = $this->app->Secure->GetGET("more_data6");
+        $more_data7 = $this->app->Secure->GetGET("more_data7"); 
+        $more_data8 = $this->app->Secure->GetGET("more_data8"); 
+        
+        if ($more_data6) {            
+            $subwhere[] = "l.versand_status = 3";
+        }
+        if ($more_data7) {
+            $subwhere[] = "l.versand_status = 1";
+        }
+        if ($more_data8) {
+            $subwhere[] = "l.versand_status IN (2,3)";
+        }
+
+
         for ($j = 0;$j < (empty($subwhere)?0:count($subwhere));$j++) $tmp.= " AND " . $subwhere[$j];
         $where = " l.id!='' AND l.status!='angelegt' $tmp " . $this->app->erp->ProjektRechte('p.id', true, 'l.vertriebid');
 
@@ -13933,11 +14072,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
         $sid = (int)$this->app->Secure->GetPOST("sid");
         $sort = $this->app->DB->Select("SELECT sort FROM datei_stichwoerter WHERE id = '$sid' LIMIT 1");
         $id = (int)$this->app->Secure->GetGET("id");
-        switch($module)
-        {
-          case "adresse": $objekt="adressen"; break;
-          default: $objekt=$module;
-        }
+        $objekt = $this->dateien_module_objekt_map($module);
 
         if(!preg_match('/[A-Za-z_]/', $objekt))$objekt="";
         $parameter=$id;
@@ -13966,11 +14101,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
         $sid = (int)$this->app->Secure->GetPOST("sid");
         $sort = $this->app->DB->Select("SELECT sort FROM datei_stichwoerter WHERE id = '$sid' LIMIT 1");
         $id = (int)$this->app->Secure->GetGET("id");
-        switch($module)
-        {
-          case "adresse": $objekt="adressen"; break;
-          default: $objekt=$module;
-        }
+        $objekt = $this->dateien_module_objekt_map($module);
 
         if(!preg_match('/[A-Za-z_]/', $objekt))$objekt="";
         $parameter=$id;
@@ -14069,7 +14200,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
           $this->app->Tpl->Add('MESSAGE','<div class="error">Keine Dateien ausgew&auml;hlt!</div>');
         }else{
           $objekt = $this->app->Secure->GetGET('module');
-          if($objekt == 'adresse')$objekt = 'adressen';          
+          $objekt = $this->dateien_module_objekt_map($objekt);
           $parameter = (int)$this->app->Secure->GetGET('id');
           $alledateien = $this->app->DB->SelectArr("SELECT  v.datei, v.id FROM 
               datei d INNER JOIN datei_stichwoerter s ON d.id=s.datei INNER JOIN datei_version v ON v.datei=d.id WHERE s.objekt LIKE '$objekt' AND s.parameter='$parameter' AND d.geloescht=0 ");         
@@ -14136,7 +14267,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
           $this->app->Tpl->Add('MESSAGE','<div class="error">Keine Dateien ausgew&auml;hlt!</div>');
         }else{
           $objekt = $this->app->Secure->GetGET('module');
-          if($objekt == 'adresse')$objekt = 'adressen';
+          $objekt = $this->dateien_module_objekt_map($objekt);
           $typmodul = $this->app->Secure->GetPOST('typ');
           if($objekt == 'dateien' && $typmodul == 'geschaeftsbrief_vorlagen'){
             $objekt = $typmodul;
@@ -14592,7 +14723,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
       if ($module == "angebot" || $module == "auftrag" || $module == "rechnung" || $module == "gutschrift" || $module == "proformarechnung") {
         
         if ($schreibschutz != 1) {
-          $addrow = array('<form action="" method="post" id="myform">', '[ARTIKELSTART]<input type="text" size="30" name="artikel" id="artikel" onblur="window.setTimeout(\'selectafterblur()\',200);">[ARTIKELENDE]', '<input type="text" name="projekt" id="projekt" size="10" readonly onclick="checkhere()" >', '<input type="text" name="nummer" id="nummer" size="7">', '<input type="text" size="8" name="lieferdatum" id="lieferdatum">', '<input type="text" name="menge" id="menge" size="5" onblur="window.setTimeout(\'selectafterblurmenge()\',200); document.getElementById(\'preis\').style.background =\'none\';">', '<input type="text" name="preis" id="preis" size="10" onclick="checkhere();">', '<input type="text" name="waehrung" id="waehrung" size="10" onclick="checkhere();">' ,'<input type="text" name="rabatt" id="rabatt" size="7">');
+          $addrow = array('<form action="" method="post" id="myform">', '[ARTIKELSTART]<input type="text" size="30" name="artikel" id="artikel" onblur="window.setTimeout(\'selectafterblur()\',200);">[ARTIKELENDE]', '<input type="text" name="projekt" id="projekt" size="10" readonly onclick="checkhere()" >', '<input type="text" name="nummer" id="nummer" size="7">', '<input type="text" size="8" name="lieferdatum" id="lieferdatum">', '<input type="text" name="menge" id="menge" size="5" onblur="window.setTimeout(\'selectafterblurmenge()\',200); document.getElementById(\'preis\').style.background =\'none\';">', '<input type="text" name="preis" id="preis" size="10" onclick="checkhere();">', '<input type="text" name="waehrung" id="waehrung" size="10" onclick="checkhere();">' ,'<input type="text" name="rabatt" id="rabatt" size="7">','','');
           $addrow[] = '<input type="submit" value="einf&uuml;gen" name="ajaxbuchen">
             <script type="text/javascript">
             document.onkeydown = function(evt) {
@@ -14755,9 +14886,11 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
         }
         $table->headings[6] = 'Preis';
         $mengencol = 5;
-        if ($module == "angebot" || $module == "auftrag" || $module == "rechnung" || $module == "gutschrift") $table->headings[7] = 'W&auml;hrung';
-        if ($module == "angebot" || $module == "auftrag" || $module == "rechnung" || $module == "gutschrift") $table->headings[8] = 'Rabatt';
-        if ($module == "angebot" || $module == "auftrag" || $module == "rechnung" || $module == "gutschrift") $rabattcol = 8;
+        if ($module == "angebot" || $module == "auftrag" || $module == "rechnung" || $module == "gutschrift") {
+            $table->headings[7] = 'W&auml;hrung';
+            $table->headings[8] = 'Rabatt';
+            $rabattcol = 8; 
+        }       
       }
       $__arr = array($summencol, $mengencol, $rabattcol, $ecol, $dcol,$zwischensumme);
       $this->app->erp->RunHook('yui_sortlistadd_draw', 2,$table,$__arr);

@@ -19,12 +19,13 @@
 	        				<fieldset>
                                 <table width="100%" border="0" class="mkTableFormular">
                                     <legend>{|[STATUSICON]<b>Ticket <font color="blue">#[SCHLUESSEL]</font></b>|}</legend>
-                                    <tr><td>{|Betreff|}:</td><td><input type="text" name="betreff" id="betreff" value="[BETREFF]" size="100%"></td></tr>
+                                    <tr><td>{|Betreff|}:</td><td><input type="text" name="betreff" id="betreff" value="[BETREFF]" style="width: 100%;"></td></tr>
                                     <tr><td>{|Von|}:</td><td>[KUNDE]&nbsp;[MAILADRESSE]</td></tr>
                                     <tr><td>{|Projekt|}:</td><td><input type="text" name="projekt" id="projekt" value="[PROJEKT]" size="20"></td></tr>
                                     <tr><td>{|Adresse|}:</td><td><input type="text" name="adresse" id="adresse" value="[ADRESSE]" size="20"><a href="index.php?module=adresse&action=edit&id=[ADRESSE_ID]"><img src="./themes/new/images/forward.svg" border="0" style="top:6px; position:relative"></a></td></tr>
                                     <tr><td>{|Tags|}:</td><td><input type="text" name="tags" id="tags" value="[TAGS]" size="20"></td></tr>
                                     <tr><td>{|Letzte Aktion|}:</td><td>[ZEIT]</td></tr>
+                                    [TICKET_ANHANG]
                                 </table>
                             </fieldset> 
                         </div>
@@ -49,6 +50,7 @@
                                     <legend>{|Aktionen|}</legend>
                                     <td><button name="submit" value="speichern" class="ui-button-icon" style="width:100%;">Speichern</button></td></tr>
                                     <td><button name="submit" value="neue_email" class="ui-button-icon" style="width:100%;">Neue E-Mail</button></td></tr>
+                                    <td><button name="submit" value="neue_email_alle" class="ui-button-icon" style="width:100%;">Neue E-Mail an alle</button></td></tr>
                                     <td><button name="submit" formaction="index.php?module=ticketregeln&action=create" value="regel" class="ui-button-icon" style="width:100%;">Ticketregel erstellen</button><input hidden type="text" name="ticketid" value="[ID]"></td></tr>
                                 </table>
                             </fieldset>

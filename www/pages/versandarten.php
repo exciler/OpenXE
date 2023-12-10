@@ -56,6 +56,7 @@ class Versandarten {
 
     // ab hier alle Action Handler definieren die das Modul hat
     $this->app->ActionHandler("create", "VersandartenCreate");
+    $this->app->ActionHandler("neusonstige", "VersandartenNeuSonstige");
     $this->app->ActionHandler("edit", "VersandartenEdit");
     $this->app->ActionHandler("list", "VersandartenList");
     $this->app->ActionHandler("delete", "VersandartenDelete");
@@ -153,6 +154,13 @@ class Versandarten {
     return $erg;
   }
 
+    public function VersandartenNeuSonstige() {
+        $sql = "INSERT INTO versandarten (aktiv) VALUES (1)";
+        $this->app->DB->Insert($sql);
+        $id = $this->app->DB->GetInsertID();
+        $this->app->Location->execute('index.php?module=versandarten&action=edit&id='.$id);
+    }
+
   /** @noinspection PhpUnused */
   public function VersandartenEdit(): void
   {
@@ -169,8 +177,8 @@ class Versandarten {
     if($submit != '') { // handle form submit
       $form = $this->GetInput();
       $obj = $this->loadModule($form['modul'], $id);
-      if ($obj === null)
-        $error[] = sprintf('Versandart "%s" existiert nicht.', $form['selmodul']);
+/*      if ($obj === null)
+        $error[] = sprintf('Versandart "%s" existiert nicht.', $form['selmodul']); */
 
       if(trim($form['bezeichnung']) == '')
         $error[] = 'Bitte eine Bezeichnung angeben!';

@@ -17,33 +17,6 @@
 				<li class="filter-item"><input type="checkbox" id="anlieferanten"><label for="anlieferanten">{|an Lieferanten|}</label></li>
 			</ul>
 		</div>
-
-		<div class="filter-block filter-inline">
-			<div class="filter-title">{|Filter Versandzentrum|}</div>
-			<ul class="filter-list">
-				<li class="filter-item">
-					<label for="abgeschlossenlogistik" class="switch">
-						<input type="checkbox" id="abgeschlossenlogistik">
-						<span class="slider round"></span>
-					</label>
-					<label for="abgeschlossenlogistik">{|abgeschlossen &uuml;ber Logistik|}</label>
-				</li>
-				<li class="filter-item">
-					<label for="nochinlogistik" class="switch">
-						<input type="checkbox" id="nochinlogistik">
-						<span class="slider round"></span>
-					</label>
-					<label for="nochinlogistik">{|noch in Logistik|}</label>
-				</li>
-				<li class="filter-item">
-					<label for="manuellabgeschlossen" class="switch">
-						<input type="checkbox" id="manuellabgeschlossen">
-						<span class="slider round"></span>
-					</label>
-					<label for="manuellabgeschlossen">{|manuell abgeschlossen|}</label>
-				</li>
-			</ul>
-		</div>
 	</div>
 
 [MESSAGE]
@@ -56,6 +29,7 @@
 <option value="offen">{|als offen markieren|}</option>
 <option value="versendet">{|als versendet markieren|}</option>
 <option value="storniert">{|als storniert markieren|}</option>
+<option value="versanduebergabe">{|in Versand geben|}</option>
 <option value="pdf">{|Sammel-PDF|}</option>
 <option value="drucken">{|drucken|}</option>
 </select>&nbsp;{|Drucker|}: <select name="seldrucker">[SELDRUCKER]</select>&nbsp;<input type="submit" class="btnBlue" name="ausfuehren" value="{|ausf&uuml;hren|}" />

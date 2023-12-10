@@ -23,6 +23,7 @@ class Ticket {
         $this->app->ActionHandler("text_ausgang", "ticket_text_ausgang"); // Output text for iframe display
         $this->app->ActionHandler("statusfix", "ticket_statusfix"); // Xentral 20 compatibility set all ticket status to latest ticket_nachricht status
         $this->app->ActionHandler("datefix", "ticket_datefix"); // Xentral 20 compatibility set all ticket dates to latest ticket_nachricht date
+        $this->app->ActionHandler("dateien", "ticket_dateien"); 
         $this->app->DefaultActionHandler("list");
         $this->app->ActionHandlerListen($app);
     }
@@ -186,6 +187,7 @@ class Ticket {
   
         // Process multi action
         $auswahl = $this->app->Secure->GetPOST('auswahl');
+        $submit = $this->app->Secure->GetPOST('submit');
         $selectedIds = [];
         if(!empty($auswahl)) {
           foreach($auswahl as $selectedId) {
@@ -195,19 +197,71 @@ class Ticket {
             }
           }          
 
-          $status = $this->app->Secure->GetPOST('status');
-          $warteschlange = $this->app->Secure->GetPOST('warteschlange');
+            switch ($submit) {
+                case 'zuordnen':
+                    $status = $this->app->Secure->GetPOST('status');
+                    $warteschlange = $this->app->Secure->GetPOST('warteschlange');
 
-          $sql = "UPDATE ticket SET status = '".$status."', zeit = NOW()";
-          if ($warteschlange != '') {
-            $sql .= ", warteschlange = '".explode(" ",$warteschlange)[0]."'";
-          }
+                    $sql = "UPDATE ticket SET status = '".$status."', zeit = NOW()";
+                    if ($warteschlange != '') {
+                        $sql .= ", warteschlange = '".explode(" ",$warteschlange)[0]."'";
+                    }
 
-          $sql .= " WHERE id IN (".implode(",",$selectedIds).")";
-          $this->app->DB->Update($sql);
+                    $sql .= " WHERE id IN (".implode(",",$selectedIds).")";
+                    $this->app->DB->Update($sql);
+                    $this->ticket_set_self_assigned_status($selectedIds);
+                break;
+                case 'spam_filter':
+                    if($this->app->erp->RechteVorhanden('ticketregeln','create')) {
+                        $sql = "UPDATE ticket SET status = 'spam', zeit = NOW()";
+                        $sql .= " WHERE id IN (".implode(",",$selectedIds).")";
+                        $this->app->DB->Update($sql);
 
-          $this->ticket_set_self_assigned_status($selectedIds);
+                        foreach ($selectedIds as $selectedId) {
 
+                            // Check existing
+                            $sql = "SELECT id FROM ticket_regeln WHERE
+                                        empfaenger_email = '' AND
+                                        sender_email = (SELECT mailadresse FROM ticket WHERE id = ".$selectedId." LIMIT 1) AND
+                                        name = '' AND
+                                        betreff = '' AND
+                                        spam = 1 AND
+                                        aktiv = 1
+                                    ";
+
+                            if (!$this->app->DB->Select($sql)) {
+                                $sql = "INSERT IGNORE INTO ticket_regeln (
+                                                        empfaenger_email,
+                                                        sender_email,
+                                                        name,
+                                                        betreff,
+                                                        spam,
+                                                        persoenlich,
+                                                        prio,
+                                                        dsgvo,
+                                                        adresse,
+                                                        warteschlange,
+                                                        aktiv
+                                        ) VALUES (
+                                            '',
+                                            (SELECT mailadresse FROM ticket WHERE id = ".$selectedId." LIMIT 1),
+                                            '',
+                                            '',
+                                            1,
+                                            0,
+                                            0,
+                                            0,
+                                            0,
+                                            '',
+                                            1
+                                        )";
+                                $this->app->DB->Insert($sql);
+                            }
+                        }
+
+                    }
+                break;
+            }    
         }
 
         // List
@@ -221,6 +275,10 @@ class Ticket {
 
         $this->app->Tpl->Set('STATUS', $this->app->erp->GetStatusTicketSelect('neu'));
         $this->app->YUI->AutoComplete("warteschlange","warteschlangename");
+
+        if(!$this->app->erp->RechteVorhanden('ticketregeln','create')) {
+            $this->app->Tpl->Set('SPAM_HIDDEN', 'hidden');
+        }
 
         $this->app->YUI->TableSearch('TAB1', 'ticket_list', "show", "", "", basename(__FILE__), __CLASS__);
         $this->app->Tpl->Parse('PAGE', "ticket_list.tpl");
@@ -302,6 +360,27 @@ class Ticket {
                   $attachtext.
                   "<br>");
           }
+        }
+    }
+
+    function add_attachments_header_html($ticket_id, $templatepos) {
+        $file_attachments = $this->app->erp->GetDateiSubjektObjekt('%','ticket_header',$ticket_id);       
+
+        if (!empty($file_attachments)) {     
+          $this->app->Tpl->Add($templatepos,"<tr><td>{|Anh&auml;nge|}:</td><td><div class=\"ticket_attachments\">");
+          foreach ($file_attachments as $file_attachment) {
+
+              $this->app->Tpl->Add($templatepos,                    
+                  "<a href=\"index.php?module=dateien&action=send&id=".$file_attachment.
+                  "\">".
+                  htmlentities($this->app->erp->GetDateiName($file_attachment)).
+                  " (".
+                  $this->app->erp->GetDateiSize($file_attachment).
+                  ")".  
+                  "</a>".       
+                  "<br>");
+          }
+          $this->app->Tpl->Add($templatepos,"</div></td></tr>");
         }
     }
 
@@ -590,6 +669,19 @@ class Ticket {
         $this->app->Tpl->Parse('PAGE', "ticket_create.tpl");
     }
 
+
+    function ticket_menu($id) {
+        $this->app->erp->MenuEintrag("index.php?module=ticket&action=edit&id=$id", "Details");
+        $this->app->erp->MenuEintrag("index.php?module=ticket&action=list", "Zur&uuml;ck zur &Uuml;bersicht");
+        $anzahldateien = $this->app->erp->AnzahlDateien("ticket_header",$id);
+        if ($anzahldateien > 0) {
+            $anzahldateien = " (".$anzahldateien.")"; 
+        } else {
+            $anzahldateien="";
+        }
+        $this->app->erp->MenuEintrag("index.php?module=ticket&action=dateien&id=$id", "Dateien".$anzahldateien);
+    }
+
     function ticket_edit() {
         $id = $this->app->Secure->GetGET('id');
 
@@ -597,10 +689,10 @@ class Ticket {
             return;
         }
              
+        $this->ticket_menu($id);
+
         $this->app->Tpl->Set('ID', $id);
 
-        $this->app->erp->MenuEintrag("index.php?module=ticket&action=edit&id=$id", "Details");
-        $this->app->erp->MenuEintrag("index.php?module=ticket&action=list", "Zur&uuml;ck zur &Uuml;bersicht");
         $id = $this->app->Secure->GetGET('id');
         $cmd = $this->app->Secure->GetGET('cmd');
         $input = $this->GetInput();
@@ -721,7 +813,12 @@ class Ticket {
         $messages = $this->get_messages_of_ticket($id, 1, NULL);
         $recv_messages = $this->get_messages_of_ticket($id,"n.versendet != 1",NULL);
 
+        $an_alle = false;
+
         switch ($submit) {
+          case 'neue_email_alle':
+            $an_alle = true;
+            // break omitted
           case 'neue_email':
 
             $senderName = $this->app->User->GetName()." (".$this->app->erp->GetFirmaAbsender().")";
@@ -743,17 +840,18 @@ class Ticket {
                         $betreff = strip_tags($recv_messages[0]['betreff']); //+ #20230916 XSS
                     }
 
-                    $sql = "SELECT GROUP_CONCAT(DISTINCT `value` ORDER BY `value` SEPARATOR ', ') FROM ticket_header th WHERE th.ticket_nachricht = ".$recv_messages[0]['id']." AND `value` <> '".$senderAddress."' AND type='to'";
-
                     $to = $recv_messages[0]['mail'];
-                    $to_additional = $this->app->DB->Select($sql);
-
-                    if (!empty($to_additional)) {
-                      $to .= ", ".$to_additional;
-                    }
-
-                    $sql = "SELECT GROUP_CONCAT(DISTINCT `value` ORDER BY `value` SEPARATOR ', ') FROM ticket_header th WHERE th.ticket_nachricht = ".$recv_messages[0]['id']." AND `value` <> '".$senderAddress."' AND type='cc'";
-                    $cc = $this->app->DB->Select($sql);
+                    if ($an_alle) {
+                        $sql = "SELECT GROUP_CONCAT(DISTINCT `value` ORDER BY `value` SEPARATOR ', ') FROM ticket_header th WHERE th.ticket_nachricht = ".$recv_messages[0]['id']." AND `value` <> '".$senderAddress."' AND type='to'"; 
+                        $to_additional = $this->app->DB->Select($sql);
+                        if (!empty($to_additional)) {
+                          $to .= ", ".$to_additional;
+                        }
+                        $sql = "SELECT GROUP_CONCAT(DISTINCT `value` ORDER BY `value` SEPARATOR ', ') FROM ticket_header th WHERE th.ticket_nachricht = ".$recv_messages[0]['id']." AND `value` <> '".$senderAddress."' AND type='cc'";
+                        $cc = $this->app->DB->Select($sql);
+                    } else {
+                        $cc = null;
+                    }    
                 }
                 else {
                     $betreff = $ticket_from_db['betreff'];
@@ -895,9 +993,17 @@ class Ticket {
         } 
 
         $this->add_messages_tpl($messages, false);
-
+        $this->add_attachments_header_html($id,'TICKET_ANHANG');
         $this->app->Tpl->Set('MESSAGE', $msg);
         $this->app->Tpl->Parse('PAGE', "ticket_edit.tpl");
+    }
+
+    function ticket_dateien()
+    {
+        $id = $this->app->Secure->GetGET("id");
+        $this->ticket_menu($id);
+        $this->app->Tpl->Add('UEBERSCHRIFT'," (Dateien)");
+        $this->app->YUI->DateiUpload('PAGE',"ticket_header",$id);
     }
 
   /**

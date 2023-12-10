@@ -194,6 +194,7 @@ class Lieferschein extends GenLieferschein
     $this->app->ActionHandler("abschicken","LieferscheinAbschicken");
     $this->app->ActionHandler("abschliessen","LieferscheinAbschliessen");
     $this->app->ActionHandler("auslagern","LieferscheinAuslagern");
+    $this->app->ActionHandler("umlagern","LieferscheinUmlagern");
     $this->app->ActionHandler("pdf","LieferscheinPDF");
     $this->app->ActionHandler("inlinepdf","LieferscheinInlinePDF");
     $this->app->ActionHandler("protokoll","LieferscheinProtokoll");
@@ -453,6 +454,107 @@ class Lieferschein extends GenLieferschein
     exit;
   }
 
+  function LieferscheinUmlagern()
+  {
+    $id = (int)$this->app->Secure->GetGET("id");
+    $sql = "SELECT belegnr, name, status, umgelagert, standardlager FROM lieferschein WHERE id='$id'";
+    $lieferschein = $this->app->DB->SelectArr($sql)[0];
+    $belegnr = $lieferschein['belegnr'];
+    $name = $lieferschein['name'];
+    $status = $lieferschein['status'];
+    $umgelagert = $lieferschein['umgelagert'];
+
+    $quelllager = $this->app->Secure->GetPOST('quelllager');
+    $ziellager = $this->app->Secure->GetPOST('ziellager');
+
+    $quellager_id = $this->app->erp->ReplaceLagerPlatz(true, $quelllager, true);
+    $ziellager_id = $this->app->erp->ReplaceLagerPlatz(true, $ziellager, true);
+
+    if (empty($quellager_id)) {
+        $quellager_id = $lieferschein['standardlager'];
+    }
+
+    if ($status != "versendet" && $status != "freigegeben") {
+        exit();
+    }
+
+    $submit = $this->app->Secure->GetPOST('submit');
+    $erneut = $this->app->Secure->GetPOST('erneut');
+
+    if ($umgelagert && !$erneut) {
+        $this->app->Tpl->AddMessage('warning',"Lieferschein wurde bereits umgelagert.");
+    } else {
+        $this->app->Tpl->Set('ERNEUT_UMLAGERN_HIDDEN','hidden');
+        $submit = $this->app->Secure->GetPOST('submit');
+        if ($submit == 'umlagern') {
+
+            if (empty($quellager_id) || empty($ziellager_id)) {
+                $this->app->Tpl->AddMessage('error',"Bitte Quell- und Ziellager angeben.");
+            } else {
+                $sql = "SELECT artikel, name_de, a.nummer AS artikelnummer, SUM(menge) AS menge FROM lieferschein_position lp INNER JOIN artikel a ON a.id = lp.artikel WHERE lp.lieferschein = $id GROUP BY lp.artikel";
+	            $positionen = $this->app->DB->SelectArr($sql);
+
+                $menge_ok = true;
+                $fehlt = array();
+
+                foreach ($positionen as $position) {
+                    $sql = "SELECT SUM(menge) as menge FROM lager_platz_inhalt WHERE lager_platz=$quellager_id AND artikel = ".$position['artikel'];           
+            	    $menge_lager = $this->app->DB->SelectArr($sql)[0]['menge'];    
+
+                    if ($menge_lager < $position['menge']) {
+                        $menge_ok = false;
+                        $fehlt[] = array('Nummer' => $position['artikelnummer'],'Artikel' => $position['name_de'],'Lieferschein Menge' => (int) $position['menge'],'Lager Menge' => empty($menge_lager)?'-':(int) $menge_lager);
+                    }
+                }     
+
+                if ($menge_ok) {
+                   foreach ($positionen as $position) {                  
+
+                        $artikel = $position['artikel'];
+                        $menge = $position['menge'];
+                        $projekt = 0;
+                        $grund = "Umlagern Lieferschein ".$belegnr;
+                        $importer = "";
+                        $paketannahme = "";
+                        $doctype = "lieferschein";
+                        $doctypeId = $id;
+
+                        $this->app->erp->LagerAuslagernRegal($artikel,$quellager_id,$menge,$projekt,$grund,$importer,$doctype,$doctypeid);
+                        $this->app->erp->LagerEinlagern($artikel,$menge,$ziellager_id,$projekt,$grund,$importer,$paketannahme,$doctype,$doctypeid);
+                    }
+                    $sql = "UPDATE lieferschein SET umgelagert = 1 WHERE id = ".$id;
+                    $this->app->DB->Update($sql);
+                    $this->app->erp->LieferscheinProtokoll($id,"Lieferschein umgelagert von ".$quelllager." nach ".$ziellager);
+                    $this->app->Tpl->AddMessage('success','Erfolgreich umgelagert.');
+		    $erneut = null;
+                } else {                
+                    $this->app->Tpl->AddMessage('error',"Mengen im Quelllager nicht ausreichend.");   
+                    $tmp = new EasyTable($this->app);
+                    $tmp->headings = array('Nummer','Artikel','Lieferschein Menge','Lager Menge','');
+                    $tmp->datasets = $fehlt;
+                    $tmp->DisplayNew('MESSAGETABLE',null,"noAction");
+                } // Menge ok
+            } // Lager ok
+        } // umlagern
+    } // $umgelagert
+
+    $this->LieferscheinMenu();
+
+    $this->app->YUI->AutoComplete("quelllager", "lagerplatz");
+    $this->app->YUI->AutoComplete("ziellager", "lagerplatz");
+
+    $this->app->Tpl->Set('KURZUEBERSCHRIFT2',"Lieferschein $belegnr umlagern");
+    $this->app->Tpl->Set('TABTEXT',"Umlagern");
+
+    $this->app->Tpl->Set('QUELLLAGER',$this->app->erp->ReplaceLagerPlatz(false, $quellager_id, false));
+
+    $this->app->Tpl->Set('ZIELLAGER',$this->app->erp->ReplaceLagerPlatz(false, $ziellager_id, false));
+
+    $this->app->Tpl->Set('ERNEUT_CHECKED',$erneut?'checked':'');
+
+    $this->app->Tpl->Parse('PAGE',"lieferschein_umlagern.tpl");    
+  }
+
   function LieferscheinPaketmarke()
   {
     $id = (int)$this->app->Secure->GetGET("id");
@@ -468,7 +570,8 @@ class Lieferschein extends GenLieferschein
         AND v.aktiv = 1 AND v.ausprojekt = 0 AND v.modul != ''
         ORDER BY v.projekt DESC LIMIT 1");
     if (empty($result['modul']) || empty($result['id'])) {
-      $this->app->Tpl->addMessage('error', 'Bitte zuerst eine gültige Versandart auswählen', false, 'PAGE');
+//      $this->app->Tpl->addMessage('error', 'Bitte zuerst eine gültige Versandart auswählen', false, 'PAGE');
+        $this->app->Location->execute("index.php?module=versandpakete&action=add&lieferschein=".$id);
       return;
     }
     $versandmodul = $this->app->erp->LoadVersandModul($result['modul'], $result['id']);
@@ -536,15 +639,15 @@ class Lieferschein extends GenLieferschein
   function LieferscheinIconMenu($id,$prefix="")
   {
     $status = $this->app->DB->Select("SELECT status FROM lieferschein WHERE id='$id' LIMIT 1");
+    $adresse = $this->app->DB->Select("SELECT adresse FROM lieferschein WHERE id='$id' LIMIT 1");
     $lieferantenretoure = $this->app->DB->Select("SELECT lieferantenretoure FROM lieferschein WHERE id='$id' LIMIT 1");
 
-    if($status=="angelegt" || $status=="")
+    if($adresse > 0 && ($status=="angelegt" || $status==""))
       $freigabe = "<option value=\"freigabe\">Lieferschein freigeben</option>";
 
 
     if(($status=="versendet" || $status=="freigegeben") && $lieferantenretoure=="1")
       $abschliessen = "<option value=\"abschliessen\">Lieferschein abschliessen</option>";
-
 
     $checkifrgexists = $this->app->DB->Select("SELECT id FROM rechnung WHERE lieferschein='$id' LIMIT 1");
 
@@ -573,27 +676,34 @@ class Lieferschein extends GenLieferschein
 
     $mengegeliefert = $mengegeliefert + $this->app->DB->Select("SELECT ifnull(sum(olp.menge),0)+0 FROM objekt_lager_platz olp INNER JOIN lieferschein_position lp ON olp.objekt='lieferschein' AND olp.parameter=lp.id AND lp.lieferschein = '$id'");
 
-    if($mengegeliefert <= 0 && $liefermengelagerartikel > 0  && $schreibschutz=="1" && $status!='angelegt' && $status!='storniert') {
-      $auslagern = '<option value="auslagern">Lieferschein auslagern</option>';
-    }else{
-      //12.07.19 LG lieferscheinlager als kommissionierverfahren zum if hinzugefuegt
-      $projektkommissionierverfahren = $this->app->DB->Select("SELECT kommissionierverfahren FROM projekt where id = '$projekt'");
-      if($projekt && ($projektkommissionierverfahren == "" || $projektkommissionierverfahren == "rechnungsmail" || $projektkommissionierverfahren == "lieferschein" || $projektkommissionierverfahren == "lieferscheinscan" || $projektkommissionierverfahren == "lieferscheinlager" || $projektkommissionierverfahren == "lieferscheinlagerscan"))
-      {
-        if(($bestellmengelagerartikel != $liefermengelagerartikel && $bestellmengelagerartikel != $liefermengelagerartikel2) && $status!='angelegt' && $status!='storniert') {
-            $auslagern = '<option value="auslagern">Lieferschein auslagern</option>';
+    if ($status == "versendet" || $status == "freigegeben") {
+
+        if($mengegeliefert <= 0 && $liefermengelagerartikel > 0  && $schreibschutz=="1" && $status!='angelegt' && $status!='storniert') {
+          $auslagern = '<option value="auslagern">Lieferschein auslagern</option>';
+        }else{
+          //12.07.19 LG lieferscheinlager als kommissionierverfahren zum if hinzugefuegt
+          $projektkommissionierverfahren = $this->app->DB->Select("SELECT kommissionierverfahren FROM projekt where id = '$projekt'");
+          if($projekt && ($projektkommissionierverfahren == "" || $projektkommissionierverfahren == "rechnungsmail" || $projektkommissionierverfahren == "lieferschein" || $projektkommissionierverfahren == "lieferscheinscan" || $projektkommissionierverfahren == "lieferscheinlager" || $projektkommissionierverfahren == "lieferscheinlagerscan"))
+          {
+            if(($bestellmengelagerartikel != $liefermengelagerartikel && $bestellmengelagerartikel != $liefermengelagerartikel2) && $status!='angelegt' && $status!='storniert') {
+                $auslagern = '<option value="auslagern">Lieferschein auslagern</option>';
+            }
+          }
         }
-      }
+
+        $optionumlagern = "<option value=\"umlagern\">Lieferschein umlagern</option>";
+        $abschicken = "<option value=\"abschicken\">Lieferschein abschicken</option>";
+
+       if($status!="angelegt" && $lieferantenretoure!="1")
+        {
+          $alsrechnung = "<option value=\"rechnung\">als Rechnung weiterf&uuml;hren</option>";
+          if($this->app->erp->RechteVorhanden('lieferschein', 'proformarechnung') && $this->app->erp->ModulVorhanden('proformarechnung'))
+          {
+            $alsrechnung .= "<option value=\"proformarechnung\">als Proformarechnung weiterf&uuml;hren</option>";
+          }
+        }
     }
 
-    if($status!="angelegt" && $lieferantenretoure!="1")
-    {
-      $alsrechnung = "<option value=\"rechnung\">als Rechnung weiterf&uuml;hren</option>";
-      if($this->app->erp->RechteVorhanden('lieferschein', 'proformarechnung') && $this->app->erp->ModulVorhanden('proformarechnung'))
-      {
-        $alsrechnung .= "<option value=\"proformarechnung\">als Proformarechnung weiterf&uuml;hren</option>";
-      }
-    }
 
     if($this->app->erp->RechteVorhanden('belegeimport', 'belegcsvexport'))
     { 
@@ -628,6 +738,7 @@ class Lieferschein extends GenLieferschein
           $casehook
           $hookcase 
           $casebelegeimport
+          case 'umlagern': window.location.href='index.php?module=lieferschein&action=umlagern&id=%value%'; break;
         }
 
       }
@@ -638,16 +749,17 @@ class Lieferschein extends GenLieferschein
       <option value=\"storno\">Lieferschein stornieren</option>
       <option value=\"copy\">Lieferschein kopieren</option>
       $freigabe
-      <option value=\"abschicken\">Lieferschein abschicken</option>
+      $abschicken
       $abschliessen
       $auslagern
+      $optionumlagern
       $alsrechnung
       $optionbelegeimport
       <option value=\"pdf\">PDF &ouml;ffnen</option>
       $etiketten
       $optioncustom
       $optionhook
-      $hookoption 
+      $hookoption         
       </select>&nbsp;
 
     <a href=\"index.php?module=lieferschein&action=pdf&id=%value%\" title=\"PDF\"><img border=\"0\" src=\"./themes/new/images/pdf.svg\"></a>
@@ -960,6 +1072,7 @@ class Lieferschein extends GenLieferschein
 
     $this->app->Tpl->Set('VERSANDART',$auftragArr[0]['versandart']);
 
+/*
     $tracking = $this->app->DB->SelectArr("SELECT
        if(v.tracking_link IS NOT NULL AND v.tracking_link != '', CONCAT(UPPER(versandunternehmen), ':<a href=\"', v.tracking_link, '\">', v.tracking, '</a>'),
          if(versandunternehmen = 'dhlexpress' AND l.land = 'DE' AND v.tracking != '', CONCAT(UPPER(versandunternehmen), ':<a href=\"https://www.dhl.de/de/privatkunden/pakete-empfangen/verfolgen.html?piececode=', v.tracking, '\" target=\"_blank\">', v.tracking, '</a>'),
@@ -1018,7 +1131,32 @@ class Lieferschein extends GenLieferschein
 	if (!is_null($tmp)) {
 	    $this->app->Tpl->Set('TRACKING',implode(', ',$tmp));
 	}
+*/
 
+    $sql = "SELECT SQL_CALC_FOUND_ROWS
+                v.id,                   
+                v.tracking as tracking,
+                v.tracking_link
+            FROM 
+                versandpakete v
+            LEFT JOIN
+                versandpaket_lieferschein_position vlp ON v.id = vlp.versandpaket
+            LEFT JOIN
+                lieferschein_position lp ON lp.id = vlp.lieferschein_position
+            LEFT JOIN
+                lieferschein l ON lp.lieferschein = l.id
+            WHERE l.id = ".$id." OR v.lieferschein_ohne_pos = ".$id."
+            GROUP BY 
+               v.id
+            ";
+    $tracking = $this->app->DB->SelectArr($sql);
+    $tracking_list = array();
+    foreach ($tracking as $single_tracking) {
+        $tracking_list[] =  '<a href="index.php?module=versandpakete&action=edit&id='.$single_tracking['id'].'">Paket Nr.'.$single_tracking['id'].'</a>'.
+                            ' ('.'<a href="'.$single_tracking['tracking_link'].'">'.$single_tracking['tracking'].'</a>'.')';
+    }
+
+    $this->app->Tpl->Set('TRACKING',implode('<br>',$tracking_list));
 
     $returnOrders = (array)$this->app->DB->SelectArr(
       sprintf(
@@ -2257,6 +2395,18 @@ class Lieferschein extends GenLieferschein
                 echo 'Fehler beim Generieren der Sammelpdf: ' . htmlspecialchars($exception->getMessage());
                 $this->app->ExitXentral();
               }
+            }
+          break;
+          case 'versanduebergabe':
+            if(!empty($selectedIds)) {
+              $this->app->DB->Update(
+                sprintf(
+                  "UPDATE `lieferschein` 
+                  SET `versand_status` = 1
+                  WHERE `id` IN (%s) AND `versand_status` = 0",
+                  implode(',' , $selectedIds)
+                )
+              );
             }
           break;
         }
