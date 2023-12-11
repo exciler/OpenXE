@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Andreas Palm
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import {AxiosError} from 'axios';
 
 export function AlertErrorHandler(error: AxiosError) {

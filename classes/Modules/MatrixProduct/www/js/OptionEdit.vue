@@ -36,7 +36,7 @@ async function save() {
       ? 'index.php?module=matrixprodukt&action=artikel&cmd=optionsave'
       : 'index.php?module=matrixprodukt&action=optionenlist&cmd=save';
   await axios.post(url, {...props, ...model.value})
-      .then(response => {emit('save')})
+      .then(() => {emit('save')})
       .catch(AlertErrorHandler);
 }
 </script>

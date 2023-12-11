@@ -10,6 +10,7 @@ use Xentral\Components\Database\Database;
 use Xentral\Modules\Article\Gateway\ArticleGateway;
 use Xentral\Modules\MatrixProduct\Data\Option;
 use Xentral\Modules\MatrixProduct\Data\Group;
+use Xentral\Modules\MatrixProduct\Data\Translation;
 
 final class MatrixProductService
 {
@@ -60,8 +61,13 @@ final class MatrixProductService
     $this->gateway->DeleteGlobalGroup($id);
   }
 
-  public function DeleteArticleGroup(int $id) : void {
+  public function DeleteArticleGroup(int $id) : bool {
+    $options = $this->gateway->GetArticleOptionIdsByGroupIds($id);
+    $variants = $this->gateway->GetVariantIdsByOptions($options);
+    if (!empty($variants))
+        return false;
     $this->gateway->DeleteArticleGroup($id);
+    return true;
   }
   //endregion
 
@@ -106,18 +112,21 @@ final class MatrixProductService
     $this->gateway->DeleteGlobalOption($id);
   }
 
-  public function DeleteArticleOption(int $id) : void {
+  public function DeleteArticleOption(int $id) : bool {
+    $variants = $this->gateway->GetVariantIdsByOptions($id);
+    if (!empty($variants))
+        return false;
     $this->gateway->DeleteArticleOption($id);
+    return true;
   }
 
   public function AddGlobalOptionsForArticle(int $articleId, int|array $optionIds): void
   {
-    $optionIdList = join(',', $optionIds);
     $sql = "SELECT mg.name groupname, mg.name_ext groupnameext, mg.projekt as groupprojekt, mg.pflicht as grouprequired, mo.*
             FROM matrixprodukt_eigenschaftenoptionen mo
             JOIN matrixprodukt_eigenschaftengruppen mg on mo.gruppe=mg.id
-            WHERE mo.id IN (:optionIdList)";
-    $optionArr = $this->db->fetchAssoc($sql, ['optionIdList' => $optionIdList]);
+            WHERE mo.id IN (:optionIds)";
+    $optionArr = $this->db->fetchAll($sql, ['optionIds' => $optionIds]);
     foreach ($optionArr as $option) {
       $groupId = $this->gateway->GetArticleGroupIdByName($articleId, $option['groupname']);
       if (!$groupId) {
@@ -157,6 +166,36 @@ final class MatrixProductService
 
   public function DeleteVariant(int $variantId) : void {
     $this->gateway->DeleteVariantById($variantId);
+  }
+  //endregion
+
+  //region Translations
+  public function GetGroupTranslation(int $id) : Translation {
+      return $this->gateway->GetGroupTranslationById($id);
+  }
+
+  public function GetOptionTranslation(int $id) : Translation {
+      return $this->gateway->GetOptionTranslationById($id);
+  }
+
+  public function SaveGroupTranslation(Translation $obj) : Translation {
+      if ($obj->id > 0)
+          return $this->gateway->UpdateGroupTranslation($obj);
+      return $this->gateway->InsertGroupTranslation($obj);
+  }
+
+  public function SaveOptionTranslation(Translation $obj) : Translation {
+      if ($obj->id > 0)
+          return $this->gateway->UpdateOptionTranslation($obj);
+      return $this->gateway->InsertOptionTranslation($obj);
+  }
+
+  public function DeleteGroupTranslation(int $id) : void {
+      $this->gateway->DeleteGroupTranslation($id);
+  }
+
+  public function DeleteOptionTranslation(int $id) : void {
+      $this->gateway->DeleteOptionTranslation($id);
   }
   //endregion
 }

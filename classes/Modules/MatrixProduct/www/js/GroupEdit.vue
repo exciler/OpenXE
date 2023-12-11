@@ -39,7 +39,7 @@ async function save() {
       : 'index.php?module=matrixprodukt&action=list&cmd=save';
   await axios.post(url, {...props, ...model.value})
       .catch(AlertErrorHandler)
-      .then(response => {emit('save')});
+      .then(() => {emit('save')});
 }
 </script>
 

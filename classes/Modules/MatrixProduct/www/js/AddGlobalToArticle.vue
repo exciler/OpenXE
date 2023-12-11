@@ -29,7 +29,7 @@ async function save() {
     articleId: props.articleId,
     optionIds: selected.value
   })
-      .then(response => {emit('save')})
+      .then(() => {emit('save')})
       .catch(AlertErrorHandler);
 }
 </script>
@@ -49,7 +49,7 @@ async function save() {
     </div>
     <template #footer>
       <Button label="ABBRECHEN" @click="emit('close')" />
-      <Button label="HINZUFÜGEN" @click="save" :disabled="selected.length == 0"/>
+      <Button label="HINZUFÜGEN" @click="save" :disabled="selected.length === 0"/>
     </template>
   </Dialog>
 </template>

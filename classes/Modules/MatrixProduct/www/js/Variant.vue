@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Andreas Palm
+
+SPDX-License-Identifier: LicenseRef-EGPL-3.1
+-->
+
 <script setup>
 import AutoComplete from "@res/vue/AutoComplete.vue";
 import Button from "primevue/button";
@@ -23,7 +29,7 @@ onMounted(async () => {
 async function save() {
   await axios.post('index.php?module=matrixprodukt&action=artikel&cmd=variantsave', {...props, ...model.value})
       .catch(error => alert(error.response.data))
-      .then(response => {emit('save')});
+      .then(() => {emit('save')});
 }
 
 const buttons = {

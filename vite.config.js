@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Andreas Palm
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import glob from 'glob';
 import path from 'path';
 import vue from '@vitejs/plugin-vue';
@@ -10,7 +14,6 @@ export default {
     build: {
         rollupOptions: {
             input: {
-                main: 'www/themes/new/js/main.js',
                 ...Object.fromEntries(moduleInputs)
             }
         },
@@ -21,7 +24,6 @@ export default {
     mode: 'development',
     resolve: {
         alias: {
-            '@theme': path.resolve(__dirname, 'www/themes/new/js'),
             '@res': path.resolve(__dirname, 'resources')
         }
     }

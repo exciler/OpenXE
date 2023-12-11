@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Andreas Palm
+
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <script setup>
 import {ref} from "vue";
 import AutoComplete from "primevue/autocomplete";
