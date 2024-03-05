@@ -7191,6 +7191,7 @@ title: 'Abschicken',
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Lohnabrechnung','lohnabrechnung','list');
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Verbindlichkeiten','verbindlichkeit','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lieferantengutschriften','lieferantengutschrift','list');
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Kassenbuch','kasse','list');
 
@@ -8620,6 +8621,7 @@ function StandardFirmendatenWerte()
   $this->AddNeuenFirmendatenWert( 'next_proformarechnung', 'varchar', '128', '', '', '', 1, 1);
   $this->AddNeuenFirmendatenWert( 'next_serviceauftrag', 'varchar', '128', '', '', '', 1, 1);
   $this->AddNeuenFirmendatenWert( 'next_verbindlichkeit', 'varchar', '128', '', '', '', 1, 1);
+  $this->AddNeuenFirmendatenWert( 'next_lieferantengutschrift', 'varchar', '128', '', '', '', 1, 1);
   $this->AddNeuenFirmendatenWert( 'zahlung_auftrag_sofort_de', 'text', '', '', '', '', 1, 1);
   $this->AddNeuenFirmendatenWert( 'zahlung_auftrag_de', 'text', '', '', '', '', 1, 1);
 
@@ -10517,15 +10519,19 @@ function SendPaypalFromAuftrag($auftrag, $test = false)
           }
         }
 
-        if($variables['datum']=="") $variables['datum']=date('d.m.Y');
+        if (is_array($variables)) {        
+            if($variables['datum']=="") {
+                 $variables['datum']=date('d.m.Y');
+            }
 
-        if(!empty($variables))
-        {
-          foreach($variables as $key=>$value)
-          {
-            $value = $this->UmlauteEntfernen($value);
-            $xml = str_replace("{".strtoupper($key)."}",$value,$xml);
-          }
+            if(!empty($variables))
+            {
+              foreach($variables as $key=>$value)
+              {
+                $value = $this->UmlauteEntfernen($value);
+                $xml = str_replace("{".strtoupper($key)."}",$value,$xml);
+              }
+            }
         }
 
         // y to z wenn Kein PDF -> also nur bei EPL Drucker - 09.06.2019 BS heute auf 0 gestellt bei deutschen adapterboxen eventuell
@@ -13244,6 +13250,11 @@ function SendPaypalFromAuftrag($auftrag, $test = false)
   function ReplaceRechnung($db,$value,$fromform)
   {
     return $this->ReplaceANABRELSGSBE("rechnung",$db,$value,$fromform);
+  }
+
+  function ReplaceVerbindlichkeit($db,$value,$fromform)
+  {
+    return $this->ReplaceANABRELSGSBE("verbindlichkeit",$db,$value,$fromform);
   }
 
   function ReplaceRetoure($db,$value,$fromform)
@@ -25530,31 +25541,31 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
       {
         $signaturtext = $this->Signatur($from);
         if($this->isHTML($signaturtext))
-          $body = utf8_decode(str_replace('\r\n',"\n",$text))."<br>".$signaturtext;
+          $body = str_replace('\r\n',"\n",$text)."<br>".$signaturtext;
         else
-          $body = utf8_decode(str_replace('\r\n',"\n",$text))."<br>".nl2br($signaturtext);
+          $body = str_replace('\r\n',"\n",$text)."<br>".nl2br($signaturtext);
       }else{
         if($projekt > 0 && $this->Projektdaten($projekt,"absendesignatur")!=""){
           $signaturtext = $this->Projektdaten($projekt,"absendesignatur");
           if($this->isHTML($signaturtext))
-            $body = utf8_decode(str_replace('\r\n',"\n",$text))."<br><br>".$signaturtext;
+            $body = str_replace('\r\n',"\n",$text)."<br><br>".$signaturtext;
           else
-            $body = utf8_decode(str_replace('\r\n',"\n",$text))."<br><br>".$this->ReadyForPDF(nl2br($signaturtext));
+            $body = str_replace('\r\n',"\n",$text)."<br><br>".$this->ReadyForPDF(nl2br($signaturtext));
         }else{
           if(strlen(trim($this->Signatur($from))) > 0 && $eigenesignatur == 0){
             $signaturtext = $this->Signatur($from);
             if($this->isHTML($signaturtext))
               $body = str_replace('\r\n',"\n",$text)."<br>".$signaturtext;
             else
-              $body = utf8_decode(str_replace('\r\n',"\n",$text))."<br>".nl2br($signaturtext);
+              $body = str_replace('\r\n',"\n",$text)."<br>".nl2br($signaturtext);
           }else{
-            $body = utf8_decode(str_replace('\r\n',"\n",$text));
+            $body = str_replace('\r\n',"\n",$text);
           }
         }
 
       }
     } else {
-      $body = utf8_decode(str_replace('\r\n',"\n",$text));
+      $body = str_replace('\r\n',"\n",$text);
     }
 
     {
@@ -25799,6 +25810,7 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
     $uebersetzung['dokument_artikelnummerkunde']['deutsch'] = "Ihre Artikelnummer";
     $uebersetzung['dokument_menge']['deutsch'] = "Menge";
     $uebersetzung['dokument_gesamt']['deutsch'] = "Gesamt";
+    $uebersetzung['dokument_gesamt_optional']['deutsch'] = "Gesamt optional";
     $uebersetzung['dokument_gesamt_total']['deutsch'] = "Gesamt";
     $uebersetzung['dokument_mwst']['deutsch'] = "MwSt.";
     $uebersetzung['dokument_zzglmwst']['deutsch'] = "zzgl. MwSt.";
@@ -25816,6 +25828,7 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
     $uebersetzung['dokument_ursprungsregion']['deutsch'] = "Ursprungsregion";
     $uebersetzung['dokument_gewicht']['deutsch'] = "Gewicht";
     $uebersetzung['dokument_gesamtnetto']['deutsch'] = "Gesamt netto";
+    $uebersetzung['dokument_gesamtnetto_optional']['deutsch'] = "Gesamt netto optional";
     $uebersetzung['dokument_seite']['deutsch'] = "Seite";
     $uebersetzung['dokument_seitevon']['deutsch'] = "von";
     $uebersetzung['dokument_datum']['deutsch'] = "Datum";
@@ -26074,7 +26087,14 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
       }
     }
 	else {
-	    $this->app->DB->Update("UPDATE firmendaten SET " . $field . "='$value' WHERE id='" . $firmendatenid . "'");
+	
+	    $column_exists = $this->app->DB->Select("SHOW COLUMNS FROM firmendaten WHERE field = '".$field."'");
+	
+	    if ($column_exists) {
+    	    $this->app->DB->Update("UPDATE firmendaten SET " . $field . "='$value' WHERE id='" . $firmendatenid . "'");
+	    } else {
+            $this->AddNeuenFirmendatenWert($field, $typ, $typ1, $typ2, $value, $default_value, $default_null, $darf_null);
+	    }	    		   
 	}
     $db = $this->app->Conf->WFdbname;
     if(!empty($this->firmendaten[$db])) {
@@ -27720,7 +27740,7 @@ function Firmendaten($field,$projekt="")
           $allowedtypes = ['angebot', 'auftrag', 'rechnung', 'lieferschein', 'arbeitsnachweis', 'reisekosten',
               'bestellung', 'gutschrift', 'kundennummer', 'lieferantennummer', 'mitarbeiternummer', 'waren',
               'produktion', 'sonstiges', 'anfrage', 'artikelnummer', 'kalkulation', 'preisanfrage', 'proformarechnung',
-              'retoure', 'verbindlichkeit', 'goodspostingdocument', 'receiptdocument'];
+              'retoure', 'verbindlichkeit','lieferantengutschrift', 'goodspostingdocument', 'receiptdocument'];
 
           $dbfield = "next_$type";
           $belegnr = $this->app->DB->Select("SELECT $dbfield FROM projekt WHERE id='$projekt' LIMIT 1");
@@ -27844,6 +27864,11 @@ function Firmendaten($field,$projekt="")
             case "verbindlichkeit":
               $belegnr = $this->Firmendaten("next_verbindlichkeit");
               if($belegnr == "0" || $belegnr=="") $belegnr = 10000;
+              $newbelegnr = $this->CalcNextNummer($belegnr);
+              break;
+            case "lieferantengutschrift":
+              $belegnr = $this->Firmendaten("next_lieferantengutschrift");
+              if($belegnr == "0" || $belegnr=="") $belegnr = 20000;
               $newbelegnr = $this->CalcNextNummer($belegnr);
               break;
             case 'receiptdocument':
@@ -37545,7 +37570,7 @@ function Firmendaten($field,$projekt="")
            WHERE ds.objekt LIKE 'Artikel' AND 
             ds.parameter = '%d' AND 
              (ds.subjekt LIKE 'Shopbild' OR ds.subjekt LIKE 'Druckbild' OR ds.subjekt LIKE 'Bild') 
-           ORDER BY ds.subjekt LIKE 'Shopbild' DESC, ds.subjekt LIKE 'Druckbild' DESC
+           ORDER BY ds.subjekt LIKE 'Shopbild' DESC, ds.subjekt LIKE 'Druckbild' DESC, ds.sort
            LIMIT 1",
            $artikel)
         );
