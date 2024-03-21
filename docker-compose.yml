@@ -35,18 +35,17 @@ services:
       mysql:
         condition: service_healthy
   mysql:
-    image: mariadb:latest
+    image: mariadb:10.11
     environment:
       MYSQL_ROOT_PASSWORD: "rootpw"
       MYSQL_USER: "openxe"
       MYSQL_PASSWORD: "openxe"
       MYSQL_DATABASE: "openxe"
-      MARIADB_MYSQL_LOCALHOST_USER: 1
-      MARIADB_MYSQL_LOCALHOST_GRANTS: USAGE
+      MARIADB_AUTO_UPGRADE: "1"
     volumes:
       - mysqldata:/var/lib/mysql
     ports:
-      - "3306"
+      - "3306:3306"
     healthcheck:
       interval: 5s
       retries: 3
@@ -54,7 +53,6 @@ services:
         [
           "CMD",
           "healthcheck.sh",
-          "--su-mysql",
           "--connect",
           "--innodb_initialized"
         ]
