@@ -1,0 +1,11 @@
+{
+  "classes/Modules/MatrixProduct/www/js/entry.js": {
+    "file": "modules/MatrixProduct-C4A5QY6p.js",
+    "name": "modules/MatrixProduct",
+    "src": "classes/Modules/MatrixProduct/www/js/entry.js",
+    "isEntry": true,
+    "css": [
+      "assets/MatrixProduct-DpasD7m2.css"
+    ]
+  }
+}

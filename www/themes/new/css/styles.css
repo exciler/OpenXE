@@ -1,3 +1,5 @@
+@layer reset, primevue;
+
 body {
     font-size: 12px;
 	font-family: 'Inter', Arial, Helvetica, sans-serif;
