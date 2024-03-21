@@ -1,0 +1,30 @@
+{
+  "require": {
+    "aura/sqlquery": "2.7.1",
+    "aws/aws-sdk-php": "3.175.2",
+    "container-interop/container-interop": "1.2.0",
+    "ezyang/htmlpurifier": "v4.13.0",
+    "fiskaly/fiskaly-sdk-php": "1.2.100",
+    "guzzlehttp/guzzle": "6.5.5",
+    "guzzlehttp/promises": "1.4.1",
+    "guzzlehttp/psr7": "1.8.1",
+    "laminas/laminas-mail": "2.12.5",
+    "league/color-extractor": "0.3.2",
+    "league/flysystem": "1.0.70",
+    "league/oauth2-client": "2.6.0",
+    "lfkeitel/phptotp": "v1.0.0",
+    "nikic/fast-route": "v1.3.0",
+    "phpmailer/phpmailer": "v6.3.0",
+    "phpseclib/phpseclib": "2.0.30",
+    "rakit/validation": "v0.22.3",
+    "sabre/dav": "3.2.3",
+    "smarty/smarty": "v3.1.39",
+    "swiss-payment-slip/swiss-payment-slip": "0.13.0",
+    "swiss-payment-slip/swiss-payment-slip-fpdf": "0.6.0",
+    "symfony/polyfill-intl-normalizer": "v1.22.1",
+    "symfony/polyfill-mbstring": "v1.22.1",
+    "symfony/polyfill-php72": "v1.22.1",
+    "tecnickcom/tcpdf": "6.3.5",
+    "y0lk/oauth1-etsy": "1.1.0"
+  }
+}
