@@ -25593,6 +25593,8 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
       $recipients = [];
 
       $to_csv = "";
+      $to_array = array();
+      $to_name_array = array();
       $to_name_csv = "";
 
       // Prepare names and addresses
@@ -35405,6 +35407,7 @@ function Firmendaten($field,$projekt="")
         }
 
         $ust_befreit = $this->app->DB->Select("SELECT ust_befreit FROM $typ WHERE id = '$typid' LIMIT 1");
+        $ustid = $this->app->DB->Select("SELECT ustid FROM $typ WHERE id = '$typid' LIMIT 1");
         $aufwendung = false;
         switch($typ)
         {
@@ -35415,9 +35418,9 @@ function Firmendaten($field,$projekt="")
           break;
         }
 
-        $this->GetArtikelSteuer($artikel, $ust_befreit, $aufwendung, $tmpsteuersatz, $tmpsteuertext, $erloes, $posRow['umsatzsteuer'], null, $projekt);
+        $this->GetArtikelSteuer($artikel, $ust_befreit, $aufwendung, $tmpsteuersatz, $tmpsteuertext, $erloes, $posRow['umsatzsteuer'], $ustid, $projekt);
 
-        $this->getErloesFirmendaten($artikel, $ust_befreit, $aufwendung, $tmpsteuersatzFD, $tmpsteuertextFD, $tmperloesFD, $posRow['umsatzsteuer'], null, $projekt);
+        $this->getErloesFirmendaten($artikel, $ust_befreit, $aufwendung, $tmpsteuersatzFD, $tmpsteuertextFD, $tmperloesFD, $posRow['umsatzsteuer'], $ustid, $projekt);
 
         if (!$tmpsteuersatz) {
             $tmpsteuersatz = $tmpsteuersatzFD;
