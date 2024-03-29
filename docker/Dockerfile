@@ -24,8 +24,3 @@ RUN apt-get update && apt-get install -y ${DEB_PKG} ${DEB_PKG_TMP} && \
 
 COPY . /var/www/html
 COPY --from=frontend /app/www/dist /var/www/html/www/dist
-
-#FROM nginx:1.25 as web_server
-#WORKDIR /app
-#COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
-#COPY --from=frontend  /app/www/css /app/www/dist /app/www/js /app/www/themes /app/www/
