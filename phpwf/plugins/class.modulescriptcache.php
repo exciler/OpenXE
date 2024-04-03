@@ -64,7 +64,7 @@ class ModuleScriptCache
     $this->absoluteCacheDir = $this->baseDir . '/www/cache';
     $this->relativeCacheDir = './cache';
     $this->assetDir = '/dist';
-    $this->assetManifest = json_decode(file_get_contents($this->baseDir. '/www' . $this->assetDir . '/manifest.json'));
+    $this->assetManifest = json_decode(file_get_contents($this->baseDir. '/www' . $this->assetDir . '/.vite/manifest.json'));
 
     // Cache-Ordner anzulegen, falls nicht existent
     if (!is_dir($this->absoluteCacheDir)) {
