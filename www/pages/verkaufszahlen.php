@@ -689,8 +689,14 @@ class Verkaufszahlen {
     }
 
     //heute
-
-    $this->app->Tpl->Set('PAKETE',$this->app->DB->Select("SELECT COUNT(v.id) FROM versand v INNER JOIN lieferschein l ON v.lieferschein = l.id WHERE v.versendet_am=DATE_FORMAT(NOW(),'%Y-%m-%d') ".$this->app->erp->ProjektRechte('l.projekt').""));
+    $sqlpackages = "
+        SELECT count(distinct v.id)
+        FROM versandpakete v
+        LEFT JOIN versandpaket_lieferschein_position vlp ON vlp.versandpaket = v.id
+        LEFT JOIN lieferschein_position lp ON vlp.lieferschein_position = lp.id
+        INNER JOIN lieferschein l ON l.id IN (lp.lieferschein, v.lieferschein_ohne_pos)
+        WHERE DATE(v.datum) = %s ".$this->app->erp->ProjektRechte('l.projekt');
+    $this->app->Tpl->Set('PAKETE',$this->app->DB->Select(sprintf($sqlpackages, "CURDATE()")));
     $data = $this->app->DB->SelectArr("SELECT ifnull(SUM(umsatz_netto),0) as umsatz_netto2,ifnull(SUM(erloes_netto),0) as erloes_netto2 FROM `auftrag` 
       WHERE datum=DATE_FORMAT(NOW(),'%Y-%m-%d') AND ( status='abgeschlossen' OR status='freigegeben') ".
       $this->app->erp->ProjektRechte('projekt').
@@ -716,7 +722,7 @@ class Verkaufszahlen {
 
     //gestern
 
-    $this->app->Tpl->Set('PAKETE',$this->app->DB->Select("SELECT COUNT(v.id) FROM versand v INNER JOIN lieferschein l ON v.lieferschein = l.id WHERE v.versendet_am=DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 day),'%Y-%m-%d') ".$this->app->erp->ProjektRechte('l.projekt').""));
+    $this->app->Tpl->Set('PAKETE',$this->app->DB->Select(sprintf($sqlpackages, "CURDATE()-1")));
 
     $data = $this->app->DB->SelectArr("SELECT 
         ifnull(SUM(umsatz_netto),0) as umsatz_netto2,ifnull(SUM(erloes_netto),0) as erloes_netto2 FROM `auftrag` 
@@ -772,11 +778,13 @@ class Verkaufszahlen {
   {
     switch(strtoupper($type)) {
       case 'TAGESUEBERSICHTPAKETE':
-        return $this->app->DB->SelectArrCache("SELECT DATE_FORMAT(v.versendet_am,'%d.%m.%Y') as datum,
-            count(v.id) as pakete 
-          from versand v 
-          INNER JOIN lieferschein l ON v.lieferschein = l.id 
-          WHERE 1 ".$this->app->erp->ProjektRechte('l.projekt').'  group by v.versendet_am',
+        return $this->app->DB->SelectArrCache("SELECT DATE_FORMAT(v.datum,'%d.%m.%Y') as datum,
+            count(distinct v.id) as pakete 
+          FROM versandpakete v
+          LEFT JOIN versandpaket_lieferschein_position vlp ON vlp.versandpaket = v.id
+          LEFT JOIN lieferschein_position lp ON vlp.lieferschein_position = lp.id   
+          INNER JOIN lieferschein l ON l.id IN (lp.lieferschein, v.lieferschein_ohne_pos) 
+          WHERE 1 ".$this->app->erp->ProjektRechte('l.projekt').'  group by DATE(v.datum)',
           $seconds, 'verkaufszahlen'
         );
         break;
