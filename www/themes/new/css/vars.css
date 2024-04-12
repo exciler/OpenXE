@@ -1,0 +1,54 @@
+:root{
+    --xentral-signature-green-transparent: rgba(44, 229, 162, 0.15);
+    --xentral-signature-orange-transparent: rgba(238, 134, 103, 0.15);
+    --xentral-signature-pink-transparent: rgba(229, 110, 202, 0.15);
+    --xentral-signature-violet-transparent: rgba(89, 98, 236, 0.15);
+    --xentral-signature-blue-transparent: rgba(99, 158, 212, 0.15);
+    --xentral-signature-petrol-transparent: rgba(59, 184, 195, 0.15);
+    --xentral-signature-green: #2ce5a2;
+    --xentral-signature-orange: #ee8667;
+    --xentral-signature-pink: #e56eca;
+    --xentral-signature-violet: #5962ec;
+    --xentral-signature-blue: #639ed4;
+    --xentral-signature-petrol: #3bb8c3;
+
+    --xentral-gradient-violet-pink: linear-gradient(90deg, #7872F4 0%, #EB62BE 73.75%);
+
+    --secondary-color: #27E7A2;
+    --secondary-color-transparent: rgba(39, 231, 162, 0.2);
+
+    /** BUTTON COLORS **/
+    --button-padding: 5px 25px;
+
+    --button-primary-background: #2DCA73;
+    --button-primary-background-loading: rgba(45, 202, 115, 0.5);
+    --button-primary-background-disabled: rgba(45, 202, 115, 0.5);
+    --button-primary-color: white;
+    --button-primary-color-disabled: white;
+    --button-primary-border-color: transparent;
+    --button-primary-border-color-disabled: transparent;
+
+    --button-secondary-background: transparent;
+    --button-secondary-background-disabled: transparent;
+    --button-secondary-color: #2DCA73;
+    --button-secondary-color-disabled: #2DCA73;
+    --button-secondary-border-color: #2DCA73;
+    --button-secondary-border-color-disabled: #2DCA73;
+
+    --button-tertiary-background: transparent;
+    --button-tertiary-background-disabled: transparent;
+    --button-tertiary-background-hover: #F7F8F9;
+    --button-tertiary-background-loading: #F7F8F9;
+    --button-tertiary-color: #94979E;
+    --button-tertiary-color-disabled: #B6BBC5;
+    --button-tertiary-border-color: #94979E;
+    --button-tertiary-border-color-disabled: #B6BBC5;
+
+    /** Link **/
+    --link-color: #5991FF;
+
+    /** Sidebar **/
+    --sidebar-secondary-color: #D6D7D9;
+    --sidebar-collapsed-width: 80px;
+    --sidebar-not-collapsed-width: 200px;
+}

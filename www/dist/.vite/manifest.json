@@ -1,31 +1,49 @@
 {
-  "_vue-!~{003}~.js": {
-    "file": "assets/vue-3JIpV_0c.css",
-    "src": "_vue-!~{003}~.js"
+  "_axios-Cm0UX6qg.js": {
+    "file": "axios-Cm0UX6qg.js",
+    "name": "axios"
   },
-  "_vue-DKRem0_t.js": {
-    "file": "vue-DKRem0_t.js",
+  "_vue-!~{004}~.js": {
+    "file": "assets/vue-3JIpV_0c.css",
+    "src": "_vue-!~{004}~.js"
+  },
+  "_vue-B1zeJpxd.js": {
+    "file": "vue-B1zeJpxd.js",
     "name": "vue",
     "css": [
       "assets/vue-3JIpV_0c.css"
     ]
   },
   "classes/Modules/MatrixProduct/www/js/entry.js": {
-    "file": "modules/MatrixProduct-BKs3dbpi.js",
+    "file": "modules/MatrixProduct-CMmoeRpi.js",
     "name": "modules/MatrixProduct",
     "src": "classes/Modules/MatrixProduct/www/js/entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-DKRem0_t.js"
+      "_axios-Cm0UX6qg.js",
+      "_vue-B1zeJpxd.js"
     ]
   },
   "classes/Modules/ShippingMethod/www/js/shipment.entry.js": {
-    "file": "modules/ShippingMethod-shipment-DpkKr7OK.js",
+    "file": "modules/ShippingMethod-shipment-Hl6vJ_gF.js",
     "name": "modules/ShippingMethod-shipment",
     "src": "classes/Modules/ShippingMethod/www/js/shipment.entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-DKRem0_t.js"
+      "_vue-B1zeJpxd.js",
+      "_axios-Cm0UX6qg.js"
+    ]
+  },
+  "www/themes/new/js/entry.js": {
+    "file": "themes/new-LJYTYhYz.js",
+    "name": "themes/new",
+    "src": "www/themes/new/js/entry.js",
+    "isEntry": true,
+    "imports": [
+      "_axios-Cm0UX6qg.js"
+    ],
+    "css": [
+      "assets/new-tRA0-d9O.css"
     ]
   }
 }

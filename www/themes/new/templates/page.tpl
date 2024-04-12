@@ -39,7 +39,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 	<link href="./themes/[THEME]/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" media="screen">
 	<link href="./themes/[THEME]/css/buttons.dataTables.min.css" rel="stylesheet" type="text/css" media="screen">
 	<script type="text/javascript" src="./js/datatables/datatables.min.js?v=3"></script>
-  <script type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
+    <script type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
 
 	<script type="text/javascript" src="./js/jquery.inputhighlight.min.js"></script>
 	<script type="text/javascript" src="./js/jquery.base64.min.js"></script>
@@ -47,9 +47,8 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 	<script type="text/javascript" src="./js/jqclock_201.js"></script>
 	<script type="text/javascript" src="./js/chart.min.js" ></script>
 	<script type="text/javascript" src="./js/chart-plugins.js?v=2" ></script>
-  <script type="text/javascript" src="./js/chart-helper.js?v=2" ></script>
+    <script type="text/javascript" src="./js/chart-helper.js?v=2" ></script>
     <script type="text/javascript" src="./js/textvorlagen.js"></script>
-    <script type="text/javascript" src="./js/sidebar.js"></script>
 
 	<link href="./css/bootstrap.min.css?v=4" rel="stylesheet" type="text/css" media="screen">
 	<link href="./css/bootstrap-mobile.css?v=2" rel="stylesheet" type="text/css" media="screen">
