@@ -1,0 +1,38 @@
+de:
+  title: Paketmarken Drucker für {carrier}
+  package: Paket
+  other: Sonstiges
+  packageWeight: Gewicht (in kg)
+  packageHeight: Höhe (in cm)
+  packageWidth: Breite (in cm)
+  packageLength: Länge (in cm)
+  shippingProduct: Produkt
+  references: Referenzen
+  insuredValue: Versicherungssumme
+  shipmentType: Sendungsart
+  services:
+    premium: Premium
+  printLabel: Paketmarke drucken
+  customs:
+    hscode: HS-Code
+    itemValue: Einzelwert
+    itemWeight: Einzelgewicht
+en:
+  title: Print shipping labels for {carrier}
+  package: Package
+  other: Other
+  packageWeight: Weight (in kg)
+  packageHeight: Height (in cm)
+  packageWidth: Width (in cm)
+  packageLength: Length (in cm)
+  shippingProduct: Product
+  references: References
+  insuredValue: Insured value
+  shipmentType: Shipment type
+  services:
+    premium: Premium
+  printLabel: Print shipping label
+  customs:
+    hscode: HS-Code
+    itemValue: Item value
+    itemWeight: Item weight

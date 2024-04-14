@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: LicenseRef-EGPL-3.1
  */
 
+use Xentral\Components\Http\Request;
 use Xentral\Modules\ShippingMethod\Model\CreateShipmentResult;
 use Xentral\Modules\ShippingMethod\Model\CustomsInfo;
 use Xentral\Modules\ShippingMethod\Model\Product;
@@ -22,9 +23,12 @@ abstract class Versanddienstleister
   protected ?int $businessLetterTemplateId;
   protected ?object $settings;
 
+  protected Request $request;
+
   public function __construct(ApplicationCore $app, ?int $id)
   {
     $this->app = $app;
+    $this->request = $this->app->Container->get('Request');
     if ($id === null || $id === 0)
       return;
     $this->id = $id;
@@ -366,9 +370,10 @@ abstract class Versanddienstleister
 
   public function Paketmarke(string $target, string $docType, int $docId, $versandpaket = null): void
   {
+    $this->app->ModuleScriptCache->IncludeJavascriptModules('ShippingMethod', ['classes/Modules/ShippingMethod/www/js/shipment.entry.js']);
     $address = $this->GetAdressdaten($docId, $docType);
     if (isset($_SERVER['CONTENT_TYPE']) && ($_SERVER['CONTENT_TYPE'] === 'application/json')) {
-      $json = json_decode(file_get_contents('php://input'));
+      $json = $this->request->getJson();
       $ret = [];
       if ($json->submit == 'print') {
         $result = $this->CreateShipment($json, $address);
@@ -463,12 +468,11 @@ abstract class Versanddienstleister
         CustomsInfo::CUSTOMS_TYPE_RETURN => 'Rücksendung'
     ];
     $json['messages'] = [];
-    $json['submitting'] = false;
     $json['form']['services'] = [
         Product::SERVICE_PREMIUM => false
     ];
+    $json['carrier'] = $this->GetName();
     $this->app->Tpl->Set('JSON', json_encode($json));
-    $this->app->Tpl->Set('CARRIERNAME', $this->GetName());
     $this->app->Tpl->Parse($target, 'createshipment.tpl');
   }
 
