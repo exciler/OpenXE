@@ -370,7 +370,7 @@ abstract class Versanddienstleister
 
   public function Paketmarke(string $target, string $docType, int $docId, $versandpaket = null): void
   {
-    $this->app->ModuleScriptCache->IncludeJavascriptModules('ShippingMethod', ['classes/Modules/ShippingMethod/www/js/shipment.entry.js']);
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/ShippingMethod/www/js/shipment.entry.js']);
     $address = $this->GetAdressdaten($docId, $docType);
     if (isset($_SERVER['CONTENT_TYPE']) && ($_SERVER['CONTENT_TYPE'] === 'application/json')) {
       $json = $this->request->getJson();

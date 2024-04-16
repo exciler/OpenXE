@@ -106,7 +106,7 @@ class ModuleScriptCache
 
     $this->IncludeJavascriptFiles($newModuleName, $javascript);
     $this->IncludeStylesheetFiles($newModuleName, $stylesheet);
-    $this->IncludeJavascriptModules($newModuleName, $jsmodules);
+    $this->IncludeJavascriptModules($jsmodules);
   }
 
   /**
@@ -215,18 +215,13 @@ class ModuleScriptCache
     }
   }
 
-  public function IncludeJavascriptModules(string $moduleName, array $files) : void
+  public function IncludeJavascriptModules(array $files) : void
   {
     foreach ($files as $file) {
       $realPath = realpath($this->baseDir . '/' . $file);
       if (!is_file($realPath))
         continue;
-      $this->javascriptModules[] = $file; continue;
-
-      if (isset($this->assetManifest->$file))
-        $this->javascriptModules[] = $this->assetManifest->$file;
-      else
-        $this->javascriptModules[] = $realPath;
+      $this->javascriptModules[] = $file;
     }
   }
 
