@@ -1345,7 +1345,7 @@ class Adresse extends GenAdresse {
       $this->app->ExitXentral();
     }
 
-    $this->app->ModuleScriptCache->IncludeJavascriptFiles('address', ['./classes/Modules/Address/www/js/address_create.js']);
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['./classes/Modules/Address/www/js/create.entry.js']);
 
     $this->app->erp->Headlines('Adresse anlegen');
     $this->app->Tpl->Set('TOPHEADING','Adresse anlegen');
