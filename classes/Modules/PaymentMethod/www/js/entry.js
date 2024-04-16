@@ -1,3 +1,5 @@
+import '../../../Appstore/www/css/tilegrid.css';
+
 var PaymentMethodCreate = function ($) {
     'use strict';
 

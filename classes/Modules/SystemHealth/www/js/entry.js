@@ -1,4 +1,6 @@
-var SystemHealth = function ($) {
+import '../css/systemhealth.css';
+
+var Entry = function ($) {
     "use strict";
 
     var me = {
@@ -62,5 +64,5 @@ var SystemHealth = function ($) {
 }(jQuery);
 
 $(document).on('ready',function(){
-    SystemHealth.init();
+    Entry.init();
 });

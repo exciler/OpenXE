@@ -1,3 +1,5 @@
+import '../../../Appstore/www/css/tilegrid.css';
+
 /*
  * SPDX-FileCopyrightText: 2022 Andreas Palm
  * SPDX-FileCopyrightText: 2019 Xentral (c) Xentral ERP Software GmbH, Fuggerstrasse 11, D-86150 Augsburg, Germany

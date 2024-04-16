@@ -30,15 +30,6 @@ class Versandarten {
   const MODULE_NAME = 'ShippingMethod';
 
   var ApplicationCore $app;
-  /** @var string[] $stylesheet */
-  public array $stylesheet = [
-    './classes/Modules/Appstore/www/css/tilegrid.css',
-  ];
-
-  /** @var string[] $javascript */
-  public array $javascript = [
-    './classes/Modules/ShippingMethod/www/js/shipping_method_create.js',
-  ];
 
   /**
    * Versandarten constructor.

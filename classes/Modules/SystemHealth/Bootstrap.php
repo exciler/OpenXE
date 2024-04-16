@@ -20,30 +20,6 @@ final class Bootstrap
     }
 
     /**
-     * @return array
-     */
-    public static function registerJavascript()
-    {
-        return [
-            'SystemHealth' => [
-                './classes/Modules/SystemHealth/www/css/systemhealth.js',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public static function registerStylesheets()
-    {
-        return [
-            'Voucher' => [
-                './classes/Modules/SystemHealth/www/css/systemhealth.css',
-            ],
-        ];
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return SystemHealthGateway

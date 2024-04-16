@@ -26,16 +26,6 @@ class Zahlungsweisen {
   /** @var string */
   const MODULE_NAME = 'PaymentMethod';
 
-  /** @var string[] $stylesheet */
-  public $stylesheet = [
-    './classes/Modules/Appstore/www/css/tilegrid.css',
-  ];
-
-  /** @var string[] $javascript */
-  public $javascript = [
-    './classes/Modules/PaymentMethod/www/js/payment_method_create.js',
-  ];
-
   /** @var PaymentMethodService $service */
   protected $service;
 
