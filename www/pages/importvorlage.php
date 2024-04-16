@@ -38,10 +38,6 @@ class Importvorlage extends GenImportvorlage {
 
   const MODULE_NAME = 'ImportMasterdata';
 
-  public $javascript = [
-    './classes/Modules/ImportMasterdata/www/js/import_masterdata.js',
-  ];
-
   /**
    * Importvorlage constructor.
    *
@@ -658,6 +654,14 @@ class Importvorlage extends GenImportvorlage {
       echo json_encode($json);
       $this->app->ExitXentral();
     }
+    if($cmd === 'jsonupload'){
+      $msg = $this->installJsonTemplate();
+      if(!empty($msg)){
+        $msg=$this->app->erp->base64_url_encode('<div class="error">'.$msg.'</div>');
+        echo json_encode(['url'=>'index.php?module=importvorlage&action=list&msg='.$msg]);
+      }
+      $this->app->ExitXentral();
+    }
     $this->ImportvorlageMenu();
     if($this->app->DB->Select('SELECT COUNT(id) FROM importvorlage') <=0)
     {
@@ -703,17 +707,6 @@ class Importvorlage extends GenImportvorlage {
     }
 */
 
-    $jsonupload = $this->app->Secure->GetPost("jsonupload");
-
-    if(!empty($jsonupload)){
-      $msg = $this->installJsonTemplate();
-
-      if(!empty($msg)){
-        $msg=$this->app->erp->base64_url_encode('<div class="error">'.$msg.'</div>');
-        $this->app->Location->execute('index.php?module=importvorlage&action=list&msg='.$msg);
-      }
-    }
-
     $this->app->YUI->TableSearch('TAB1', 'importvorlage');
     $this->app->YUI->TableSearch('TAB2', 'importvorlage_list', 'show', '', '', basename(__FILE__), __CLASS__);
     $this->app->erp->checkActiveCronjob('importvorlage');
@@ -758,7 +751,8 @@ class Importvorlage extends GenImportvorlage {
 
     if(empty($msg)){
       $msg = $this->app->erp->base64_url_encode('<div class="success">Vorlage erfolgreich importiert.</div>');
-      $this->app->Location->execute('index.php?module=importvorlage&action=edit&id='.$templateId.'&msg='.$msg);
+      echo json_encode(['url'=>'index.php?module=importvorlage&action=edit&id='.$templateId.'&msg='.$msg]);
+      $this->app->ExitXentral();
     }
 
     return $msg;
@@ -791,13 +785,7 @@ class Importvorlage extends GenImportvorlage {
       $this->app->erp->MenuEintrag('index.php?module=importvorlage&action=list','Zur&uuml;ck zur &Uuml;bersicht');
     }
 
-    $this->importVorlagePopup();
-  }
-
-  public function importVorlagePopup(){
-    $this->app->ModuleScriptCache->IncludeJavascriptFiles('importTemplate', [
-      './classes/Modules/ImportTemplate/www/js/importtemplate_json_file_upload.js',
-    ]);
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/ImportTemplate/www/js/upload.entry.js']);
   }
 
   public function ImportvorlageEdit()
