@@ -1,3 +1,5 @@
+import '../css/article.css';
+
 $(document).ready(function() {
   $('#artikel_onlineshops').on('afterreload',function(){
     var tab = $('#artikel_onlineshops');

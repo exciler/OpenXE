@@ -1,3 +1,5 @@
+import '../css/backup.css';
+
 var BackupModule = function ($) {
     'use strict';
 
