@@ -31,11 +31,6 @@ class SuperSearch
   /** @var ApplicationCore $app */
   public $app;
 
-  /** @var array $javascript */
-  public $javascript = [
-    './classes/Modules/SuperSearch/www/js/supersearch_ui.js',
-  ];
-
   /**
    * @param ApplicationCore $app
    * @param bool            $intern

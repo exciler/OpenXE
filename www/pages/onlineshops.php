@@ -27,18 +27,6 @@ class Onlineshops extends GenShopexport {
 
   const MODULE_NAME = 'Onlineshop';
 
-  public $stylesheet = [
-    './classes/Modules/Onlineshop/www/css/feature.css',
-    './classes/Modules/Onlineshop/www/css/shopsettings.css',
-    './classes/Modules/Appstore/www/css/tilegrid.css',
-  ];
-
-  public $javascript = [
-    './classes/Modules/Onlineshop/www/js/onlineshop_appnew.js',
-    './classes/Modules/Onlineshop/www/js/shopsettings.js',
-    './classes/Modules/Onlineshop/www/js/onlineshop_create.js',
-  ];
-
   /** @var string $smartydir */
   protected $smartydir;
 

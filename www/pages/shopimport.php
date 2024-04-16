@@ -29,10 +29,6 @@ class Shopimport
 
   const MODULE_NAME = 'Shopimport';
 
-  public $javascript = [
-    './classes/Modules/Shopimport/www/js/shopimport.js'
-  ];
-
   /**
    * Shopimport constructor.
    *
