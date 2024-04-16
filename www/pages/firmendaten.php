@@ -21,15 +21,7 @@ class Firmendaten  {
   /** @var array */
   protected $payments;
 
-  const MODULE_NAME = 'Firmendaten';
-
-  public $javascript = [
-    './classes/Modules/Company/www/js/companydata.js',
-  ];
-
-  public $stylesheet = [
-    './classes/Modules/Company/www/css/companydata.css',
-  ];
+  const MODULE_NAME = 'Company';
 
   /**
    * @param Application $app

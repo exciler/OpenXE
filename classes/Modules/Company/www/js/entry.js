@@ -1,3 +1,5 @@
+import '../css/companydata.css';
+
 var CompanyData = (function ($) {
     var me = {
 

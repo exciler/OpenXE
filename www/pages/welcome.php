@@ -124,7 +124,7 @@ class Welcome
       $this->GetMeineApps();
       $this->app->erp->RegisterMenuHook('startseite', 'MenuHook', $this);
     }
-    $this->app->ModuleScriptCache->IncludeJavascriptFiles('welcome', ['./classes/Modules/TOTPLogin/www/js/totplogin.js']);
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/TOTPLogin/www/js/totp.entry.js']);
     $this->app->ActionHandlerListen($app);
   }
 
@@ -891,15 +891,8 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
       if(empty($this->app->User->GetField('role')) || $this->app->acl->IsAdminadmin()) {
         $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
-        $this->app->ModuleScriptCache->IncludeJavascriptFiles(
-        'welcome',
-        [
-          'body' => [
-            './classes/Modules/Welcome/www/js/welcome_firststart.js',
-            ],
-        ]
-        );
-        $this->app->Tpl->Parse('AUFGABENPOPUP', 'welcome_firststart.tpl');        
+        $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Welcome/www/js/firststart.entry.js']);
+        $this->app->Tpl->Parse('AUFGABENPOPUP', 'welcome_firststart.tpl');
       }
     }
 
