@@ -28,11 +28,6 @@ class Log
     /** @var Request $request */
     protected $request;
 
-    /** @var array $javascript */
-    public $javascript = [
-        './classes/Modules/Log/www/js/delete_logs.js',
-    ];
-
     /**
      * @param Application $app
      * @param bool        $intern

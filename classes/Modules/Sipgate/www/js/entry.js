@@ -1,3 +1,5 @@
+import '../css/sipgate.css';
+
 /**
  * On mouseover change the password input to text and change back
  *

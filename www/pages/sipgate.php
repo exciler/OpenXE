@@ -28,14 +28,6 @@ class Sipgate
 {
     const MODULE_NAME = 'Sipgate';
 
-    public $javascript = [
-        './classes/Modules/Sipgate/www/js/sipgate.js',
-    ];
-
-    public $stylesheet = [
-        './classes/Modules/Sipgate/www/css/sipgate.css',
-    ];
-
     /**
      * @noinspection PhpUndefinedClassInspection
      * @var Application|app_t

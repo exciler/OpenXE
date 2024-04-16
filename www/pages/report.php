@@ -52,16 +52,6 @@ class Report
     /** @var string MODULE_NAME */
     const MODULE_NAME = 'Report';
 
-    /** @var array $javascript */
-    public $javascript = [
-      './classes/Modules/Report/www/js/report_list.js',
-      './classes/Modules/Report/www/js/report_edit.js',
-      './classes/Modules/Report/www/js/report_share.js',
-      './classes/Modules/Report/www/js/report_transfer.js',
-      './classes/Modules/Report/www/js/report_parameter_input_dialog.js',
-      './classes/Modules/Report/www/js/report_menu_popup.js',
-    ];
-
     /** @var erpooSystem $app */
     private $app;
 
