@@ -33,11 +33,6 @@ class Amainvoice
   /** @var string MODULE_NAME */
   const MODULE_NAME = 'AmaInvoice';
 
-  /** @var array $javascript */
-  public $javascript = [
-    './classes/Modules/AmaInvoice/www/js/amainvoice.js',
-  ];
-
   /**
    * Amainvoice constructor.
    *

@@ -26,16 +26,6 @@ class Docscan
     /** @var string MODULE_NAME */
     const MODULE_NAME = 'DocumentScanner';
 
-    /** @var array $javascript */
-    public $javascript = [
-        './classes/Modules/DocumentScanner/www/js/document-scanner.js',
-    ];
-
-    /** @var array $stylesheet */
-    public $stylesheet = [
-        './classes/Modules/DocumentScanner/www/css/document-scanner.css',
-    ];
-
     /**
      * @param erpooSystem $app
      * @param bool        $intern

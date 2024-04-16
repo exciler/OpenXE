@@ -1,3 +1,5 @@
+import '../css/document-scanner.css';
+
 var DocscanFiles = function ($) {
     'use strict';
 

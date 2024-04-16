@@ -33,11 +33,6 @@ class Coppersurcharge
   /** @var string MODULE_NAME */
   const MODULE_NAME = 'CopperSurcharge';
 
-  /** @var array $javascript */
-  public $javascript = [
-    './classes/Modules/CopperSurcharge/www/js/copper_surcharge.js',
-  ];
-
   /** @var Application $app */
   private $app;
 
