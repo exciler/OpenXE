@@ -14,6 +14,7 @@
 	<link rel="stylesheet" href="themes/new/css/normalize.min.css?v=5">
 	<link rel="stylesheet" href="themes/new/css/login_styles.css?v=3">
 	<link rel="stylesheet" href="themes/new/css/custom.css?v=3">
+	[JAVASCRIPTMODULES]
 </head>
 
 <body>

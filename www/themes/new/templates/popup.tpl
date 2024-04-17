@@ -469,6 +469,7 @@ $( "#tabs" ).tabs({
 [YUICSS]
 </style>
 [MODULEJAVASCRIPTHEAD]
+[JAVASCRIPTMODULES]
 [MODULESTYLESHEET]
 </head>
 

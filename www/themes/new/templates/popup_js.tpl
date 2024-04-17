@@ -99,6 +99,7 @@ $(document).ready(function() {
 [YUICSS]
 </style>
 [MODULEJAVASCRIPTHEAD]
+[JAVASCRIPTMODULES]
 [MODULESTYLESHEET]
 </head>
 <body class="[LAYOUTFIXMARKERCLASS]" data-module="[MODULE]" data-action="[ACTION]">
