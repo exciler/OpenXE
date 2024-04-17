@@ -4,7 +4,7 @@
 /**
  * Add/Edit/Remove columns
  */
-var ReportParameterInputDialog = (function ($) {
+export var ReportParameterInputDialog = (function ($) {
     'use strict';
 
     var me = {

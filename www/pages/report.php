@@ -1320,10 +1320,6 @@ class Report
             $this->renderErrorMessages(['Fehler beim Abrufen des Berichts.'], $this->app->Tpl);
         }
 
-        $this->app->Tpl->Add('LOADSCRIPT',
-            '<script language="javascript" type="text/javascript"
-                          src="../classes/Modules/Report/www/js/report_view.js"></script>'
-        );
         $report = $this->gateway->getReportById((int)$id);
         if($report !== null) {
             $this->app->Tpl->Set('KURZUEBERSCHRIFT2', $report->getName());

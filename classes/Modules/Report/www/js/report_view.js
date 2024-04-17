@@ -1,3 +1,4 @@
+import {ReportParameterInputDialog} from "./report_parameter_input_dialog.js";
 
 /**
  * Input Parameters
