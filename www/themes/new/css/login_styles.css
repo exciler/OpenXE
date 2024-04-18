@@ -44,39 +44,7 @@ body {
     background-repeat: no-repeat;
     background-position: center center;
     position: relative;
-}
-
-#login-slider .slide a.btn {
-    position: absolute;
-    bottom: 13vh;
-    right: 10%;
-    width: auto;
-    padding: 10px 20px;
-}
-#login-slider .slick-dots {
-    position: absolute;
-    bottom: 5%;
-    left: 5%;
-    z-index: 10;
-    margin: 0;
-    padding: 0;
-}
-#login-slider .slick-dots > li {
-    display: inline-block;
-    margin-right: 11px;
-}
-
-#login-slider .slick-dots > li > span {
-    width: 36px;
-    display: inline-block;
-    height: 3px;
-    background: #fff;
-    opacity: 0.15;
-    transition: opacity .4s;
-    cursor: pointer;
-}
-#login-slider .slick-dots > li.slick-active > span {
-    opacity: 1;
+    background-image: url('../images/login_screen_picture.jpg');
 }
 
 /* Button. */

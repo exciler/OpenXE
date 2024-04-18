@@ -32,7 +32,7 @@ height="100%" align="left">
 <form action="" method="post"><br>
 <table align="center">
 <tr>
-<td><input type="hidden" name="isbarcode" id="isbarcode" value="0" /><input name="username" type="text" size="45" id="username" placeholder="Benutzer" class="input_gross" /></td>
+<td><input type="hidden" name="isbarcode" id="isbarcode" value="0" /><input name="username" type="text" size="45" id="username" placeholder="Benutzer" class="input_gross" autofocus /></td>
 </tr>
 <tr>
 <td><input name="password" type="password" size="45" placeholder="Passwort" class="input_gross" /></td>
@@ -67,31 +67,3 @@ name="Submit" value="zur&uuml;cksetzen" class="button_gross"></td>
 </tr>
 </table>
 </center>
-<script type="text/javascript">
-  document.getElementById("username").focus();
-  $("#isbarcode").val('0');
-  $(document).ready(function() {
-    $( "#username" ).focus();
-    $( "#username" ).on('keydown',function( event ) {
-      var which = event.which;
-      if ( which == 13 ) {
-        event.preventDefault();
-        if($( "#username" ).val().indexOf("!!!") < 1)
-        {
-          $('#password').focus();
-        }else{
-          $('#frmlogin').submit();
-        }
-      } else {
-        var iof = $( "#username" ).val().indexOf("!!!");
-        if(iof > 0)
-        {
-          $('#password').focus();
-          $('#username').val($( "#username" ).val().substring(0,iof));
-          $("#isbarcode").val('1');
-        }
-      }
-    });
-  });  
-</script>
-

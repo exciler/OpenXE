@@ -283,20 +283,6 @@ class Player {
       else
       {
         if($module==='welcome' && $action==='login'){
-          if(is_file(dirname(__DIR__).'/www/themes/new/templates/loginslider.tpl')) {
-            $this->app->Tpl->Set(
-              'LOGINSLIDER',
-              file_get_contents(dirname(__DIR__).'/www/themes/new/templates/loginslider.tpl')
-            );
-          }
-          else{
-            $this->app->Tpl->Set(
-              'LOGINSLIDER',
-              '<div class="slide" style="background-image: url(\'./themes/new/images/login_screen_picture.jpg\');">
-              </div>'
-            );
-          }
-
           $this->app->erp->RunHook('loginpage');
           echo $this->app->Tpl->FinalParse('loginpage.tpl');
         }

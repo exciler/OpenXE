@@ -21,7 +21,7 @@ height:40%;
 <form action="" method="post"><br>
 <table align="center" border="0">
 <tr>
-<td><input name="username" type="text" size="25" id="username" placeholder="Benutzer" class="input_gross"></td>
+<td><input name="username" type="text" size="25" id="username" placeholder="Benutzer" class="input_gross" autofocus></td>
 </tr>
 <tr>
 <td><input name="password" type="password" size="25" placeholder="Passwort" class="input_gross"></td>
@@ -50,6 +50,3 @@ name="Submit" value="zur&uuml;cksetzen"></td>
 <td></td>
 </tr>
 </table>
-
-<script type="text/javascript">document.getElementById("username").focus();</script>
-

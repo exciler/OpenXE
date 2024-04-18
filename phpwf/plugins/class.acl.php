@@ -555,12 +555,12 @@ class Acl
 
   public function Login()
   {
-
     $this->refresh_githash();
     include dirname(__DIR__).'/../version.php';
     $this->app->Tpl->Set('XENTRALVERSION',"V.".$version_revision);
 
     $this->app->Tpl->Set('LOGINWARNING_VISIBLE', 'hidden');
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['www/themes/new/js/login.entry.js']);
 
     $result = $this->CheckHtaccess();
     if ($result !== true) {
