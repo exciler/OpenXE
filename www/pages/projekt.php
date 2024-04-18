@@ -30,12 +30,6 @@ class Projekt extends GenProjekt {
 
   const MODULE_NAME = 'Project';
 
-  /** @var array $javascript */
-  public $javascript = [
-    './classes/Modules/Task/www/js/task.js',
-    './resources/js/lazyLoadComponent.js',
-  ];
-
   static function TableSearch(&$app, $name, $erlaubtevars)
   {
     switch($name)

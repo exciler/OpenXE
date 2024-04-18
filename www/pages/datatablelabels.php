@@ -28,9 +28,6 @@ class Datatablelabels
       './classes/Modules/Label/www/js/jquery.labels.js',
       './classes/Modules/Label/www/js/datatablelabel-manager.js',
     ],
-    'body' => [
-      './classes/Modules/Label/www/js/datatablelabel-module.js',
-    ],
   ];
 
   /** @var array $stylesheet */
