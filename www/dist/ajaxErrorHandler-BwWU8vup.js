@@ -1,0 +1,1 @@
+function n(e){e.response===void 0||e.response.status>=500?(console.log("Unknown error on axios request",e),alert("Unerwarteter Fehler, weitere Hinweise ggf. in der JavaScript-Konsole")):(console.log("ClientError on axios request",e),alert(e.response.data))}export{n as A};

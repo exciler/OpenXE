@@ -1,0 +1,1 @@
+$(document).ready(function(){$("#spaeter").change(function(){$("input").each(function(){$(this).val()=="warten"&&$(this).prop("checked",!0)})}),$("#muell").change(function(){$("input").each(function(){$(this).val()=="muell"&&$(this).prop("checked",!0)})}),$("#import").change(function(){$("input").each(function(){$(this).val()=="import"&&$(this).prop("checked",!0)})})});
