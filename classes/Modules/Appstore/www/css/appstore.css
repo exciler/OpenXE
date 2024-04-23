@@ -510,7 +510,7 @@ body.module-appstore #page_container > div > div.ui-tabs-panel {
     width: 26px;
     box-sizing: border-box;
     border-left: 1px solid #FFF;
-    background-image: url('../themes/new/images/caret_dark.png');
+    background-image: url('../../../../../www/themes/new/images/caret_dark.png');
     background-position: center;
     background-repeat: no-repeat;
     border-top-right-radius: 3px;
@@ -556,11 +556,11 @@ body.module-appstore #page_container > div > div.ui-tabs-panel {
 }
 
 a.dropdown-link.activated span.caret {
-    background-image: url('../themes/new/images/caret_light.png');
+    background-image: url('../../../../../www/themes/new/images/caret_light.png');
 }
 
 a.dropdown-link.deactivated span.caret {
-    background-image: url('../themes/new/images/caret_dark.png');
+    background-image: url('../../../../../www/themes/new/images/caret_dark.png');
 }
 
 a.testversion, a.testversion > span {
@@ -823,7 +823,7 @@ BUY LICENCE LANDING PAGE
 }
 
 .ui-dialog-titlebar-close .ui-icon-closethick{
-    background-image: url("../themes/new/images/icon-close.svg") !important; /** important necessary to override jquer ui **/
+    background-image: url("../../../../../www/themes/new/images/icon-close.svg") !important; /** important necessary to override jquer ui **/
 }
 
 .ui-dialog a {

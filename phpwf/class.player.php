@@ -308,8 +308,6 @@ class Player {
             echo $this->app->Tpl->FinalParse('page_smartphone.tpl');
           }
           else{
-
-            $this->app->Tpl->Set('VUEJS', 'vue.min.js');
             $this->app->erp->RunHook('before_final_parse_page');
             echo $this->app->Tpl->FinalParse('page.tpl');
           }

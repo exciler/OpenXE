@@ -95,7 +95,7 @@ and (max-width: 640px) {
 
 .backup-success {
     background-color: var(--green);
-    background-image: url(/themes/new/images/info.png);
+    background-image: url('../../../../../www/themes/new/images/info.png');
     background-size: 30px 30px;
     padding: 15px 10px 15px 50px;
     margin: 0 0 10px 0;
@@ -108,7 +108,7 @@ and (max-width: 640px) {
 
 .backup-create {
     background-color: var(--header-counter-background);
-    background-image: url(/themes/new/images/info.png);
+    background-image: url('../../../../../www/themes/new/images/info.png');
     background-size: 30px 30px;
     padding: 15px 10px 15px 50px;
     margin: 0 0 10px 0;

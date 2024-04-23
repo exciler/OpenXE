@@ -1,3 +1,6 @@
+import {createVueApp} from "@res/js/vue.js";
+import ClickByClickAssistant from "../../../../Widgets/ClickByClickAssistant/www/js/ClickByClickAssistant.vue";
+
 var PaymentAccountCreate = function ($) {
     'use strict';
 
@@ -161,15 +164,12 @@ var PaymentAccountCreate = function ($) {
                     if ($(me.selector.vueElementId).length === 0) {
                         $('body').append(me.storage.vueElement);
                     }
-                    new Vue({
-                        el: me.selector.vueElementId,
-                        data: {
-                            showAssistant: true,
-                            pagination: true,
-                            allowClose: true,
-                            pages: data.pages
-                        }
-                    });
+                    createVueApp(ClickByClickAssistant, {
+                        showAssistant: true,
+                        pagination: true,
+                        allowClose: true,
+                        pages: data.pages
+                    }).mount(me.selector.vueElementId)
                 });
             });
             $('.autoOpenModule').first().each(function () {

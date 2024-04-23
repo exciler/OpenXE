@@ -32,7 +32,6 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 	<script type="text/javascript" src="./js/jquery.cookie.js" ></script>
 	<script type="text/javascript" src="./js/jquery-multidownload.js" ></script>
 	<script type="text/javascript" src="./js/jquery.loadingOverlay.js" ></script>
-	<script type="text/javascript" src="./js/lib/[VUEJS]"></script>
 
 	<link rel="stylesheet" type="text/css" href="./js/datatables/datatables.min.css"/>
 	<link rel="stylesheet" type="text/css" href="./themes/[THEME]/css/datatables_custom.css?v=3"/>

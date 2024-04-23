@@ -1,3 +1,6 @@
+import {createVueApp} from "@res/js/vue.js";
+import ClickByClickAssistant from "../../../../Widgets/ClickByClickAssistant/www/js/ClickByClickAssistant.vue";
+
 /**
  * Template function for Wizard objects
  */
@@ -292,14 +295,7 @@ var Wizard = function ($) {
          */
         createClickByClickAssistant: function(data){
             me.elem.$clickByClickContainer =
-                $('<click-by-click-assistant' +
-                    '        id="click-by-click-wizard"' +
-                    '        v-if="showAssistant"' +
-                    '        @close="showAssistant = false"' +
-                    '        :pages="pages"' +
-                    '        :allowClose="allowClose"' +
-                    '        :pagination="pagination">' +
-                    '</click-by-click-assistant>');
+                $('<div id="click-by-click-wizard"></div>');
 
             me.elem.$clickByClickContainer.appendTo(me.elem.$body);
 
@@ -307,10 +303,7 @@ var Wizard = function ($) {
                 data.pagination = false;
             }
 
-            new Vue({
-                el: '#click-by-click-wizard',
-                data: data
-            });
+            createVueApp(ClickByClickAssistant, data).mount(me.elem.$clickByClickContainer);
         },
 
         scrollElementIntoView: function(){

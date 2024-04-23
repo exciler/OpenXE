@@ -17,7 +17,6 @@ const inputs = globSync(globpattern)
     .map(file =>  {
         const regex = /(?<prefix>themes|Modules|Widgets)\/(?<name>\w+)\/(\w+\/)*((?<entry>\w+)\.)?entry\.(js|ts)$/;
         const match = file.match(regex);
-        console.log(match);
         let entryname = file;
         if (match) {
             entryname = [match.groups?.prefix.toLowerCase(), match.groups?.name].join('/');
