@@ -1,1 +1,0 @@
-import{a}from"../axios-Cm0UX6qg.js";import{A as e}from"../ajaxErrorHandler-BwWU8vup.js";a.post("index.php?module=welcome&action=settings&cmd=startclickbyclick").then(t=>{new Vue({el:"#welcome-firststart",data:{showAssistant:!0,pagination:!0,allowClose:!1,pages:t.data.pages}})}).catch(e);
