@@ -890,8 +890,7 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     if ($this->app->DB->Select("SHOW COLUMNS FROM `user` LIKE 'role'")) {
 
       if(empty($this->app->User->GetField('role')) || $this->app->acl->IsAdminadmin()) {
-        $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
-        $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Welcome/www/js/firststart.entry.js']);
+        $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Welcome/www/js/firststart.entry.ts']);
         $this->app->Tpl->Parse('AUFGABENPOPUP', 'welcome_firststart.tpl');
       }
     }

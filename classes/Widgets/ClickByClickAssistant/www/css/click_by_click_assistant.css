@@ -12,7 +12,7 @@ cyan #27e3e5
 
 .click-by-click-assistant {
     position: fixed;
-    z-index: 9998;
+    z-index: 1000;
     top: 0;
     left: 0;
     width: 100%;
@@ -28,21 +28,21 @@ cyan #27e3e5
 }
 
 .click-by-click-assistant .survey-icon {
-    background: url('../themes/new/images/question-circle.svg');
+    background: url('../../../../../www/themes/new/images/question-circle.svg');
     background-size: var(--main-icon-size);
 }
 .click-by-click-assistant .thanks-icon {
-    background: url('../themes/new/images/thanks-smiley.svg');
+    background: url('../../../../../www/themes/new/images/thanks-smiley.svg');
     background-size: var(--main-icon-size);
 }
 
 .click-by-click-assistant .password-icon {
-    background: url('../themes/new/images/password-icon.svg');
+    background: url('../../../../../www/themes/new/images/password-icon.svg');
     background-size: var(--main-icon-size);
 }
 
 .click-by-click-assistant .add-person-icon {
-    background: url('../themes/new/images/add-person-icon.svg');
+    background: url('../../../../../www/themes/new/images/add-person-icon.svg');
     background-size: var(--main-icon-size);
 }
 
@@ -51,7 +51,7 @@ cyan #27e3e5
     height: 107px;
     margin-top: -85px;
     border-radius: 100px;
-    background: url('../themes/new/images/consultant.jpg') center;
+    background: url('../../../../../www/themes/new/images/consultant.jpg') center;
     background-size: 120px;
 }
 
@@ -117,7 +117,7 @@ cyan #27e3e5
     top: 0;
     width: 50px;
     height: 50px;
-    background: url('../themes/new/images/icon-close.svg') no-repeat center;
+    background: url('../../../../../www/themes/new/images/icon-close.svg') no-repeat center;
     background-size: 10px;
 }
 
@@ -291,7 +291,7 @@ Input Styles
     align-self: flex-end;
     flex: 0 0 30px;
     height: 83px;
-    background: url('../themes/new/images/remove-icon.svg') no-repeat;
+    background: url('../../../../../www/themes/new/images/remove-icon.svg') no-repeat;
     background-size: 15px 12px;
     background-position-x: 10px;
     background-position-y: 47px;
@@ -306,7 +306,7 @@ Input Styles
 }
 
 .click-by-click-assistant .app-input-row .app-row-valid.icon-ok {
-    background: url('../themes/new/images/icon-ok.svg') no-repeat center;
+    background: url('../../../../../www/themes/new/images/icon-ok.svg') no-repeat center;
     background-size: 11px 8px;
 }
 
@@ -363,7 +363,7 @@ Input Styles
     display: block;
     width: 30px;
     height: 38px;
-    background: url('../themes/new/images/icon-invisible.svg');
+    background: url('../../../../../www/themes/new/images/icon-invisible.svg');
     background-size: 15px 12px;
     background-repeat: no-repeat;
     background-position: center;

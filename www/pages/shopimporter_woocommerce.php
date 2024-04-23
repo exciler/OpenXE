@@ -16,6 +16,8 @@
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Modules\Onlineshop\Data\OrderStatus;
 use Xentral\Modules\Onlineshop\Data\OrderStatusUpdateRequest;
+use Xentral\Widgets\ClickByClickAssistant\Model\Input;
+use Xentral\Widgets\ClickByClickAssistant\Model\InputRow;
 
 class Shopimporter_Woocommerce extends ShopimporterBase
 {
@@ -933,48 +935,14 @@ class Shopimporter_Woocommerce extends ShopimporterBase
 
 
   /**
-   * @return array[]
+   * @return InputRow[]
    */
   public function getCreateForm()
   {
     return [
-      [
-        'id' => 0,
-        'name' => 'urls',
-        'inputs' => [
-          [
-            'label' => 'API Url',
-            'type' => 'text',
-            'name' => 'ImportWoocommerceApiUrl',
-            'validation' => true,
-          ],
-
-        ],
-      ],
-      [
-        'id' => 1,
-        'name' => 'username',
-        'inputs' => [
-          [
-            'label' => 'API Key',
-            'type' => 'text',
-            'name' => 'ImportWoocommerceApiKey',
-            'validation' => true,
-          ],
-        ],
-      ],
-      [
-        'id' => 2,
-        'name' => 'password',
-        'inputs' => [
-          [
-            'label' => 'API Secret',
-            'type' => 'password',
-            'name' => 'ImportWoocommerceApiSecret',
-            'validation' => true,
-          ],
-        ],
-      ],
+        new InputRow(0, [new Input('text', 'ImportWoocommerceApiUrl', 'API Url')]),
+        new InputRow(0, [new Input('text', 'ImportWoocommerceApiKey', 'API Key')]),
+        new InputRow(0, [new Input('password', 'ImportWoocommerceApiSecret', 'API Secret')]),
     ];
   }
 

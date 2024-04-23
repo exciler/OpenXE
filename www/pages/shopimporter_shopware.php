@@ -16,6 +16,8 @@
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Modules\Onlineshop\Data\OrderStatus;
 use Xentral\Modules\Onlineshop\Data\OrderStatusUpdateRequest;
+use Xentral\Widgets\ClickByClickAssistant\Model\Input;
+use Xentral\Widgets\ClickByClickAssistant\Model\InputRow;
 
 class Shopimporter_Shopware extends ShopimporterBase
 {
@@ -3301,47 +3303,14 @@ class Shopimporter_Shopware extends ShopimporterBase
 
 
   /**
-   * @return array[]
+   * @return InputRow[]
    */
-  public function getCreateForm()
+  public function getCreateForm() : array
   {
     return [
-      [
-        'id' => 0,
-        'name' => 'urls',
-        'inputs' => [
-          [
-            'label' => 'URL des Shops',
-            'type' => 'text',
-            'name' => 'ImportShopwareApiUrl',
-            'validation' => true,
-          ],
-        ],
-      ],
-      [
-        'id' => 1,
-        'name' => 'username',
-        'inputs' => [
-          [
-            'label' => 'Benutzername aus Shopware',
-            'type' => 'text',
-            'name' => 'ImportShopwareApiUser',
-            'validation' => true,
-          ],
-        ],
-      ],
-      [
-        'id' => 2,
-        'name' => 'password',
-        'inputs' => [
-          [
-            'label' => 'Passwort aus Shopware',
-            'type' => 'password',
-            'name' => 'ImportShopwareKey',
-            'validation' => true,
-          ],
-        ],
-      ],
+        new InputRow(0, [new Input('text', 'ImportShopwareApiUrl', 'URL des Shops')]),
+        new InputRow(1, [new Input('text', 'ImportShopwareApiUser', 'Benutzername aus Shopware')]),
+        new InputRow(2, [new Input('password', 'ImportShopwareKey', 'Passwort aus Shopware')]),
     ];
   }
 

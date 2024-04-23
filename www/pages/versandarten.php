@@ -729,7 +729,6 @@ class Versandarten {
     $appstore->AddModuleHtml(
       $modulelist, '', 'index.php?module=versandarten&action=create&get='
     );
-    $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
     $this->app->Tpl->Parse('PAGE', 'versandarten_neu.tpl');
   }
 

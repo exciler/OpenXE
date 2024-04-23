@@ -3921,7 +3921,6 @@ class ComposerStaticInit0c49a81c1214ef2f7493c6ce921b17ee
         'Xentral\\Widgets\\ChunkedUpload\\Exception\\ChunkedUploadExceptionInterface' => __DIR__ . '/../..' . '/classes/Widgets/ChunkedUpload/Exception/ChunkedUploadExceptionInterface.php',
         'Xentral\\Widgets\\ChunkedUpload\\Exception\\DecodingFailedException' => __DIR__ . '/../..' . '/classes/Widgets/ChunkedUpload/Exception/DecodingFailedException.php',
         'Xentral\\Widgets\\ChunkedUpload\\Exception\\FilesystemErrorException' => __DIR__ . '/../..' . '/classes/Widgets/ChunkedUpload/Exception/FilesystemErrorException.php',
-        'Xentral\\Widgets\\ClickByClickAssistant\\Bootstrap' => __DIR__ . '/../..' . '/classes/Widgets/ClickByClickAssistant/Bootstrap.php',
         'Xentral\\Widgets\\ClickByClickAssistant\\Exception\\ClickByClickAssistantExceptionInterface' => __DIR__ . '/../..' . '/classes/Widgets/ClickByClickAssistant/Exception/ClickByClickAssistantExceptionInterface.php',
         'Xentral\\Widgets\\ClickByClickAssistant\\Exception\\InvalidArgumentException' => __DIR__ . '/../..' . '/classes/Widgets/ClickByClickAssistant/Exception/InvalidArgumentException.php',
         'Xentral\\Widgets\\ClickByClickAssistant\\VueUtil' => __DIR__ . '/../..' . '/classes/Widgets/ClickByClickAssistant/VueUtil.php',

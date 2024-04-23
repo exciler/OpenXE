@@ -133,13 +133,17 @@ class ModuleScriptCache
     // Javascript- und CSS-Dateien aus Bootstrap holen
     $widgetBootstrapClass = sprintf('Xentral\\Widgets\\%s\\Bootstrap', $widgetName);
     if (class_exists($widgetBootstrapClass, true)) {
-      $javascript = (array)@forward_static_call([$widgetBootstrapClass, 'registerJavascript']);
-      foreach ($javascript as $cacheName => $jsFiles) {
-        $this->IncludeJavascriptFiles($cacheName, $jsFiles);
+      if (method_exists($widgetBootstrapClass, 'registerJavascript')) {
+        $javascript = (array)@forward_static_call([$widgetBootstrapClass, 'registerJavascript']);
+        foreach ($javascript as $cacheName => $jsFiles) {
+          $this->IncludeJavascriptFiles($cacheName, $jsFiles);
+        }
       }
-      $stylesheets = (array)@forward_static_call([$widgetBootstrapClass, 'registerStylesheets']);
-      foreach ($stylesheets as $cacheName => $cssFiles) {
-        $this->IncludeStylesheetFiles($cacheName, $cssFiles);
+      if (method_exists($widgetBootstrapClass, 'registerStylesheets')) {
+        $stylesheets = (array)@forward_static_call([$widgetBootstrapClass, 'registerStylesheets']);
+        foreach ($stylesheets as $cacheName => $cssFiles) {
+          $this->IncludeStylesheetFiles($cacheName, $cssFiles);
+        }
       }
     }
 
@@ -152,6 +156,7 @@ class ModuleScriptCache
       $stylesheet = [$this->GetDefaultWidgetStylesheetFile($widgetName)];
       $this->IncludeStylesheetFiles($widgetName, $stylesheet);
     }
+    $this->IncludeJavascriptModules([$this->GetDefaultWidgetJavascriptModule($widgetName)]);
   }
 
   /**
@@ -501,7 +506,7 @@ class ModuleScriptCache
   {
     return [
         sprintf('classes/Modules/%s/www/js/entry.js', $moduleName),
-        sprintf('classes/Modules/%s/www/js/entry.jsx', $moduleName)
+        sprintf('classes/Modules/%s/www/js/entry.ts', $moduleName)
     ];
   }
 
@@ -523,6 +528,16 @@ class ModuleScriptCache
   protected function GetDefaultWidgetJavascriptFile($widgetName)
   {
     return sprintf('./classes/Widgets/%s/www/js/%s.js', $widgetName, strtolower($widgetName));
+  }
+
+  /**
+   * @param string $widgetName
+   *
+   * @return string Relativer Pfad zur Javascript-Datei im neuen Widgets-Verzeichnis
+   */
+  protected function GetDefaultWidgetJavascriptModule($widgetName)
+  {
+    return sprintf('./classes/Widgets/%s/www/js/entry.js', $widgetName);
   }
 
   /**

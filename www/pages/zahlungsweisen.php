@@ -14,6 +14,7 @@
 ?>
 <?php
 use Xentral\Components\Http\JsonResponse;
+use Xentral\Components\Http\Request;
 use Xentral\Modules\PaymentMethod\Data\PaymentMethodData;
 use Xentral\Modules\PaymentMethod\Service\PaymentMethodService;
 
@@ -28,6 +29,9 @@ class Zahlungsweisen {
 
   /** @var PaymentMethodService $service */
   protected $service;
+
+  /** @var Request */
+  protected $request;
 
   /**
    * @param Application $app
@@ -96,6 +100,7 @@ class Zahlungsweisen {
     //parent::GenZahlungsweisen($app);
     $this->app=$app;
     $this->service = $this->app->Container->get('PaymentMethodService');
+    $this->request = $this->app->Container->get('Request');
     if($intern) {
       return;
     }
@@ -177,39 +182,17 @@ class Zahlungsweisen {
    */
   public function HandleSearchAjaxAction(): JsonResponse
   {
-    $module = $this->getApps($this->app->Secure->GetPOST('val'));
-    $anzeigen = '';
-    $ausblenden = '';
+    $module = $this->getApps($this->request->getJson()->val);
+    $anzeigen = [];
+    $ausblenden = [];
     if($module) {
       if(isset($module['installiert'])) {
         foreach($module['installiert'] as $k => $v) {
           if($v['match']) {
-            if($anzeigen != '') {
-              $anzeigen .= ';';
-            }
-            $anzeigen .= 'm'.md5($v['Bezeichnung']);
+            $anzeigen[] = 'm'.md5($v['Bezeichnung']);
           }
           else{
-            if($ausblenden != '') {
-              $ausblenden .= ';';
-            }
-            $ausblenden .= 'm'.md5($v['Bezeichnung']);
-          }
-        }
-      }
-      if(isset($module['kauf'])) {
-        foreach($module['kauf'] as $k => $v) {
-          if($v['match']) {
-            if($anzeigen != '') {
-              $anzeigen .= ';';
-            }
-            $anzeigen .= 'm'.md5($v['Bezeichnung']);
-          }
-          else{
-            if($ausblenden != '') {
-              $ausblenden .= ';';
-            }
-            $ausblenden .= 'm'.md5($v['Bezeichnung']);
+            $ausblenden[] = 'm'.md5($v['Bezeichnung']);
           }
         }
       }
@@ -815,7 +798,6 @@ class Zahlungsweisen {
       ]
     );
 
-    $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
     $this->app->Tpl->Parse('PAGE', 'zahlungsweisen_neu.tpl');
   }
 

@@ -217,9 +217,6 @@ class Player {
         $this->app->ModuleScriptCache->IncludeStylesheetFiles($cacheName, $cssFiles);
       }
     }
-      if (class_exists('Xentral\\Widgets\\ClickByClickAssistant\\Bootstrap', true)) {
-        $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
-      }
     if (class_exists('Xentral\\Widgets\\SuperSearch\\Bootstrap', true)) {
       $this->app->ModuleScriptCache->IncludeWidgetNew('SuperSearch');
     }
@@ -234,8 +231,8 @@ class Player {
     $this->app->Tpl->Set('JAVASCRIPTMODULES', $this->app->ModuleScriptCache->GetJavascriptModulesHtmlTags());
     if (defined('VITE_DEV_SERVER')) {
         $this->app->Tpl->Add('ADDITIONALCSPHEADER', VITE_DEV_SERVER.' ');
+        $this->app->Tpl->Add('ADDITIONALCSPHEADER', str_replace(['http:', 'https:'], 'ws:', VITE_DEV_SERVER).' ');
     }
-
     $permission = true;
     if(isset($myApp) && method_exists($myApp,'CheckRights'))$permission = $myApp->CheckRights();
     

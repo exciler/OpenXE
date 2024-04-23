@@ -31,11 +31,4 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 <!-- tab view schließen -->
 </div>
 
-<click-by-click-assistant
-        id="shipment-create"
-        v-if="showAssistant"
-        @close="showAssistant = false"
-        :pages="pages"
-        :allowClose="allowClose"
-        :pagination="pagination">
-</click-by-click-assistant>
+<div id="shipment-create"></div>

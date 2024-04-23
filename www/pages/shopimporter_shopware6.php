@@ -19,6 +19,8 @@ use Xentral\Modules\Onlineshop\Data\OrderStatus;
 use Xentral\Modules\Onlineshop\Data\OrderStatusUpdateRequest;
 use Xentral\Modules\Shopware6\Client\Shopware6Client;
 use Xentral\Modules\Shopware6\Data\PriceData;
+use Xentral\Widgets\ClickByClickAssistant\Model\Input;
+use Xentral\Widgets\ClickByClickAssistant\Model\InputRow;
 
 class Shopimporter_Shopware6 extends ShopimporterBase
 {
@@ -3710,49 +3712,16 @@ class Shopimporter_Shopware6 extends ShopimporterBase
       ];
     }
 
-  /**
-   * @return array[]
-   */
-    public function getCreateForm()
+    /**
+     * @return InputRow[]
+     */
+    public function getCreateForm() : array
     {
-      return [
-        [
-          'id' => 0,
-          'name' => 'urls',
-          'inputs' => [
-            [
-              'label' => 'URL des Shops',
-              'type' => 'text',
-              'name' => 'shopwareUrl',
-              'validation' => true,
-            ],
-          ],
-        ],
-        [
-          'id' => 1,
-          'name' => 'username',
-          'inputs' => [
-            [
-              'label' => 'Benutzername aus Shopware',
-              'type' => 'text',
-              'name' => 'shopwareUserName',
-              'validation' => true,
-            ],
-          ],
-        ],
-        [
-          'id' => 2,
-          'name' => 'password',
-          'inputs' => [
-            [
-              'label' => 'Passwort aus Shopware',
-              'type' => 'password',
-              'name' => 'shopwarePassword',
-              'validation' => true,
-            ],
-          ],
-        ],
-      ];
+        return [
+            new InputRow(0, [new Input('text', 'shopwareUrl', 'URL des Shops')]),
+            new InputRow(1, [new Input('text', 'shopwareUserName', 'Benutzername aus Shopware')]),
+            new InputRow(2, [new Input('password', 'shopwarePassword', 'Passwort aus Shopware')]),
+        ];
     }
 
     public function getBoosterHeadline(): string

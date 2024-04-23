@@ -24,11 +24,4 @@
 </div>
 
 
-<click-by-click-assistant
-        id="payment-create"
-        v-if="showAssistant"
-        @close="showAssistant = false"
-        :pages="pages"
-        :allowClose="allowClose"
-        :pagination="pagination">
-</click-by-click-assistant>
+<div id="payment-create"></div>

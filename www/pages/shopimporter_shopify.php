@@ -16,6 +16,8 @@
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Modules\Onlineshop\Data\OrderStatus;
 use Xentral\Modules\Onlineshop\Data\OrderStatusUpdateRequest;
+use Xentral\Widgets\ClickByClickAssistant\Model\Input;
+use Xentral\Widgets\ClickByClickAssistant\Model\InputRow;
 
 include_once 'Shopimporter_Shopify_Adapter.php';
 
@@ -3988,60 +3990,15 @@ class Shopimporter_Shopify extends ShopimporterBase
   }
 
   /**
-   * @return array[]
+   * @return InputRow[]
    */
   public function getCreateForm()
   {
     return [
-      [
-        'id' => 0,
-        'name' => 'urls',
-        'inputs' => [
-          [
-            'label' => 'URL des Shops',
-            'type' => 'text',
-            'name' => 'ShopifyURL',
-            'validation' => true,
-          ],
-
-        ],
-      ],
-      [
-        'id' => 1,
-        'name' => 'username',
-        'inputs' => [
-          [
-            'label' => 'API-Key aus Shopify',
-            'type' => 'text',
-            'name' => 'ShopifyAPIKey',
-            'validation' => false,
-          ],
-        ],
-      ],
-      [
-        'id' => 2,
-        'name' => 'password',
-        'inputs' => [
-          [
-            'label' => 'Passwort aus Shopify',
-            'type' => 'password',
-            'name' => 'ShopifyPassword',
-            'validation' => false,
-          ],
-        ],
-      ],
-      [
-        'id' => 3,
-        'name' => 'token',
-        'inputs' => [
-          [
-            'label' => 'Token aus Shopify',
-            'type' => 'text',
-            'name' => 'ShopifyToken',
-            'validation' => false,
-          ],
-        ],
-      ],
+        new InputRow(0, [new Input('text', 'ShopifyURL', 'URL des Shops')]),
+        new InputRow(1, [new Input('text', 'ShopifyAPIKey', 'API-Key aus Shopify', validation: false)]),
+        new InputRow(2, [new Input('password', 'ShopifyPassword', 'Passwort aus Shopify', validation: false)]),
+        new InputRow(3, [new Input('text', 'ShopifyToken', 'Token aus Shopify', validation: false)]),
     ];
   }
 

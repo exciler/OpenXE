@@ -15,6 +15,9 @@
 <?php
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Modules\TransferSmartyTemplate\TransferSmartyTemplate;
+use Xentral\Widgets\ClickByClickAssistant\Model\InputRow;
+use Xentral\Widgets\ClickByClickAssistant\Model\Link;
+use Xentral\Widgets\ClickByClickAssistant\Model\PageButton;
 
 include '_gen/shopexport.php';
 
@@ -845,8 +848,6 @@ INNER JOIN shopexport s ON
       $this->app->Tpl->Set('ERRORMSG', $error);
       $this->app->Tpl->Parse('AUFGABENPOPUP','onlineshops_appnewerrorpopup.tpl');
     }
-
-    $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
   }
 
   /**
@@ -2601,40 +2602,31 @@ INNER JOIN shopexport s ON
       if(!method_exists($obj, 'getCreateForm')) {
         return new JsonResponse(['location' => 'index.php?module=onlineshops&action=create&auswahl='.$module]);
       }
-      $form = $obj->getCreateForm();
-      if(!empty($form)) {
-        $form[(!empty($form)?count($form):0) - 1]['link'] = [
-          'link' => 'index.php?module=onlineshops&action=create&auswahl=' . $module,
-          'title' => 'Expertenmodus',
-        ];
+      /** @var InputRow[] $inputRows */
+      $inputRows = $obj->getCreateForm();
+      if(!empty($inputRows)) {
+          $inputRows[count($inputRows) - 1]->link = new Link(
+              'index.php?module=onlineshops&action=create&auswahl=' . $module,
+              'Expertenmodus'
+          );
       }
-      $page = [
-        'type' => 'form',
-        'dataRequiredForSubmit' =>
+      $page = new \Xentral\Widgets\ClickByClickAssistant\Model\Page(
+          'form',
+          ucfirst(substr($module, 13)),
+          [new PageButton('submit', 'Weiter')],
           [
-            'shopmodule' => $module,
-            'id' => 'NEW',
+              'shopmodule' => $module,
+              'id' => 'NEW',
           ],
-        'submitType' => 'submit',
-        'icon'=> 'password-icon',
-        'headline' => ucfirst(substr($module, 13)),
-        'subHeadline' => method_exists($obj, 'getClickByClickHeadline')?$obj->getClickByClickHeadline():'Bitte Zugangsdaten eingeben',
-        'submitUrl' => 'index.php?module=onlineshops&action=create&cmd=saveassistent&shopmodule='.$module,
-        'form' => $form,
-        'ctaButtons' => [
-          [
-            'title' => 'Weiter',
-            'type' => 'submit',
-            'action' => 'submit',
-          ],
-        ]
-      ];
+          method_exists($obj, 'getClickByClickHeadline')?$obj->getClickByClickHeadline():'Bitte Zugangsdaten eingeben',
+          icon: 'password-icon',
+          submitType: 'submit',
+          submitUrl: 'index.php?module=onlineshops&action=create&cmd=saveassistent&shopmodule='.$module,
+          form: $inputRows
+      );
 
       $ret = [
-        'pages'=>
-        [
-          $page
-        ],
+        'pages'=> [$page],
       ];
 
       return new JsonResponse($ret);
@@ -2643,38 +2635,16 @@ INNER JOIN shopexport s ON
     $module = $this->getApps($this->app->Secure->GetPOST('val'));
     
     if($cmd === 'suche') {
-      $anzeigen = '';
-      $ausblenden = '';
+      $anzeigen = [];
+      $ausblenden = [];
       if($module) {
         if(isset($module['installiert'])) {
           foreach($module['installiert'] as $k => $v) {
             if($v['match']){
-              if($anzeigen != '') {
-                $anzeigen .= ';';
-              }
-              $anzeigen .= 'm'.md5($v['Bezeichnung']);
+              $anzeigen[] = 'm'.md5($v['Bezeichnung']);
             }
             else {
-              if($ausblenden != '') {
-                $ausblenden .= ';';
-              }
-              $ausblenden .= 'm'.md5($v['Bezeichnung']);
-            }
-          }
-        }
-        if(isset($module['kauf'])) {
-          foreach($module['kauf'] as $k => $v) {
-            if($v['match']) {
-              if($anzeigen != '') {
-                $anzeigen .= ';';
-              }
-              $anzeigen .= 'm'.md5($v['Bezeichnung']);
-            }
-            else {
-              if($ausblenden != '') {
-                $ausblenden .= ';';
-              }
-              $ausblenden .= 'm'.md5($v['Bezeichnung']);
+              $ausblenden[] = 'm'.md5($v['Bezeichnung']);
             }
           }
         }
@@ -2732,7 +2702,6 @@ INNER JOIN shopexport s ON
     );
 
     $this->ShopexportMenu();
-    $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
     $this->app->Tpl->Parse('PAGE', 'shopexport_neu.tpl');
   }
 

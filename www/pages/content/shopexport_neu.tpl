@@ -23,19 +23,4 @@
 	<!-- tab view schließen -->
 </div>
 
-<click-by-click-assistant
-				id="onlineshop-create"
-				v-if="showAssistant"
-				@close="showAssistant = false"
-				:pages="pages"
-				:allowClose="allowClose"
-				:pagination="pagination">
-</click-by-click-assistant>
-<click-by-click-assistant
-				id="onlineshop-booster"
-				v-if="showAssistant"
-				@close="showAssistant = false"
-				:pages="pages"
-				:allowClose="allowClose"
-				:pagination="pagination">
-</click-by-click-assistant>
+<div id="onlineshop-create"></div>

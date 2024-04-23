@@ -3602,7 +3602,6 @@ return array(
     'Xentral\\Widgets\\ChunkedUpload\\Exception\\ChunkedUploadExceptionInterface' => $baseDir . '/classes/Widgets/ChunkedUpload/Exception/ChunkedUploadExceptionInterface.php',
     'Xentral\\Widgets\\ChunkedUpload\\Exception\\DecodingFailedException' => $baseDir . '/classes/Widgets/ChunkedUpload/Exception/DecodingFailedException.php',
     'Xentral\\Widgets\\ChunkedUpload\\Exception\\FilesystemErrorException' => $baseDir . '/classes/Widgets/ChunkedUpload/Exception/FilesystemErrorException.php',
-    'Xentral\\Widgets\\ClickByClickAssistant\\Bootstrap' => $baseDir . '/classes/Widgets/ClickByClickAssistant/Bootstrap.php',
     'Xentral\\Widgets\\ClickByClickAssistant\\Exception\\ClickByClickAssistantExceptionInterface' => $baseDir . '/classes/Widgets/ClickByClickAssistant/Exception/ClickByClickAssistantExceptionInterface.php',
     'Xentral\\Widgets\\ClickByClickAssistant\\Exception\\InvalidArgumentException' => $baseDir . '/classes/Widgets/ClickByClickAssistant/Exception/InvalidArgumentException.php',
     'Xentral\\Widgets\\ClickByClickAssistant\\VueUtil' => $baseDir . '/classes/Widgets/ClickByClickAssistant/VueUtil.php',
