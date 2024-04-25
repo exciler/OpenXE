@@ -25090,21 +25090,25 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
         $bccRecipients[] = new EmailRecipient($bcc3, $bcc3);
       }
 
-      // This will build the mail with phpmailer 6 and send it out
-      // There is no way to retrieve the created mail e.g. for IMAP output
-      // This should be migrated to laminas-mail (used for imap)
-      // Phpmailer 6 can then be removed
-      $sysMailerSent = $sysMailer->composeAndSendEmail(
-          $from,
-          $from_name,
-          $recipients,
-          $betreff,
-          $body,
-          $files,
-          $ccRecipients,
-          $bccRecipients,
-          $sendmail_error
-      );
+      if (!empty($recipients)) {
+          // This will build the mail with phpmailer 6 and send it out
+          // There is no way to retrieve the created mail e.g. for IMAP output
+          // This should be migrated to laminas-mail (used for imap)
+          // Phpmailer 6 can then be removed
+          $sysMailerSent = $sysMailer->composeAndSendEmail(
+              $from,
+              $from_name,
+              $recipients,
+              $betreff,
+              $body,
+              $files,
+              $ccRecipients,
+              $bccRecipients,
+              $sendmail_error
+          );
+      } else {
+        $sendmail_error = "Kein Empf&auml;nger angegeben";
+      }    
     }    
 
     if($sysMailerSent === false) {
@@ -25161,11 +25165,12 @@ function MailSendFinal($from,$from_name,$to,$to_name,$betreff,$text,$files="",$p
           $client->connect();
           $client->appendMessage($imapCopyMessage, $account->getImapOutgoingFolder());
         } catch (Exception $e) {
-          $this->app->erp->LogFile("Mailer Error: " . (string) $e);
+          $this->app->erp->LogFile("Mailer IMAP Error: " . (string) $e);
           if(isset($this->app->User) && $this->app->User && method_exists($this->app->User, 'GetID'))
           {
             $this->app->erp->InternesEvent($this->app->User->GetID(),"IMAP-Fehler","alert",1);
           }
+          $this->mail_error =  "Mailer IMAP Error";
           return 0;
         }
       }
@@ -36432,11 +36437,35 @@ function Firmendaten($field,$projekt="")
 
         if(!$without_log)
         {
-          $this->app->DB->Insert("INSERT INTO datei (id,titel,beschreibung,nummer,firma) VALUES
-              ('','$titel','$beschreibung','$nummer','".$this->app->User->GetFirma()."')");
+          $this->app->DB->Insert("INSERT INTO datei (
+                id,
+                titel,
+                beschreibung,
+                nummer,
+                firma
+            ) VALUES (
+                '',
+                '".$this->app->DB->real_escape_string($titel)."',
+                '".$this->app->DB->real_escape_string($beschreibung)."',
+                '".$this->app->DB->real_escape_string($nummer)."',
+                '".$this->app->User->GetFirma()."'
+            )"
+          );
         } else {
-          $this->app->DB->InsertWithoutLog("INSERT INTO datei (id,titel,beschreibung,nummer,firma) VALUES
-              ('','$titel','$beschreibung','$nummer',1)");
+          $this->app->DB->InsertWithoutLog("INSERT INTO datei (
+                id,
+                titel,
+                beschreibung,
+                nummer,
+                firma
+            ) VALUES (
+                '',
+                '".$this->app->DB->real_escape_string($titel)."',
+                '".$this->app->DB->real_escape_string($beschreibung)."',
+                '".$this->app->DB->real_escape_string($nummer)."',
+                1
+            )
+          ");
         }
 
         $fileid = $this->app->DB->GetInsertID();
