@@ -11,6 +11,5 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
           file: docker/Dockerfile
           tags: openxe:${{ github.ref_name }}
