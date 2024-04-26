@@ -13,4 +13,4 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          tags: openxe:${{ github.ref }}
+          tags: openxe:${{ github.ref_name }}
