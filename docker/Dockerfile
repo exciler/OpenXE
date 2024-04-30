@@ -6,8 +6,7 @@ FROM node:20 as frontend
 WORKDIR /app
 COPY package.json package-lock.json vite.config.ts /app/
 RUN npm install
-COPY classes /app/classes
-COPY resources /app/resources
+COPY classes resources www /app/
 RUN npm run build
 
 #FROM php:8.1-fpm as fpm_server
