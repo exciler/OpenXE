@@ -1,3 +1,5 @@
+import '../css/supersearch.css';
+
 var SuperSearch = (function ($) {
     'use strict';
 
