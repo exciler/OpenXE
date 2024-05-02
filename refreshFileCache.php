@@ -17,9 +17,7 @@ $installerCacheConfig = new InstallerCacheConfig($config->WFuserdata . '/tmp/' .
 
 // delete cache files
 $serviceCacheFile = $installerCacheConfig->getServiceCacheFile();
-$javascriptCacheFile = $installerCacheConfig->getJavascriptCacheFile();
 @unlink($serviceCacheFile);
-@unlink($javascriptCacheFile);
 
 // create new cache
 try {
@@ -34,9 +32,6 @@ try {
 
   echo "WRITING ServiceMap\r\n";
   $writer->writeServiceCache();
-
-  echo "WRITING JavascriptMap\r\n";
-  $writer->writeJavascriptCache();
 
   echo "FINISHED     File Cache Generator\r\n";
 } catch (Exception $e) {

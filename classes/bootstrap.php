@@ -40,7 +40,6 @@ if (!is_file($serviceCacheFile)) {
     $writer = new InstallerCacheWriter($cacheConfig, $installer);
 
     $writer->writeServiceCache();
-    $writer->writeJavascriptCache();
 
     // Erzeugte ServiceMap einbinden
     $factoryServiceMap = @include $serviceCacheFile;

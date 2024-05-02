@@ -83,23 +83,6 @@ final class InstallerCacheWriter
     }
 
     /**
-     * @param string|null $cacheFile Absolute path to file
-     *
-     * @return void
-     */
-    public function writeJavascriptCache($cacheFile = null)
-    {
-        if ($cacheFile === null) {
-            $cacheFile = $this->config->getJavascriptCacheFile();
-        }
-
-        $javascript = $this->installer->getJavascriptFiles();
-        $content = "<?php \n\nreturn " . var_export($javascript, true) . ";\n";
-
-        $this->writeCacheFile($cacheFile, $content);
-    }
-
-    /**
      * @param string $cacheFile
      * @param string $contents
      *

@@ -45,14 +45,6 @@ final class InstallerCacheConfig
     }
 
     /**
-     * @return string
-     */
-    public function getJavascriptCacheFile()
-    {
-        return $this->userdataTempDir . '/cache_javascript.php';
-    }
-
-    /**
      * @return void
      */
     private function createUserDataTempDir(): void

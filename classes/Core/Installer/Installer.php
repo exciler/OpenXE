@@ -25,9 +25,6 @@ final class Installer
     /** @var array */
     private $services = [];
 
-    /** @var array $javascript */
-    private $javascript = [];
-
     /** @var string $classDir */
     private $classDir;
 
@@ -114,29 +111,6 @@ final class Installer
     }
 
     /**
-     * @return array
-     */
-    public function getJavascriptFiles()
-    {
-        $classNames = $this->getBootstrapClassNames();
-
-        foreach ($classNames as $className) {
-            if (!class_exists($className, true)) {
-                continue;
-            }
-            if (!method_exists($className, 'registerJavascript')) {
-                continue;
-            }
-            $javascript = forward_static_call([$className, 'registerJavascript']);
-            foreach ($javascript as $cacheName => $jsFiles) {
-                $this->addJavascriptDefinition($cacheName, $jsFiles);
-            }
-        }
-
-        return $this->javascript;
-    }
-
-    /**
      * @return array Absolute paths to all bootstrap files
      */
     private function getBootstrapFiles()
@@ -195,17 +169,6 @@ final class Installer
         }
 
         $this->services[$serviceName] = [$bootstrapClass, $factoryMethod];
-    }
-
-    /**
-     * @param $cacheName
-     * @param $files
-     *
-     * @return void
-     */
-    private function addJavascriptDefinition($cacheName, $files)
-    {
-        $this->javascript[$cacheName] = $files;
     }
 
     /**

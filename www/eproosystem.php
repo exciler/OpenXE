@@ -101,17 +101,6 @@ class erpooSystem extends Application
 
       $this->Tpl->Set(strtoupper($module) . 'ACTIVE', 'active');
 
-      if(is_file('js/' . $module . '.js')){
-        $md5 = md5_file('js/' . $module . '.js');
-        if(!is_file('js/' . $module . $md5 . '.js')) {
-          @copy('js/' . $module . '.js', 'js/' . $module . $md5 . '.js');
-        }
-        if(is_file('js/' . $module . $md5 . '.js')){
-          $this->Tpl->Set('JSSCRIPTS', '<script type="text/javascript" src="./js/' . $module . $md5 . '.js?v=3"></script>');
-        }else{
-          $this->Tpl->Set('JSSCRIPTS', '<script type="text/javascript" src="./js/' . $module . '.js?v=3"></script>');
-        }
-      }
       $this->erp->PrinterIcon();
       $this->Tpl->ReadTemplatesFromPath(__DIR__ . '/widgets/templates/_gen/');
       $this->Tpl->ReadTemplatesFromPath(__DIR__ . '/widgets/templates/');

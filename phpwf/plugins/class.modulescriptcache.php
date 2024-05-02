@@ -128,35 +128,7 @@ class ModuleScriptCache
       throw new RuntimeException('Widget name can not be empty.');
     }
 
-    $javascript = $stylesheet = [];
-
-    // Javascript- und CSS-Dateien aus Bootstrap holen
-    $widgetBootstrapClass = sprintf('Xentral\\Widgets\\%s\\Bootstrap', $widgetName);
-    if (class_exists($widgetBootstrapClass, true)) {
-      if (method_exists($widgetBootstrapClass, 'registerJavascript')) {
-        $javascript = (array)@forward_static_call([$widgetBootstrapClass, 'registerJavascript']);
-        foreach ($javascript as $cacheName => $jsFiles) {
-          $this->IncludeJavascriptFiles($cacheName, $jsFiles);
-        }
-      }
-      if (method_exists($widgetBootstrapClass, 'registerStylesheets')) {
-        $stylesheets = (array)@forward_static_call([$widgetBootstrapClass, 'registerStylesheets']);
-        foreach ($stylesheets as $cacheName => $cssFiles) {
-          $this->IncludeStylesheetFiles($cacheName, $cssFiles);
-        }
-      }
-    }
-
-    // Falls nicht in Bootstrap definiert > Fallback auf Defaults
-    if (empty($javascript)) {
-      $javascript = [$this->GetDefaultWidgetJavascriptFile($widgetName)];
-      $this->IncludeJavascriptFiles($widgetName, $javascript);
-    }
-    if (empty($stylesheet)) {
-      $stylesheet = [$this->GetDefaultWidgetStylesheetFile($widgetName)];
-      $this->IncludeStylesheetFiles($widgetName, $stylesheet);
-    }
-    $this->IncludeJavascriptModules([$this->GetDefaultWidgetJavascriptModule($widgetName)]);
+    $this->IncludeJavascriptModules($this->GetDefaultWidgetJavascriptModule($widgetName));
   }
 
   /**
@@ -316,29 +288,6 @@ class ModuleScriptCache
     }
 
     return join("\n", $tags);
-
-    foreach ($this->javascriptModules as $module) {
-      if (is_object($module)) {
-        if (defined('VITE_DEV_SERVER')) {
-          $url = 'http://' . VITE_DEV_SERVER . '/' . $module->src;
-        } else {
-          $url = '.'.$this->assetDir . '/' . $module->file;
-          if (isset($module->css)) {
-            foreach ($module->css as $css)
-              $html .= sprintf('<link rel="stylesheet" type="text/css" href="%s" />', '.'.$this->assetDir.'/'.$css);
-              $html .= "\r\n";
-          }
-        }
-      } elseif (str_starts_with($module,$this->baseDir.'/www')) {
-        $url = '.'.substr($module, strlen($this->baseDir)+4);
-      }
-
-      if (isset($url))  {
-        $html .= sprintf('<script type="module" src="%s"></script>', $url);
-        $html .= "\r\n";
-      }
-    }
-    return $html;
   }
 
   private array $renderedCss = [];
@@ -365,14 +314,6 @@ class ModuleScriptCache
       if (str_starts_with($chunkFile, 'http:'))
           return $chunkFile;
       return '.'.$this->assetDir.'/'.$chunkFile;
-  }
-
-  /**
-   * @return string
-   */
-  public function GetAbsoluteCacheDir()
-  {
-    return $this->absoluteCacheDir;
   }
 
   /**
@@ -523,31 +464,14 @@ class ModuleScriptCache
   /**
    * @param string $widgetName
    *
-   * @return string Relativer Pfad zur Javascript-Datei im neuen Widgets-Verzeichnis
+   * @return string[] Relative Pfade zu Javascript-Module-Dateien im neuen Widgets-Verzeichnis
    */
-  protected function GetDefaultWidgetJavascriptFile($widgetName)
+  protected function GetDefaultWidgetJavascriptModule($widgetName) : array
   {
-    return sprintf('./classes/Widgets/%s/www/js/%s.js', $widgetName, strtolower($widgetName));
-  }
-
-  /**
-   * @param string $widgetName
-   *
-   * @return string Relativer Pfad zur Javascript-Datei im neuen Widgets-Verzeichnis
-   */
-  protected function GetDefaultWidgetJavascriptModule($widgetName)
-  {
-    return sprintf('classes/Widgets/%s/www/js/entry.js', $widgetName);
-  }
-
-  /**
-   * @param string $widgetName
-   *
-   * @return string Relativer Pfad zur Stylesheet-Datei im neuen Widgets-Verzeichnis
-   */
-  protected function GetDefaultWidgetStylesheetFile($widgetName)
-  {
-    return sprintf('./classes/Widgets/%s/www/css/%s.css', $widgetName, strtolower($widgetName));
+    return [
+        sprintf('classes/Widgets/%s/www/js/entry.js', $widgetName),
+        sprintf('classes/Widgets/%s/www/js/entry.ts', $widgetName),
+    ];
   }
 
   /**
