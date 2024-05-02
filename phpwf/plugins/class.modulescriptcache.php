@@ -537,7 +537,7 @@ class ModuleScriptCache
    */
   protected function GetDefaultWidgetJavascriptModule($widgetName)
   {
-    return sprintf('./classes/Widgets/%s/www/js/entry.js', $widgetName);
+    return sprintf('classes/Widgets/%s/www/js/entry.js', $widgetName);
   }
 
   /**
