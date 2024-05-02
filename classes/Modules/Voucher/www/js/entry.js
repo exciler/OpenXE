@@ -1,3 +1,5 @@
+import "../css/voucher.css";
+
 var vouchercode = '';
 var vouchervalue = 0;
 var vouchertax = 0;

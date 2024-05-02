@@ -1,3 +1,5 @@
+import "../css/chunked_upload.css";
+
 /**
  * # ChunkedUpload
  *

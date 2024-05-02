@@ -196,35 +196,10 @@ class Player {
     }
     $this->app->erp->RunHook('player_run_before_include_js_css');
 
-    /** @deprecated-block-start Wird später über den Installer eingebunden */
-    if (class_exists('Xentral\Modules\SystemNotification\Bootstrap', true)) {
-      $javascript = forward_static_call(['Xentral\\Modules\\SystemNotification\\Bootstrap', 'registerJavascript']);
-      foreach ($javascript as $cacheName => $jsFiles) {
-        $this->app->ModuleScriptCache->IncludeJavascriptFiles($cacheName, $jsFiles);
-      }
-      $stylesheets = forward_static_call(['Xentral\\Modules\\SystemNotification\\Bootstrap', 'registerStylesheets']);
-      foreach ($stylesheets as $cacheName => $cssFiles) {
-        $this->app->ModuleScriptCache->IncludeStylesheetFiles($cacheName, $cssFiles);
-      }
-    }
-    if (class_exists('Xentral\Modules\Wizard\Bootstrap', true)) {
-      $javascript = forward_static_call(['Xentral\\Modules\\Wizard\\Bootstrap', 'registerJavascript']);
-      foreach ($javascript as $cacheName => $jsFiles) {
-        $this->app->ModuleScriptCache->IncludeJavascriptFiles($cacheName, $jsFiles);
-      }
-      $stylesheets = forward_static_call(['Xentral\\Modules\\Wizard\\Bootstrap', 'registerStylesheets']);
-      foreach ($stylesheets as $cacheName => $cssFiles) {
-        $this->app->ModuleScriptCache->IncludeStylesheetFiles($cacheName, $cssFiles);
-      }
-    }
-    if (class_exists('Xentral\\Widgets\\SuperSearch\\Bootstrap', true)) {
-      $this->app->ModuleScriptCache->IncludeWidgetNew('SuperSearch');
-    }
-    /** @deprecated-block-end */
-
     $moduleClassName = strtoupper($module[0]) . substr($module, 1);
     $this->app->ModuleScriptCache->IncludeModule($moduleClassName);
     $this->app->ModuleScriptCache->IncludeJavascriptModules(['www/themes/new/js/entry.js']);
+    $this->app->ModuleScriptCache->IncludeWidgetNew('SuperSearch');
     $this->app->Tpl->Add('MODULESTYLESHEET', $this->app->ModuleScriptCache->GetStylesheetHtmlTags());
     $this->app->Tpl->Add('MODULEJAVASCRIPTHEAD', $this->app->ModuleScriptCache->GetJavascriptHtmlTags('head'));
     $this->app->Tpl->Add('MODULEJAVASCRIPTBODY', $this->app->ModuleScriptCache->GetJavascriptHtmlTags('body'));

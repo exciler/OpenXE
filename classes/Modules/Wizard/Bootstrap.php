@@ -17,30 +17,6 @@ final class Bootstrap
     }
 
     /**
-     * @return array
-     */
-    public static function registerJavascript()
-    {
-        return [
-            'wizard' => [
-                './classes/Modules/Wizard/www/js/wizard.js',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public static function registerStylesheets()
-    {
-        return [
-            'wizard' => [
-                './classes/Modules/Wizard/www/css/wizard.css',
-            ],
-        ];
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return WizardService

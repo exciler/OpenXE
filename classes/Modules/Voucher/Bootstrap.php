@@ -26,30 +26,6 @@ final class Bootstrap
     }
 
     /**
-     * @return array
-     */
-    public static function registerJavascript()
-    {
-        return [
-            'Voucher' => [
-                './classes/Modules/Voucher/www/css/voucher.js',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public static function registerStylesheets()
-    {
-        return [
-            'Voucher' => [
-                './classes/Modules/Voucher/www/css/voucher.css',
-            ],
-        ];
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return VoucherGateway

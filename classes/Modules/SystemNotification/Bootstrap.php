@@ -21,40 +21,6 @@ final class Bootstrap
     }
 
     /**
-     * @return array
-     */
-    public static function registerJavascript()
-    {
-        $baseDir = './classes/Modules/SystemNotification/www/js/';
-
-        return [
-            'pushjs'                  => [
-                $baseDir . 'pushjs_1.0.8/push.min.js',
-                $baseDir . 'pushjs.js',
-            ],
-            'pushjs_serviceworker.js' => [
-                $baseDir . 'pushjs_1.0.8/serviceWorker.min.js',
-            ],
-            'noty'                    => [
-                $baseDir . 'noty_2.4.1/jquery.noty.packaged.min.js',
-                $baseDir . 'notify.js',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public static function registerStylesheets()
-    {
-        return [
-            'notification' => [
-                './classes/Modules/SystemNotification/www/css/notification.css',
-            ],
-        ];
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return NotificationServiceInterface

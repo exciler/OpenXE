@@ -1,4 +1,5 @@
-import {createVueApp} from "@res/js/vue.js";
+import "../css/rolesurvey.css";
+import {createVueApp} from "@res/js/vue";
 import ClickByClickAssistant from "../../../../Widgets/ClickByClickAssistant/www/js/ClickByClickAssistant.vue";
 
 const props = {

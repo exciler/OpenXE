@@ -1,3 +1,4 @@
+import "../css/wizard.css";
 import {createVueApp} from "@res/js/vue.js";
 import ClickByClickAssistant from "../../../../Widgets/ClickByClickAssistant/www/js/ClickByClickAssistant.vue";
 

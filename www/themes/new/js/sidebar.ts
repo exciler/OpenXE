@@ -8,7 +8,7 @@ const sidebarTriggerSelector = '.sidebar-toggle';
 const listItemSelector = '.list-item';
 const subMenuSelector = '.sidebar-submenu div';
 const isTouch =  'ontouchstart' in window;
-let collapseState = null;
+let collapseState: boolean|null = null;
 
 function init() {
     attachEvents();
@@ -16,7 +16,7 @@ function init() {
 
 function attachEvents() {
     // opens/ closes sidebar
-    document.querySelector<HTMLElement>(sidebarTriggerSelector).addEventListener('click', toggleSidebar);
+    document.querySelector<HTMLElement>(sidebarTriggerSelector)?.addEventListener('click', toggleSidebar);
 
     document.querySelectorAll<HTMLElement>(listItemSelector).forEach((item) => {
         if (isTouch) {
@@ -36,9 +36,9 @@ function attachEvents() {
 
 function toggleSidebar() {
     const sidebar = document.querySelector<HTMLElement>(sidebarSelector);
-    const collapsed = sidebar.classList.toggle(sidebarToggleClass);
+    const collapsed = sidebar?.classList.toggle(sidebarToggleClass);
 
-    collapseState = collapsed ? 'true' : 'false';
+    collapseState = collapsed ?? false;
 
     postSidebarState();
 }

@@ -20,30 +20,6 @@ final class Bootstrap
     }
 
     /**
-     * @return array
-     */
-    public static function registerJavascript(): array
-    {
-        return [
-            'RoleSurvey' => [
-                './classes/Modules/RoleSurvey/www/js/RoleSurvey.js',
-            ],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-   public static function registerStylesheets(): array
-    {
-        return [
-            'RoleSurvey' => [
-                './classes/Modules/RoleSurvey/www/css/RoleSurvey.css',
-            ],
-        ];
-    }
-
-    /**
      * @param ContainerInterface $container
      *
      * @return SurveyService
