@@ -4,10 +4,11 @@ ARG DEB_PKG_TMP="cmake gnutls-dev libaom-dev libavif-dev libbz2-dev libc-client-
 
 FROM node:20 as frontend
 WORKDIR /app
-COPY package.json package-lock.json vite.config.js /app/
+COPY package.json package-lock.json vite.config.ts /app/
 RUN npm install
 COPY classes /app/classes
 COPY resources /app/resources
+COPY www /app/www
 RUN npm run build
 
 #FROM php:8.1-fpm as fpm_server
@@ -20,7 +21,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y ${DEB_PKG} ${DEB_PKG_TMP} && \
     docker-php-ext-configure imap --with-kerberos --with-imap-ssl && \
     docker-php-ext-install ${PHP_EXT} && \
-    apt-get remove --purge -y ${DEB_PKG_TMP}
+    apt-get remove --purge -y ${DEB_PKG_TMP} && \
+    mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-COPY . /var/www/html
-COPY --from=frontend /app/www/dist /var/www/html/www/dist
+COPY docker/php "$PHP_INI_DIR/conf.d/"
+COPY --chown=www-data:www-data . /var/www/html
+COPY --chown=www-data:www-data --from=frontend /app/www/dist /var/www/html/www/dist
