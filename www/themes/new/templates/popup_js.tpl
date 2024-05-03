@@ -94,7 +94,6 @@ $(document).ready(function() {
 });
 
 </script>
-<script src="./themes/[THEME]/js/scripts.js"></script>   
 <style>
 [YUICSS]
 </style>

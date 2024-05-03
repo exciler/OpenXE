@@ -95,7 +95,6 @@ $(document).ready(function() {
 });
 
 </script>
-     <script src="./themes/[THEME]/js/scripts.js?v=4"></script>
 [ADDITIONALJAVASCRIPT]
 <style>
 [YUICSS]
