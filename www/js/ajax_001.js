@@ -597,16 +597,6 @@ function wawisionPrint() {
 }
 
 
-function printdiv(iddiv) 
-{
-  var divToPrint=document.getElementById(iddiv);
-  var newWin=window.open('','Print-Window');
-  newWin.document.open();
-  newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
-  newWin.document.close();
-  setTimeout(function(){newWin.close();},10);
-}
-
 function addDeleteInput(selector) {
   $(selector).find('input[type="text"]').wrap('<div class="inputwrapper" style="position: relative; display: inline-block;">');
   $('.inputwrapper').each(function(key,inputContainer) {
@@ -622,30 +612,6 @@ function deleteInput(key) {
   $('.inputContainer_' + key).find('input').val('');
 }
 
-
-function generatePass(plength){
-
-  var keylistalpha="abcdefghijklmnopqrstuvwxyz";
-  var keylistint="123456789";
-  var keylistspec="!@#_";
-  var temp='';
-  var len = plength/2;
-  var len = len - 1;
-  var lenspec = plength-len-len;
-
-  for (i=0;i<len;i++)
-    temp+=keylistalpha.charAt(Math.floor(Math.random()*keylistalpha.length));
-
-  for (i=0;i<lenspec;i++)
-    temp+=keylistspec.charAt(Math.floor(Math.random()*keylistspec.length));
-
-  for (i=0;i<len;i++)
-    temp+=keylistint.charAt(Math.floor(Math.random()*keylistint.length));
-
-  temp=temp.split('').sort(function(){return 0.5-Math.random()}).join('');
-
-  return temp;
-}
 
 function copyTextToClipboard(text) {
   var textArea = document.createElement("textarea");
@@ -1773,38 +1739,7 @@ title: 'Abschicken',
   }).width(1100 - horizontalPadding).height(800 - verticalPadding);
 }
 
-function abopopup(id, pid){
-  console.log(id);
-  console.log(pid);
-  /* e.preventDefault();
-            var $this = $(this);
-            var horizontalPadding = 30;
-            var verticalPadding = 30;
-            $('<iframe id="externalSite" class="externalSite" src="' + this.href + '" />').dialog({
-                title: ($this.attr('title')) ? $this.attr('title') : 'External Site',
-                autoOpen: true,
-                width: [POPUPWIDTH],
-                height: [POPUPHEIGHT], 
-                modal: true,
-                resizable: true
-            }).width([POPUPWIDTH] - horizontalPadding).height([POPUPHEIGHT] - verticalPadding); */
-            
-            var horizontalPadding = 30;
-    var verticalPadding = 30; $('<iframe id="externalSite" class="externalSite" src="index.php?module=adresse&action=positioneneditpopup&id='+id+'&pid='+pid+'" width="1000"/>').dialog({
-title: 'Abschicken',
-      autoOpen: true,
-      width:1100,
-      height: 800,
-      modal: true,
-      resizable: true,
-      close: function(ev, ui) {window.location.href='index.php?module=adresse&action=artikel&id='+pid;}
-  }).width(1100 - horizontalPadding).height(800 - verticalPadding);
-
-
-
-}
-
-  function changeFavicon(src) {
+function changeFavicon(src) {
     var link = document.createElement('link'),
       oldLink = document.getElementById('dynamic-favicon');
     link.id = 'dynamic-favicon';

@@ -1,6 +1,6 @@
 import sidebar from './sidebar';
-import {ready} from "@res/js/dom";
 import "./scripts.js";
 import "./profilemenu";
+import "./tabs";
 
-ready(sidebar);
+sidebar();

@@ -304,3 +304,31 @@ var CompanyData = (function ($) {
 $(document).ready(function(){
     CompanyData.init();
 });
+
+function generatePass(plength){
+
+    var keylistalpha="abcdefghijklmnopqrstuvwxyz";
+    var keylistint="123456789";
+    var keylistspec="!@#_";
+    var temp='';
+    var len = plength/2;
+    var len = len - 1;
+    var lenspec = plength-len-len;
+    let i;
+
+    for (i=0;i<len;i++)
+        temp+=keylistalpha.charAt(Math.floor(Math.random()*keylistalpha.length));
+
+    for (i=0;i<lenspec;i++)
+        temp+=keylistspec.charAt(Math.floor(Math.random()*keylistspec.length));
+
+    for (i=0;i<len;i++)
+        temp+=keylistint.charAt(Math.floor(Math.random()*keylistint.length));
+
+    temp=temp.split('').sort(function(){return 0.5-Math.random()}).join('');
+
+    return temp;
+}
+document.querySelector('#genkeybutton').addEventListener('click', () => {
+    document.querySelector('#devicekey').value = generatePass(48);
+})

@@ -1,10 +1,5 @@
 $(function() {
-
-
-	 /* initialize tabs */
-    $( "#tabs" ).tabs();
-   
-	
+	let $mobil;
 	/* Maken Menu Sticky on Scroll */
 	var mainMenu = $("#main"),
 		header = $("#header"),

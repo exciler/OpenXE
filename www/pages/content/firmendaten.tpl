@@ -1791,7 +1791,7 @@
 						<table cellspacing="5" width="100%">
 							<tr><td width="300">Xentral Device API aktiviert:</td><td><input type="checkbox" name="deviceenable" [DEVICEENABLE]></td></tr>
 							<tr><td>Security Key:</td><td><input type="text" name="devicekey" id="devicekey" value="[DEVICEKEY]" size="40">&nbsp;
-								<input type="button" value="Key generieren" onclick="document.getElementById('devicekey').value = generatePass(48);"></td>
+								<input type="button" value="Key generieren" id="genkeybutton"></td>
 							</tr>
 							<!--<tr><td>Device Seriennummern</td><td><textarea name="deviceserials" cols="40" rows="5">[DEVICESERIALS]</textarea></td></tr>-->
 						</table>
