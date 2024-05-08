@@ -6,6 +6,7 @@
 
 @import "basecomponent.css";
 @import "autocomplete.css";
+@import "colorpicker.css";
 @import "dialog.css";
 @import "dropdown.css";
 @import "fileUpload.css";

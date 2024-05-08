@@ -4,7 +4,7 @@ import {ref} from "vue";
 import Dialog from "primevue/dialog";
 import AutoComplete from "@res/vue/AutoComplete.vue";
 import Button from "primevue/button";
-import {reloadDataTables} from "@res/js/jqueryBridge.js";
+import {reloadDataTables} from "@res/js/jqueryBridge";
 
 const model = ref(null);
 const permissions = window.apiAccountPermissions;

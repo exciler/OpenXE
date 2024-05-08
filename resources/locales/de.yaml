@@ -1,5 +1,10 @@
 common:
-  description: Beschreibung
   amount: Menge
+  color: Farbe
+  cancel: Abbrechen
+  description: Beschreibung
+  edit: Bearbeiten
+  group: Gruppe
+  save: Speichern
   totalValue: Gesamtwert
   totalWeight: Gesamtgewicht

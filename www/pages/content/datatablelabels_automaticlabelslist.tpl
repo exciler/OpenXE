@@ -29,35 +29,5 @@
 	</div>
 </div>
 
-<div id="datatablelabels_automaticlabelsedit" class="hide" title="Bearbeiten">
-	<form method="post">
-		<input type="hidden" id="datatablelabel_automaticlabelid">
-		<fieldset>
-			<legend>{|Automatisches Label|}</legend>
-			<table>
-				<tr>
-					<td width="90">{|Label|}:</td>
-					<td><input type="text" name="datatablelabel_automaticlabelname" id="datatablelabel_automaticlabelname" size="40"></td>
-				</tr>
-				<tr>
-					<td width="90">{|Aktion|}:</td>
-					<td><select name="datatablelabel_automaticlabelaction" id="datatablelabel_automaticlabelaction">
-								[AUTOMATICLABELACTION]
-							</select>
-					</td>
-				</tr>
-				<tr>
-					<td>{|Auswahl|}:</td>
-					<td><select name="datatablelabel_automaticlabelselection" id="datatablelabel_automaticlabelselection">
-								[AUTOMATICLABELSELECTION]
-							</select>
-					</td>
-				</tr>
-				<tr>
-					<td>{|Projekt|}:</td>
-					<td><input type="text" name="datatablelabel_automaticlabelproject" id="datatablelabel_automaticlabelproject" size="40"></td>
-				</tr>
-			</table>
-		</fieldset>
-	</form>
-</div>
+<script id="vueapp_props" type="application/json">[VUEPROPS]</script>
+<div id="vueapp"></div>

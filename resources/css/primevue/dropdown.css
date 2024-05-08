@@ -208,3 +208,7 @@
 .p-input-filled .p-dropdown:not(.p-disabled).p-focus .p-inputtext {
     background-color: transparent;
 }
+
+.grid .p-dropdown {
+    width: 100%;
+}

@@ -14,6 +14,8 @@
 ?>
 <?php
 
+use Xentral\Components\Http\Request;
+
 class Datatablelabels
 {
   /** @var string MODULE_NAME */
@@ -21,6 +23,8 @@ class Datatablelabels
 
   /** @var erpooSystem $app */
   public $app;
+
+  private Request $request;
 
   /** @var array $javascript */
   public $javascript = [
@@ -46,6 +50,8 @@ class Datatablelabels
     if($intern){
       return;
     }
+
+    $this->request = $this->app->Container->get('Request');
 
     $this->app->ActionHandlerInit($this);
     $this->app->ActionHandler('list', 'DataTableLabelsList');
@@ -345,18 +351,10 @@ class Datatablelabels
 
     // Label-Gruppen laden und HTML-Dropdown-Optionen generieren
     $labelGroups = $this->GetLabelGroups();
-    $labelGroupsOptions = '<option value="0" selected="selected">{|Alle|}</option>';
-    foreach ($labelGroups as $labelGroup) {
-      $labelGroupsOptions .= sprintf(
-        '<option value="%s">%s (%s)</option>',
-        $labelGroup['id'],
-        $labelGroup['title'],
-        $labelGroup['group_table']
-      );
-    }
-    $this->app->Tpl->Set('DATATABLE_GROUP_OPTIONS', $labelGroupsOptions);
+    $this->app->Tpl->Set('VUEPROPS', json_encode(['groups' => $labelGroups]));
 
     $this->app->erp->Headlines('Labels');
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Label/www/js/labeltypes.entry.js']);
     $this->app->Tpl->Parse('PAGE', 'datatablelabels_list.tpl');
   }
 
@@ -366,24 +364,25 @@ class Datatablelabels
   public function DataTableLabelsEdit()
   {
     $cmd = $this->app->Secure->GetGET('cmd');
+    $json = $this->request->getJson();
     switch ($cmd) {
 
       case 'get':
-        $id = (int)$this->app->Secure->GetPOST('id');
+        $id = (int)$json->id;
         $result = $this->AjaxGetLabelType($id);
         break;
 
       case 'save':
-        $id = (int)$this->app->Secure->GetPOST('id');
-        $type = (string)$this->app->Secure->GetPOST('type');
-        $title = (string)$this->app->Secure->GetPOST('title', 'nohtml');
-        $groupId = (int)$this->app->Secure->GetPOST('group');
-        $hexColor = (string)$this->app->Secure->GetPOST('hexcolor');
+        $id = (int)$json->id;
+        $type = (string)$json->type;
+        $title = (string)$json->title;
+        $groupId = (int)$json->group_id;
+        $hexColor = (string)$json->hexcolor;
         $result = $this->AjaxSaveLabelType($id, $type, $title, $hexColor, $groupId);
         break;
 
       case 'delete':
-        $id = (int)$this->app->Secure->GetPOST('id');
+        $id = (int)$json->id;
         $result = $this->AjaxDeleteLabelType($id);
         break;
 
@@ -406,7 +405,7 @@ class Datatablelabels
   public function DataTableLabelsAutomaticLabelsList()
   {
     $this->DataTableLabelsMenu();
-    
+
     $action = array(
       //'versand' => 'Versand von Beleg',
       'drucken' => 'Drucken von Beleg',
@@ -421,26 +420,16 @@ class Datatablelabels
       'lieferschein' => 'Lieferschein', 'produktion' => 'Produktion', 'rechnung' => 'Rechnung'
     );
 
-    $actionString = '';
-    $selectionString = '';
-
-    foreach($action as $key=>$value){
-      $actionString .= '<option value="'.$key.'">'.$value.'</option>';
-    }
-
-    foreach($selection as $key=>$value){
-      $selectionString .= '<option value="'.$key.'">'.$value.'</option>';
-    }
-
-    $this->app->Tpl->Set('AUTOMATICLABELACTION', $actionString);
-    $this->app->Tpl->Set('AUTOMATICLABELSELECTION', $selectionString);
-
-    $this->app->YUI->AutoComplete('datatablelabel_automaticlabelname', 'label_type');
-    $this->app->YUI->AutoComplete('datatablelabel_automaticlabelproject', 'projektname', 1);
+    $vueprops = [
+        'actions' => array_map(fn($k, $v) => ['value'=>$k, 'text'=>$v], array_keys($action), array_values($action)),
+        'selections' => array_map(fn($k, $v) => ['value'=>$k, 'text'=>$v], array_keys($selection), array_values($selection)),
+    ];
+    $this->app->Tpl->Set('VUEPROPS', json_encode($vueprops));
 
     $this->app->YUI->TableSearch('TAB1', 'datatablelabels_automaticlabelslist', 'show', '', '', basename(__FILE__), __CLASS__);
 
     $this->app->erp->Headlines('Labels');
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Label/www/js/automaticlabels.entry.js']);
     $this->app->Tpl->Parse('PAGE', 'datatablelabels_automaticlabelslist.tpl');
   }
 
@@ -450,24 +439,25 @@ class Datatablelabels
   public function DataTableLabelsAutomaticLabelsEdit()
   {
     $cmd = $this->app->Secure->GetGET('cmd');
+    $json = $this->request->getJson();
     switch ($cmd) {
 
       case 'get':
-        $id = (int)$this->app->Secure->GetPOST('id');
+        $id = (int)$json->id;
         $result = $this->AjaxGetAutomaticLabel($id);
         break;
 
       case 'save':
-        $id = (int)$this->app->Secure->GetPOST('id');
-        $labelName = (string)$this->app->Secure->GetPOST('labelname');
-        $action = (string)$this->app->Secure->GetPOST('action');
-        $selection = (string)$this->app->Secure->GetPOST('selection');
-        $project = (string)$this->app->Secure->GetPOST('project');
+        $id = (int)$json->id;
+        $labelName = (string)$json->labelname;
+        $action = (string)$json->action;
+        $selection = (string)$json->selection;
+        $project = (int)$json->project->id;
         $result = $this->AjaxSaveAutomaticLabel($id, $labelName, $action, $selection, $project);
         break;
 
       case 'delete':
-        $id = (int)$this->app->Secure->GetPOST('id');
+        $id = (int)$json->id;
         $result = $this->AjaxDeleteAutomaticLabel($id);
         break;
 
@@ -569,7 +559,7 @@ class Datatablelabels
       "SELECT lt.id, lt.type, lt.title, lt.hexcolor, lt.label_group_id AS group_id
        FROM label_type AS lt
        LEFT JOIN label_group AS lg ON lt.label_group_id = lg.id
-       WHERE lt.id = '{$id}' 
+       WHERE lt.id = {$id} 
        LIMIT 1"
     );
     if(empty($data)){
@@ -591,25 +581,25 @@ class Datatablelabels
     $id = (int)$id;
 
     // Prüfen ob ID existiert
-    $checkId = (int)$this->app->DB->Select("SELECT lt.id FROM label_type AS lt WHERE lt.id = '{$id}'");
+    $checkId = (int)$this->app->DB->Select("SELECT lt.id FROM label_type AS lt WHERE lt.id = {$id}");
     if($checkId === 0 || $checkId !== $id){
       return ['success' => false, 'error' => sprintf('Label-Typ kann nicht gelöscht werden. ID%s wurde nicht gefunden.', $id)];
     }
 
     // Prüfen ob Label-Typ in Verwendung ist
     $checkRefCount = (int)$this->app->DB->Select(
-      "SELECT COUNT(lr.id) AS num FROM label_reference AS lr WHERE lr.label_type_id = '{$id}'"
+      "SELECT COUNT(lr.id) AS num FROM label_reference AS lr WHERE lr.label_type_id = {$id}"
     );
     if($checkRefCount <= 0){
       $checkRefCount = (int)$this->app->DB->Select(
-        "SELECT COUNT(al.id) AS num FROM label_automatic AS al WHERE al.label_type_id = '{$id}'"
+        "SELECT COUNT(al.id) AS num FROM label_automatic AS al WHERE al.label_type_id = {$id}"
       );
     }
     if($checkRefCount > 0){
       return ['success' => false, 'error' => 'Label-Typ kann nicht gelöscht werden. Es existieren noch Verknüpfungen.'];
     }
 
-    $this->app->DB->Delete("DELETE FROM label_type WHERE id = '{$id}' LIMIT 1");
+    $this->app->DB->Delete("DELETE FROM label_type WHERE id = {$id} LIMIT 1");
 
     return ['success' => true];
   }
@@ -627,6 +617,7 @@ class Datatablelabels
   {
     $id = (int)$id;
     $groupId = (int)$groupId;
+    $title = mysqli_real_escape_string($title);
     try {
       $result = ['success' => false, 'error' => 'Unbekannter Fehler'];
 
@@ -712,7 +703,7 @@ class Datatablelabels
    *
    * @return array
    */
-  protected function AjaxSaveAutomaticLabel($id, $labelName, $action, $selection, $project)
+  protected function AjaxSaveAutomaticLabel($id, $labelName, $action, $selection, $projectId)
   {
     $id = (int)$id;
     try {
@@ -720,14 +711,6 @@ class Datatablelabels
 
       if($id === 0){
         // Neuen Eintrag anlegen
-
-        if($project == ''){
-          $projectId = 0;
-        }else{
-          $project = explode(' ', $project);
-          $project = $project[0];
-          $projectId = $this->app->DB->Select("SELECT id FROM projekt WHERE abkuerzung = '{$project}' LIMIT 1");
-        }
 
         $typeId = $this->app->DB->Select("SELECT id FROM label_type WHERE type = '$labelName' LIMIT 1");
 
@@ -741,14 +724,6 @@ class Datatablelabels
 
       if($id > 0){
         // Vorhandenen Eintrag bearbeiten
-        if($project == ''){
-          $projectId = 0;
-        }else{
-          $project = explode(' ', $project);
-          $project = $project[0];
-          $projectId = $this->app->DB->Select("SELECT id FROM projekt WHERE abkuerzung = '{$project}' LIMIT 1");
-        }
-
         $typeId = $this->app->DB->Select("SELECT id FROM label_type WHERE type = '$labelName' LIMIT 1");
 
         $this->ValidateFormDataAutomaticLabel($typeId, $action, $selection, $projectId, $id);

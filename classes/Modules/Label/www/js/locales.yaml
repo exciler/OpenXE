@@ -1,0 +1,10 @@
+de:
+  type: Kennung
+  label: Label
+  action: Aktion
+  selection: Auswahl
+en:
+  type: Identifier
+  label: Label
+  action: Action
+  selection: Selection
