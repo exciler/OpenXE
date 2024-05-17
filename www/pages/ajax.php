@@ -3467,13 +3467,20 @@ select a.kundennummer, (SELECT name FROM adresse a2 WHERE a2.kundennummer = a.ku
       case "adresse":
         $felder = array("if(a.lieferantennummer,CONCAT(a.name,' ',a.kundennummer,' ',a.lieferantennummer,')'),CONCAT(a.id,' ',a.name,' (Kdr: ',a.kundennummer,')'))");
         $subwhere = $this->AjaxFilterWhere($termorig,$felder);
-        $sql = "SELECT if(a.lieferantennummer,CONCAT(a.id,' ',a.name,' (Kdr: ',a.kundennummer,' Liefr: ',a.lieferantennummer,')'),CONCAT(a.id,' ',a.name,' (Kdr: ',a.kundennummer,')')) as `name` 
+        $fields = $asObject
+            ? 'a.id, a.name, a.kundennummer, a.lieferantennummer'
+            : "if(a.lieferantennummer,CONCAT(a.id,' ',a.name,' (Kdr: ',a.kundennummer,' Liefr: ',a.lieferantennummer,')'),CONCAT(a.id,' ',a.name,' (Kdr: ',a.kundennummer,')')) as `name`";
+        $sql = "SELECT $fields  
             FROM adresse a  WHERE a.geloescht=0 AND ($subwhere) ".$this->app->erp->ProjektRechte('a.projekt')." 
             order by a.name LIMIT 20";
         $arr = $this->app->DB->SelectArr($sql);
         $carr = !empty($arr)?count($arr):0;
-        for($i = 0; $i < $carr; $i++) {
-          $newarr[] = $arr[$i]['name'];
+        if ($asObject) {
+            $newarr = $arr;
+        } else {
+            for ($i = 0; $i < $carr; $i++) {
+                $newarr[] = $arr[$i]['name'];
+            }
         }
         break;
         case "adressemitvertrieb":

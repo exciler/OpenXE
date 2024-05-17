@@ -54,11 +54,12 @@ export default {
             include: [path.resolve(__dirname, './resources/locales/**')],
         }),
     ],
-    mode: 'development',
+    mode: 'production',
     resolve: {
         alias: {
             '@res': path.resolve(__dirname, 'resources'),
-            '@theme': path.resolve(__dirname, 'www/themes')
+            '@theme': path.resolve(__dirname, 'www/themes'),
+            '@modules': path.resolve(__dirname, 'classes/Modules'),
         }
     }
 }

@@ -1,3 +1,5 @@
+import "../css/profilemenu.css";
+
 const profileMenuSelector = '#profile-menu';
 const profileInfoNameSelector = '#profile-info-name';
 const wrapperSelector = '#profile-info-wrapper, #profile-picture-wrapper';

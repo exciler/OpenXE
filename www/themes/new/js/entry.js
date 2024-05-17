@@ -3,6 +3,8 @@ import "./scripts.js";
 import "./profilemenu";
 import "./tabs";
 
+
+
 sidebar();
 
 

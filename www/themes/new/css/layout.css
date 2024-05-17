@@ -1,0 +1,23 @@
+/* Main
+- - - - - - - - - - - - - - - - - - - - - - */
+
+#main {
+    padding-left: var(--sidebar-not-collapsed-width);;
+    width: 100%;
+    min-height: calc(100vh - 150px);
+    overflow: hidden;
+    transition: padding-left .3s;
+    z-index: 1;
+}
+
+@media screen and (max-height: 880px) {
+    #main {
+        min-height: 100vh;
+    }
+}
+
+#main #page_container {
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}

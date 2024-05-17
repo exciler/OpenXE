@@ -31,7 +31,7 @@
 			<div class="col-xs-12 col-md-6">
 				<div class="inside">
 					<fieldset class="home-calendar">
-						<div>[KALENDER]</div>
+						<div id="vueapp_calendar"></div>
 					</fieldset>
 				</div>
 			</div>

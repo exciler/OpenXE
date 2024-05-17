@@ -1,0 +1,27 @@
+@import "colors";
+
+$borderRadius: 3px;
+
+$buttonPadding: 5px 25px;
+$inputPadding: 0.25rem 0.5rem;
+$focusShadow: none;
+$cardShadow: none;
+
+$panelContentBg: #FFFFFF;
+$panelHeaderBg: $bodyBackground;
+
+$dialogHeaderBg: $bodyBackground;
+$dialogHeaderBorder: none;
+$dialogHeaderPadding: 0.5em 1em;
+$dialogContentPadding: 0.5em 1em;
+
+$overlayContentBg: $bodyBackground;
+
+$colorPickerPreviewWidth: 20px;
+$colorPickerPreviewHeight: 20px;
+
+@import "primevue-sass-theme/themes/bootstrap4/bootstrap4-light/blue/theme";
+
+.p-button {
+  font-size: 1.2rem;
+}

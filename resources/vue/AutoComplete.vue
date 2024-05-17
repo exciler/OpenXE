@@ -13,7 +13,8 @@ import SearchIcon from "primevue/icons/search";
 const props = defineProps({
   ajaxFilter: String,
   modelValue: null,
-  forceSelection: Boolean
+  forceSelection: Boolean,
+  additionalQueryParams: Object
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -26,10 +27,20 @@ async function search(event) {
           action: 'filter',
           filtername: props.ajaxFilter,
           term: event.query,
-          object: true
+          object: true,
+          ...props.additionalQueryParams
         }
       })
-      .then(response => items.value = response.data)
+      .then(response => {
+        if (response.data && typeof response.data[0] === 'string') {
+          const data: Array = response.data;
+          items.value = data.map((x) => {return {
+            value: x.split(' ',1).shift(),
+            label: x}});
+        } else {
+          items.value = response.data
+        }
+      })
 }
 </script>
 

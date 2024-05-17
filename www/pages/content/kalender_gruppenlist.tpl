@@ -28,7 +28,7 @@
   
     <fieldset>
       <legend>{|Aktionen|}</legend>
-      <input class="btnGreenNew calendar-group-create" type="button" name="anlegen" value="&#10010; Neue Gruppe anlegen">
+      <input class="btnGreenNew vue-action" type="button" name="anlegen" data-action="create" value="&#10010; Neue Gruppe anlegen">
     </fieldset>
   
   </div>
@@ -42,26 +42,4 @@
 </form>
 </div>
 
-<div id="editKalendergruppen" style="display:none;" title="Bearbeiten">
-  <input type="hidden" id="editid">
-  <fieldset>
-    <legend>Kalendergruppe</legend>
-    <table width="100%">
-      <tr>
-        <td>Bezeichnung: </td>
-        <td><input type="text" id="editbezeichnung" size="30"></td>        
-      </tr>
-      <tr>
-        <td>Farbe:</td>
-        <td><input type="text" id="editfarbe" size="1" value="#0b8092"></td>
-      </tr>
-      <tr>
-        <td>Inaktiv:</td>
-        <td><input type="checkbox" id="editausblenden"></td>
-      </tr>
-    </table>  
-  </fieldset>
-  <fieldset id="kalender_gruppen_mitglieder_reihe">
-    [GRUPPEN]
-  </fieldset>
-</div>
+<div id="vueapp"></div>

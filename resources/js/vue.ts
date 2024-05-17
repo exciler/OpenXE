@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: LicenseRef-EGPL-3.1
 
 import '@res/css/vue.css';
-import '@res/css/primevue/_base.css';
+//import '@res/css/primevue/_base.css';
+import "@res/css/primevue.scss";
 import {createApp} from "vue";
 import { createI18n } from 'vue-i18n';
 import PrimeVue from "primevue/config";
 import messages from '@intlify/unplugin-vue-i18n/messages';
+import {de} from"primelocale/de.json";
 
 const numberFormats = {
     'de': {
@@ -26,5 +28,9 @@ const i18n = createI18n({
 })
 
 export function createVueApp(rootComponent, rootProps) {
-    return createApp(rootComponent, rootProps).use(PrimeVue).use(i18n);
+    return createApp(rootComponent, rootProps)
+        .use(PrimeVue, {
+            locale: de
+        })
+        .use(i18n);
 }

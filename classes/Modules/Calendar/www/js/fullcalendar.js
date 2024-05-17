@@ -20,21 +20,6 @@ $(document).ready(function () {
         return;
     }
 
-    $("input#ansprechpartner").autocomplete({
-        source: "index.php?module=ajax&action=filter&filtername=ansprechpartneradresse&adresse="+0,
-    });
-
-    $("input#adresse").autocomplete({
-        source: "index.php?module=ajax&action=filter&filtername=adresse",
-        select: function( event, ui ) {
-            if(ui.item){
-                $("input#ansprechpartner").autocomplete({
-                    source: "index.php?module=ajax&action=filter&filtername=ansprechpartneradresse&adresse="+ui.item.value,
-                });
-            }
-        }
-    });
-
     var $calendarattributes = $('#calendarattributes');
 
     if ($calendarattributes.length !== 0) {
@@ -96,79 +81,7 @@ $(document).ready(function () {
 
             var myView = Nocie.Get('currentView');
             var myViewDate = Nocie.Get('currentViewDate');
-
-            // In Monatsansicht zum aktuellen Tag scrollen
-            // (isLoading ist false wenn der AJAX-Request da ist)
-            if (isLoading === false && view.name === 'month') {
-                var autoscroll = parseInt($('#calendar').data('autoscroll'));
-                if (autoscroll === 1) {
-                    setTimeout(function () { // Timeout
-                        $('.fc-today').attr('id', 'scrollTo'); // Set an ID for the current day..
-                        $('html, body').animate({
-                            scrollTop: $('#scrollTo').offset().top - 104 // Scroll to this ID
-                        }, 1000);
-                    }, 200);
-                }
-            }
-
-            if (isLoading && myView != null) {
-                $('#calendar').fullCalendar('changeView', myView);
-                if (myViewDate != null) {
-                    var mydate = Date.parse(myViewDate);
-                    var year = $.format.date(mydate, 'yyyy');
-                    var month = $.format.date(mydate, 'M') - 1;
-                    var day = (myView === 'month') ? 15 : $.format.date(mydate, 'd');
-                    $('#calendar').fullCalendar('gotoDate', year, month, day);
-
-                    Nocie.Remove('currentViewDate');
-                    Nocie.Remove('currentView');
-                }
-            }
-        },
-        select: function (start, end, allDay) {
-            var myView = $('#calendar').fullCalendar('getView');
-
-            Nocie.Set('currentViewDate', myView.start);
-            Nocie.Set('currentView', myView.name);
-
-            // Neuen Event anlegen
-            $("#TerminDialog").SetFormData(-1, start, end, allDay);
-            $("#TerminDialog").dialog("open");
-            AllDay($('#allday'));
-        },
-
-
-        eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc)
-            //	eventDrop: function(event, element)
-        {
-            var task = '';
-
-            if (event.task != undefined)
-                task = '&task=' + event.task;
-            if (event.id > -1) {
-                $.get('./index.php?module=kalender&action=update&id=' + event.id + '&start=' + $.fullCalendar.formatDate(event.start, 'yyyy-MM-dd HH:mm:ss')
-                    + '&end=' + $.fullCalendar.formatDate(event.end, 'yyyy-MM-dd HH:mm:ss') + '&allDay=' + event.allDay + task,
-                    function () {
-                        $('#calendar').fullCalendar('updateEvent', event);
-                    });
-            } else {
-                alert("Eintrag kann nicht verschoben werden");
-                revertFunc();
-            }
-        },
-        eventResize: function (event, dayDelta, minuteDelta, revertFunc, jsEvent, ui, view) {
-            //eventResize: function(event, element) {
-            if (event.id > -1) {
-                $.get('./index.php?module=kalender&action=update&id=' + event.id + '&start=' + $.fullCalendar.formatDate(event.start, 'yyyy-MM-dd HH:mm:ss')
-                    + '&end=' + $.fullCalendar.formatDate(event.end, 'yyyy-MM-dd HH:mm:ss'),
-                    function () {
-                        $('#calendar').fullCalendar('updateEvent', event);
-                    });
-            } else {
-                alert("Eintrag kann nicht verlängert werden");
-                revertFunc();
-            }
-        },
+            },
 
         eventClick: function (calEvent, jsEvent, view) {
             clickedEvent = calEvent;
@@ -188,10 +101,6 @@ $(document).ready(function () {
         },
         editable: true,
         events: "./index.php?module=kalender&action=data"
-    });
-
-    $(document).on('click', '#allday', function (e) {
-        AllDay(this);
     });
 
     $.fn.SetFormData = function (id, start, end, allDay, task) {
@@ -294,146 +203,6 @@ $(document).ready(function () {
         return true;
     };
 
-    var EditMode = function (data) {
-        $("#mode").val("edit");
-        $("#eventid").val(data.id);
-        $("#titel").val(data.titel);
-        $("#ort").val(data.ort);
-        $("#adresse").val(data.adresse);
-        $("#ansprechpartner").val(data.ansprechpartner);
-        $("#adresseintern").val(data.adresseintern);
-        $("#projekt").val(data.projekt);
-        $("#beschreibung").val(data.beschreibung);
-        $("#datum").val($.format.date(data.von, "dd.MM.yyyy"));
-        $("#datum_bis").val($.format.date(data.bis, "dd.MM.yyyy"));
-
-        // Buttons
-        $(":button:contains('Kopieren')").prop("disabled", false).removeClass('ui-state-disabled');
-        $(":button:contains('Löschen')").prop("disabled", false).removeClass('ui-state-disabled');
-        $(":button:has('Einladung')").prop("disabled", false).removeClass('ui-state-disabled');
-
-        $('#googleStatus').html('');
-        if(data.googleEventLink !== '' && data.googleEventEdit === false) {
-            $('#googleStatus').append('<i>Dieser Google Termin kann nur vom Besitzer bearbeitet werden.</i></br>');
-            $(":button:contains('Löschen')").prop("disabled", true).addClass('ui-state-disabled');
-            $(":button:contains('Speichern')").prop("disabled", true).addClass('ui-state-disabled');
-            $(":button:contains('Einladung')").prop("disabled", true).addClass('ui-state-disabled');
-            $(":button:contains('Kopieren')").prop("disabled", true).addClass('ui-state-disabled');
-        }
-        // Cannot edit an Event if it's a Google Event of another user
-        if(data.googleEventLink !== '') {
-            $('#googleStatus').append('In <a href="'+data.googleEventLink+'" target="_blank">Google Kalender öffnen<a>');
-        }
-
-        // Ganztags
-        if (data.allDay) {
-            $("#allday").prop('checked', true);
-            $("#von").prop('disabled', true);
-            $("#bis").prop('disabled', true);
-        } else {
-            $("#allday").prop('checked', false);
-            $("#von").prop('disabled', false);
-            $("#bis").prop('disabled', false);
-        }
-
-        // Öffentlich
-        if (data.public)
-            $("#public").prop('checked', true);
-        else
-            $("#public").prop('checked', false);
-
-        // Erinnerung
-        if (data.erinnerung)
-            $("#erinnerung").prop('checked', true);
-        else
-            $("#erinnerung").prop('checked', false);
-
-
-        // Von & Bis
-        $("#von").val($.format.date(data.von, "HH:mm"));
-        $("#bis").val($.format.date(data.bis, "HH:mm"));
-
-        // Color
-        //$("#colors option[value='"+data.color+"']").prop('selected','selected');
-        //if($("#colors option[value='"+data.color+"']").prop('selected')=='selected')
-        //	$("#colors").css("background-color", data.color);
-        $("#color").val(data.color);
-        $("#color").change();
-
-        // Personen
-        $('#personen option').removeAttr('selected');
-        if (data.personen != null && data.personen !== undefined) {
-            jQuery.each(data.personen, function (k, v) {
-                $("#personen option[value='" + v.userid + "']").prop('selected', 'selected');
-            });
-        }
-
-        // Gruppenkalender
-        $('#gruppenkalender option').removeAttr('selected');
-        if (data.gruppenkalender != null && data.gruppenkalender !== undefined) {
-            jQuery.each(data.gruppenkalender, function (k, v) {
-                $("#gruppenkalender option[value='" + v.kalendergruppe + "']").prop('selected', 'selected');
-            });
-        }
-
-        $("input#ansprechpartner").autocomplete({
-            source: "index.php?module=ajax&action=filter&filtername=ansprechpartneradresse&adresse="+data.adressid,
-        });
-
-    };
-
-    // Standard-Verhalten der Multiple-Selectbox ändern:
-    // - Beim Klick auf einen Eintrag wird nur der angeklickte Eintrag ausgewählt; bzw. abgewählt (wenn vorher aktiv).
-    // - Das Halten der Strg-Taste zum Entfernen einer Auswahl ist dadurch nicht mehr notwendig.
-    $('#personen option, #gruppenkalender option').on('mousedown', function (e) {
-        e.preventDefault();
-        $(e.target).prop('selected', function (i, value) {
-            return !value;
-        });
-    });
-
-    $('#TerminForm').submit(function (e) {
-        var mode = $('#mode').val();
-        e.preventDefault();
-
-        var formData = $(this).serialize();
-        $.ajax({
-            url: 'index.php?module=kalender&action=list&ajax=true',
-            method: 'post',
-            data: formData,
-            dataType: 'json',
-            success: function (eventData) {
-
-                // Event wurde gelöscht > Event aus Kalender entfernen
-                if (mode === 'delete' && typeof eventData.deletedEventId !== 'undefined') {
-                    $('#calendar').fullCalendar('removeEvents', eventData.deletedEventId);
-                    $('#TerminDialog').dialog('close');
-                    return;
-                }
-
-                // Termin wurde kopiert
-                if (mode === 'copy' && clickedEvent !== null) {
-                    $('#calendar').fullCalendar('refetchEvents');
-                    $('#TerminDialog').dialog('close');
-                    return;
-                }
-
-                // Neuer Termin wurde angelegt
-                if (mode === 'new' && clickedEvent === null) {
-                    $('#calendar').fullCalendar('refetchEvents');
-                    $('#TerminDialog').dialog('close');
-                    return;
-                }
-
-                // Termin wurde bearbeitet > Originalen Event aktualisieren
-                if (mode === 'edit' && clickedEvent !== null) {
-                    clickedEvent = updateExistingEvent(clickedEvent, eventData);
-                    $('#calendar').fullCalendar('updateEvent', clickedEvent);
-                }
-            }
-        });
-    });
-
     $("#TerminDialog").dialog({
         autoOpen: false,
         height: 600,
@@ -505,36 +274,6 @@ $(document).ready(function () {
                     });
                 }
             },
-            // "Einladung": function () {
-            // 	var errMsg = '';
-            // 	if ($("#datum").val() == "") errMsg = "Geben Sie bitte ein g&uuml;ltiges Datum ein (dd.mm.jjjj)"
-            // 	if ($("#titel").val() == "") errMsg = "Geben Sie bitte einen Titel ein";
-            //
-            // 	if (errMsg != "")
-            // 		$("#submitError").html(errMsg);
-            // 	else {
-            // 		$("#TerminDialogEinladung").dialog("open");
-            // 		// betreff und text holen und ansprechpartner list
-            //
-            // 		$.ajax({
-            // 			url: 'index.php?module=kalender&action=einladung&cmd=get&id=' + $("#eventid").val(),
-            // 			method: 'post',
-            // 			dataType: 'json',
-            // 			success: function (data) {
-            // 				if (data.status == 1) {
-            // 					$('#TerminDialogEinladung').find('#einladungbetreff').val(data.betreff);
-            // 					$('#TerminDialogEinladung').find('#einladungtext').val(data.text);
-            // 					$('#TerminDialogEinladung').find('#einladungcc').val(data.einladungcc);
-            // 				} else {
-            // 					alert(data.statusText);
-            // 				}
-            // 			}
-            // 		});
-            //
-            // 	}
-            //
-            // },
-
             "Abbrechen": function () {
                 $(this).dialog("close");
             }
@@ -567,90 +306,7 @@ $(document).ready(function () {
             });
         }
     });
-
-    $("#TerminDialogEinladung").dialog({
-        modal: true,
-        bgiframe: true,
-        closeOnEscape: false,
-        minWidth: 900,
-        minHeight: 350,
-        autoOpen: false,
-        buttons: {
-            ABBRECHEN: function () {
-                $(this).dialog('close');
-            },
-            "Einladung SENDEN": function () {
-
-                $.ajax({
-                    url: 'index.php?module=kalender&action=eventdata&cmd=sendEinladung&id=' + $("#eventid").val(),
-                    data: {
-                        //Alle Felder die fürs editieren vorhanden sind
-                        id: $('#einladungeventid').val(),
-                        betreff: $('#einladungbetreff').val(),
-                        text: $('#einladungtext').val(),
-                        emailcc: $('#einladungcc').val()
-                    },
-                    method: 'post',
-                    dataType: 'json',
-                    beforeSend: function () {
-                        App.loading.open();
-                    },
-                    success: function (data) {
-                        App.loading.close();
-                        if (data.status == 1) {
-                            /*    $('#editKontorahmen').find('#editid').val('');
-                                $('#editKontorahmen').find('#editkonto').val('');
-                                $('#editKontorahmen').find('#editbeschriftung').val('');
-                                $('#editKontorahmen').find('#editart').val('');
-                                $('#editKontorahmen').find('#editbemerkung').val('');
-                                $('#editKontorahmen').find('#editnichtsichtbar').val('');
-
-                */
-                            // alert(data.statusText);
-                            $("#TerminDialogEinladung").dialog('close');
-                        } else {
-                            alert(data.statusText);
-                            $('#calendar').fullCalendar('refetchEvents');
-                        }
-                    }
-                });
-
-                //alert($("#einladungeventid").val());
-                /*
-                              $.ajax({
-                                url: 'index.php?module=kalender&action=einladung&id='+$("#eventid").val(),
-                                data: {
-                                  //Alle Felder die fürs editieren vorhanden sind
-                                  //id: $('#editid').val(),
-                                  id: $('#').val(),
-                                  betreff: $('#einladungbetreff').val(),
-                                  text: $('#einladungtext').val(),
-                                  betreff: $('#einladungcc').val()
-                                },
-                                success: function(data) {
-                                },
-                                error: function (request, statusCode, error) {
-                                });
-                   */
-            }
-        }
-    });
-
-    $("#TerminDialogEinladung").dialog({
-        close: function (event, ui) {
-        }
-    });
 });
-
-function AllDay(el) {
-    if (el.checked) {
-        $("#von").attr('disabled', true);
-        $("#bis").attr('disabled', true);
-    } else {
-        $("#von").attr('disabled', false);
-        $("#bis").attr('disabled', false);
-    }
-}
 
 function getDialogButton(jqUIdialog, button_names) {
     if (typeof button_names == 'string')

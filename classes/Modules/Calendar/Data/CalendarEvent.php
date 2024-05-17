@@ -41,14 +41,23 @@ final class CalendarEvent
     /** @var string $location */
     private $location;
 
+    private int $addressId;
+    private int $projectId;
+
     /** @var CalendarEventUser $creator */
     private $creator;
 
     /** @var CalendarEventUser $organizer */
     private $organizer;
 
+    private int $subProjectId;
+    private bool $reminder;
+    private int $contactPersonId;
+
     /** @var string $type */
     private $type;
+
+    private string $uri;
 
     /** @var CalendarEventUser[] $attendees */
     private $attendees;

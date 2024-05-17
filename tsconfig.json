@@ -6,8 +6,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "paths": {
-      "@res/*": ["./resources/*"]
+      "@res/*": ["./resources/*"],
+      "@modules/*": ["./classes/Modules/*"]
     }
   }
 }

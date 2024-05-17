@@ -1,0 +1,23 @@
+:root {
+  --fc-button-text-color: var(--button-primary-color);
+  --fc-button-bg-color: var(--button-secondary-background);
+  --fc-button-border-color: var(--button-secondary-border-color);
+  --fc-button-active-bg-color: var(--button-primary-background);
+  --fc-button-active-border-color: var(--button-primary-border-color);
+  --fc-button-hover-bg-color: var(--button-primary-background);
+  --fc-button-hover-border-color: var(--button-primary-border-color);
+}
+
+.fc .fc-button:focus {
+  box-shadow: none !important;
+}
+
+.fc .fc-button-primary {
+  color: var(--button-secondary-color);
+}
+
+.fc .fc-button-primary:disabled {
+  border-color: var(--button-secondary-border-color-disabled);
+  background-color: var(--button-secondary-background-disabled);
+  color: var(--button-secondary-color-disabled);
+}
