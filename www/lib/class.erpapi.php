@@ -29180,7 +29180,7 @@ function Firmendaten($field,$projekt="")
         }
 
         // schutzt fals kein Datum gefunden
-        $this->app->DB->Update("UPDATE $beleg SET datum=NOW() WHERE id='$id' AND (datum='0000-00-00' OR datum='1970-01-01' OR datum IS NULL OR datum='') LIMIT 1");
+        $this->app->DB->Update("UPDATE $beleg SET datum=NOW() WHERE id='$id' AND (datum='0000-00-00' OR datum='1970-01-01' OR datum IS NULL) LIMIT 1");
 
         $methodname = ucfirst($beleg).'Protokoll';
         if(method_exists($this,$methodname) && $status != 'freigegeben') {
