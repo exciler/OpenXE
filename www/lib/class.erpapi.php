@@ -6575,18 +6575,6 @@ title: 'Abschicken',
     }
   }
 
-  /**
-   * @param string $parsetarget
-   */
-  public function KalenderList($parsetarget)
-  {
-    /** @var Kalender $obj */
-    $obj = $this->LoadModul('kalender');
-    if(!empty($obj) && method_exists($obj,'showKalenderList')) {
-      $obj->showKalenderList($parsetarget);
-    }
-  }
-
   // @refactor UserPermission Komponente oder Navigation Widget
   function CalculateNavigation($navarray)
   {

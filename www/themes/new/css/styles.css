@@ -9,17 +9,12 @@ body {
 	font-family: 'Inter', Arial, Helvetica, sans-serif;
     background: var(--body-background);
     color: var(--grey);
+    display: flex;
 }
 
 html {
     box-sizing: border-box;
     font-size: 12px;
-}
-
-*,
-*:before,
-*:after {
-    box-sizing: inherit;
 }
 
 

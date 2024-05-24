@@ -16,5 +16,6 @@ export const defaultOptions:CalendarOptions = {
     weekNumbers: true,
     selectable: true,
     editable: true,
+    height: 650,
     events: "./index.php?module=kalender&action=data"
 }

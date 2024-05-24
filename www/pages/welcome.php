@@ -49,12 +49,6 @@ class Welcome
 
   const MODULE_NAME = 'Welcome';
 
-  public $javascript = [
-    './classes/Modules/Calendar/www/js/fullcalendar.js',
-    './classes/Modules/Calendar/www/js/calendar.js',
-    './classes/Modules/Calendar/www/js/calendargroups.js',
-  ];
-
   /**
    * Welcome constructor.
    *
@@ -744,7 +738,6 @@ class Welcome
     $this->app->Tpl->Set('CALENDAR_MONTH','{|Monat|}');
     $this->app->Tpl->Set('CALENDAR_WEEK','{|Woche|}');
     $this->app->Tpl->Set('CALENDAR_DAY','{|Tag|}');
-    $this->app->erp->KalenderList('KALENDER');
 
     $this->app->Tpl->Parse('STARTSEITE','lesezeichen.tpl');
 

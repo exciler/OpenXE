@@ -118,100 +118,13 @@ class Kalender
         $this->app->ActionHandler("gruppensave", "KalenderGruppenSave");
         $this->app->ActionHandler("gruppendelete", "KalenderGruppenDelete");
         $this->app->ActionHandler("invitation", "KalenderInvitation");
+        $this->app->ActionHandler('viewoptions', "KalenderViewOptions");
 
         $this->publicColor = "#3fa848";
         $this->taskColor = "#ae161e";
         $this->urlaubColor = ($this->app->erp->GetKonfiguration("mitarbeiterzeiterfassung_calendarcolor") ? $this->app->erp->GetKonfiguration("mitarbeiterzeiterfassung_calendarcolor") : "#00ccff");
 
         $this->app->ActionHandlerListen($app);
-    }
-
-
-    /**
-     * @param string $parsetarget
-     */
-    public function showKalenderList($parsetarget)
-    {
-        $this->app->erp->Headlines('Kalender');
-        $this->app->Tpl->Set('TABTEXT', "Kalender");
-
-        $gruppenkalender = $this->app->Secure->GetPOST("gruppenkalender");
-
-        $action = $this->app->Secure->GetGET("action");
-        $module = $this->app->Secure->GetGET("module");
-        $noRedirect = $this->app->Secure->GetPOST("noRedirect");
-
-        if ($module === "welcome" && ($action === "start" || $action === "list" || $action == "")) {
-            $this->app->Tpl->Set("STARTSMALLKALENDER", "<!--");
-            $this->app->Tpl->Set("ENDESMALLKALENDER", "-->");
-            $this->app->Tpl->Set("AUTOSCROLLTO", 0);
-        } else {
-            $this->app->Tpl->Set("AUTOSCROLLTO", 1);
-        }
-
-        $cgruppenkalender = !empty($gruppenkalender) ? count($gruppenkalender) : 0;
-        for ($gk = 0; $gk < $cgruppenkalender; $gk++) {
-            if ($this->app->User->GetParameter('kalender_gruppe_' . $gruppenkalender[$gk]['id']) == "1") $checked = "checked"; else $checked = "";
-            $this->app->Tpl->Add("GRUPPENKALENDERAUSWAHL", '
-      <input type="checkbox" value="1" name="kalender_gruppe_' . $gruppenkalender[$gk]['id'] . '" id="kalender_gruppe_' . $gruppenkalender[$gk]['id'] . '" ' . $checked . '>
-      <label  name="kalender_gruppe_' . $gruppenkalender[$gk]['id'] . '" id="kalender_gruppe_' . $gruppenkalender[$gk]['id'] . '" for="kalender_gruppe_' . $gruppenkalender[$gk]['id'] . '">
-      &nbsp;
-        <div style="width:15px;height:15px;border: 1px solid #656565; border-radius: 2px;  background:' . $gruppenkalender[$gk]['farbe'] . ';display: inline-block;">&nbsp;</div>
-        &nbsp;<div class="grup-name">' . $gruppenkalender[$gk]['bezeichnung'] . '</div><br></label>');
-            $this->app->YUI->AutoSaveUserParameter('kalender_gruppe_' . $gruppenkalender[$gk]['id'], 'kalender_gruppe_' . $gruppenkalender[$gk]['id'], "$('#calendar').fullCalendar('refetchEvents');");
-        }
-
-        $this->app->YUI->AutoSaveUserParameter("aufgaben", "adresse_kalender_aufgaben", "$('#calendar').fullCalendar('refetchEvents');");
-
-        if ($this->app->User->GetParameter("adresse_kalender_aufgaben") == "1") {
-            $this->app->Tpl->Set("AUFGABENCHECKED", "checked");
-        }
-
-        $this->app->YUI->AutoSaveUserParameter("termine", "adresse_kalender_termine", "$('#calendar').fullCalendar('refetchEvents');");
-
-        if ($this->app->User->GetParameter("adresse_kalender_termine") == "1") {
-            $this->app->Tpl->Set("TERMINECHECKED", "checked");
-        }
-
-        $this->app->YUI->AutoSaveUserParameter("projekte", "adresse_kalender_projekte", "$('#calendar').fullCalendar('refetchEvents');");
-
-        if ($this->app->User->GetParameter("adresse_kalender_projekte") == "1") {
-            $this->app->Tpl->Set("PROJEKTECHECKED", "checked");
-        }
-
-        $this->app->YUI->AutoSaveUserParameter("urlaub", "adresse_kalender_urlaub", "$('#calendar').fullCalendar('refetchEvents');");
-
-        if ($this->app->User->GetParameter("adresse_kalender_urlaub") == "1") {
-            $this->app->Tpl->Set("URLAUBCHECKED", "checked");
-        }
-
-        if ($this->app->erp->ModulVorhanden("serviceauftrag")) {
-            $this->app->YUI->AutoSaveUserParameter("serviceauftrag", "adresse_kalender_serviceauftrag", "$('#calendar').fullCalendar('refetchEvents');");
-            if ($this->app->User->GetParameter("adresse_kalender_serviceauftrag") == "1") {
-                $this->app->Tpl->Set("SERVICEAUFTRAGCHECKED", "checked");
-            }
-            $this->app->Tpl->Set("SERVICEAUFTRAGKALENDER", '<input type="checkbox" class="auswahl" value="1" name="serviceauftrag" id="serviceauftrag" [SERVICEAUFTRAGCHECKED]>
-                    <label id="serviceauftrag" class="auswahl" for="serviceauftrag">Serviceauftrag</label>');
-        }
-
-        if ($noRedirect == '1') {
-            $return['eventid'] = $event;
-            echo json_encode($return);
-            $this->app->ExitXentral();
-        }
-        $defaultCalendarColor = $this->app->User->GetParameter("welcome_defaultcolor_fuer_kalender");
-        if ($defaultCalendarColor == "") {
-            $defaultCalendarColor = $this->app->DB->Select("SELECT defaultcolor FROM user WHERE id='" . $this->app->User->GetID() . "' LIMIT 1");
-        }
-        if ($defaultCalendarColor == "") {
-            $defaultCalendarColor = '#0B8092';
-        }
-
-        $this->app->Tpl->Set("DEFAULTKALENDERCOLOR", $defaultCalendarColor);
-        $this->app->YUI->CkEditor("einladungtext", "internal", array("height" => "250"));
-
-        $this->app->YUI->AutoCompleteAdd("einladungcc", "emailname");
-        $this->app->Tpl->Parse($parsetarget, "kalender.tpl");
     }
 
     public function KalenderEventEdit() : JsonResponse
@@ -412,26 +325,9 @@ class Kalender
     {
         $this->trySynchronizeGoogleChanges();
 
-        $this->app->Tpl->Set('CALENDAR_DAYNAMES', '["{|Sonntag|}", "{|Montag|}", "{|Dienstag|}", "{|Mittwoch|}",
-        "{|Donnerstag|}", "{|Freitag|}", "{|Samstag|}"]');
-        $this->app->Tpl->Set('CALENDAR_MONTHNAMES', '["{|Januar|}", "{|Februar|}", "{|März|}", "{|April|}", "{|Mai|}",
-        "{|Juni|}", "{|Juli|}", "{|August|}", "{|September|}", "{|Oktober|}", "{|November|}", "{|Dezember|}"]');
-        $this->app->Tpl->Set('CALENDAR_TODAY', '{|Heute|}');
-        $this->app->Tpl->Set('CALENDAR_MONTH', '{|Monat|}');
-        $this->app->Tpl->Set('CALENDAR_WEEK', '{|Woche|}');
-        $this->app->Tpl->Set('CALENDAR_DAY', '{|Tag|}');
-        $this->showKalenderList('TAB1');
-        $this->app->YUI->DatePicker("datum");
-        $this->app->YUI->DatePicker("datum_bis");
-
-        $this->app->YUI->CkEditor("e_notizen", "belege", array("width" => "625"));
-        $this->app->YUI->CkEditor("e_beschreibung", "belege", array("width" => "420"));
-        $this->app->YUI->DatePicker("e_datum");
-        $this->app->YUI->TimePicker("e_zeit");
-        $this->app->Tpl->Parse('TAB1', 'aufgaben_popup.tpl');
-
-        //		$this->app->Tpl->Parse(TAB1,"kalender.tpl");
-        $this->app->Tpl->Set('TABTEXT', "");
+        $this->app->erp->Headlines('Kalender');
+        $this->app->Tpl->Set('TABTEXT', "Kalender");
+        $this->app->Tpl->Parse('TAB1', "kalender.tpl");
         $this->app->Tpl->Parse('PAGE', "tabview.tpl");
         $this->app->erp->StartseiteMenu();
     }
@@ -576,7 +472,8 @@ class Kalender
                     'allDay' => true,
                     'color' => '#FA5858',
                     'public' => '1',
-                    'task' => $tmpartikel[$ij]['id']);
+                    'url' => 'index.php?module=artikel&action=mindesthaltbarkeitsdatum&id=' . $tmpartikel[$ij]['id'],
+                    );
             }
         }
 
@@ -615,7 +512,7 @@ class Kalender
                         'allDay' => true,
                         'color' => '#FA5858',
                         'public' => '1',
-                        'task' => $tmpartikel[$ij]['id']);
+                        'url' => 'index.php?module=adresse&action=brief&id=' . $tmpartikel[$ij]['id']);
                 }
 
 
@@ -634,7 +531,7 @@ class Kalender
                         'allDay' => true,
                         'color' => '#FA5858',
                         'public' => '1',
-                        'task' => $tmpartikel[$ij]['id']);
+                        'url' => 'index.php?module=adresse&action=brief&id=' . $tmpartikel[$ij]['id']);
                 }
 
 
@@ -653,7 +550,7 @@ class Kalender
                         'allDay' => true,
                         'color' => '#FA5858',
                         'public' => '1',
-                        'task' => $tmpartikel[$ij]['id']);
+                        'url' => 'index.php?module=adresse&action=brief&id=' . $tmpartikel[$ij]['id']);
                 }
             }
         }
@@ -723,7 +620,7 @@ class Kalender
                     'allDay' => $allday,
                     'color' => $this->taskColor,
                     'public' => '',
-                    'task' => $tasks[$i]['id']);
+                    'url' => 'index.php?module=aufgaben&action=edit&id=' . $tasks[$i]['id'] . '&back=kalender#tabs-3');
             }
 
         }
@@ -790,7 +687,7 @@ class Kalender
                     'allDay' => true,
                     'color' => $tasks[$i]['farbe'],
                     'public' => '',
-                    'task' => $tasks[$i]['projekt']);
+                    'url' => 'index.php?module=projekt&action=dashboard&id=' . $tasks[$i]['projekt']);
             }
             $tasks = $this->app->DB->SelectArr("SELECT DISTINCT a.id, a.aufgabe, a.abgabedatum,a.farbe,a.projekt FROM arbeitspaket AS a 
           LEFT JOIN user AS u ON u.adresse=a.adresse
@@ -805,7 +702,7 @@ class Kalender
                     'allDay' => true,
                     'color' => $tasks[$i]['farbe'],
                     'public' => '',
-                    'task' => $tasks[$i]['projekt']);
+                    'url' => 'index.php?module=projekt&action=dashboard&id=' . $tasks[$i]['projekt']);
             }
 
 
@@ -901,6 +798,43 @@ class Kalender
         $this->app->erp->CheckColumn("adresse", "int(11)", "kalender_gruppen_mitglieder", "NOT NULL");
         $this->app->erp->CheckIndex('kalender_gruppen_mitglieder', 'kalendergruppe');
         $this->app->erp->CheckIndex('kalender_gruppen_mitglieder', 'adresse');
+    }
+
+    function KalenderViewOptions() : JsonResponse
+    {
+        $options = [
+            'adresse_kalender_aufgaben',
+            'adresse_kalender_termine',
+            'adresse_kalender_urlaub',
+            'adresse_kalender_projekte'
+        ];
+        $sql = "SELECT kg.id, kg.bezeichnung
+                FROM kalender_gruppen kg
+                LEFT JOIN kalender_gruppen_mitglieder kgm ON kg.id = kgm.kalendergruppe
+                LEFT JOIN user u ON u.adresse = kgm.adresse
+                WHERE kg.ausblenden != 1
+                AND u.id = :userid
+                ORDER BY kg.bezeichnung";
+        $groups = $this->db->fetchPairs($sql, ['userid' => $this->app->User->GetID()]);
+        $options = array_merge($options, array_map(fn($id) => sprintf('kalender_gruppe_%d', $id), array_keys($groups)));
+        if ($this->request->getMethod() === 'POST') {
+            $json = $this->request->getJson();
+            foreach ($json->options as $key => $value) {
+                if (!in_array($key, $options))
+                    continue;
+                $this->app->User->SetParameter($key, $value);
+            }
+            return JsonResponse::NoContent();
+        }
+        $params = $this->app->User->GetParameter($options);
+        $ret = [];
+        foreach ($params as $param) {
+            $ret[$param['name']] = boolval($param['value']);
+        }
+        return new JsonResponse([
+            'options' => $ret,
+            'groups' => $groups
+        ]);
     }
 
     function KalenderGruppenList() : void

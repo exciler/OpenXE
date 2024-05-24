@@ -74,8 +74,6 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 
 [SCRIPTJAVASCRIPT]
 <script type="application/json" id="popupattributes">{"popupwidth":[POPUPWIDTH],"popupheight":[POPUPHEIGHT]}</script>
-<script type="application/json" id="calendarattributes">{"dayNames":[CALENDAR_DAYNAMES],"monthNames":[CALENDAR_MONTHNAMES],
-	"today":"[CALENDAR_TODAY]","month":"[CALENDAR_MONTH]","week":"[CALENDAR_WEEK]","day":"[CALENDAR_DAY]"}</script>
 <script type="text/JavaScript" language="javascript">
   // Wird benötigt für Textvorlagen
   var lastFocusedElement;

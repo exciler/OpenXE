@@ -16,6 +16,14 @@
     flex-direction: row;
 }
 
+.flex-column {
+    flex-direction: column;
+}
+
+.grow {
+    flex-grow: 1;
+}
+
 .basis-1\/2 {
     flex-basis: 50%;
 }
@@ -24,7 +32,7 @@
     display: grid;
 }
 
-.flex-align-center {
+.items-center, .flex-align-center {
     align-items: center;
 }
 
