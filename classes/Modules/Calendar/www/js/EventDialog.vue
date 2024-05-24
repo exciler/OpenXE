@@ -179,9 +179,9 @@ const onInvite = () => {
           <template #content>
             <div class="grid gap-1" style="grid-template-columns: 1fr 3fr;">
               <label>{|Teilnehmer intern*|}:</label>
-              <Listbox v-model="userIds" :options="users" option-value="id" option-label="name" />
+              <Listbox v-model="userIds" :options="users" option-value="id" option-label="name" multiple />
               <label>{|Gruppenkalender|}:</label>
-              <Listbox v-model="groupIds" :options="groups" option-value="id" option-label="bezeichnung" />
+              <Listbox v-model="groupIds" :options="groups" option-value="id" option-label="bezeichnung" multiple />
             </div>
           </template>
         </Card>

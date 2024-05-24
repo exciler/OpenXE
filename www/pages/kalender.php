@@ -166,6 +166,8 @@ class Kalender
                 'color' => $event['color'],
                 'isPublic' => (bool)$event['public'],
                 'reminder' => (bool)$event['erinnerung'],
+                'userIds' => $users,
+                'groupIds' => $groups
             ];
             if ($event['adresse'])
                 $response['event']['address'] =
