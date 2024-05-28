@@ -31,6 +31,8 @@ use Xentral\Modules\MandatoryFields\Exception\UnknownTypeException;
 class Ajax {
   public $app;
 
+  protected Request $request;
+
   /**
    * Ajax constructor.
    *
@@ -39,6 +41,7 @@ class Ajax {
    */
   public function __construct($app, $intern = false) {
     $this->app=$app;
+    $this->request = $this->app->Container->get('Request');
     if($intern) {
       return;
     }
@@ -1110,6 +1113,11 @@ class Ajax {
 
   public function AjaxAutoSaveUserParameter()
   {
+      $json = $this->request->getJson();
+      if ($json !== null) {
+          $this->app->User->SetParameter($json->name, $json->value);
+          return JsonResponse::NoContent();
+      }
     $name = $this->app->Secure->GetPOST('name');
     $value = $this->app->Secure->GetPOST('value');
     $this->app->User->SetParameter($name,base64_decode($value));

@@ -3,6 +3,7 @@ import deLocale from "@fullcalendar/core/locales/de";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction";
+import "@res/css/fullcalendar.scss"
 
 export const defaultOptions:CalendarOptions = {
     plugins:[dayGridPlugin, timeGridPlugin, interactionPlugin],

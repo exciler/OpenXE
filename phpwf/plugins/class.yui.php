@@ -14006,36 +14006,10 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
 
       $this->app->Tpl->Add('AUTOCOMPLETE',$tpl);
     }
-    
 
     function AutoSaveUserParameter($feldname,$parametername,$success="")
     {
-      $tpl = "$(\"[name='$feldname']\").change(function() {
-        var wert = $.base64Encode( $(\"[name='$feldname']\").val() );
-        if($(this).is(\"[type='checkbox']\") && !$(this).prop('checked'))wert = $.base64Encode('');
-          $.ajax({
-            type: \"POST\",
-            url: \"index.php?module=ajax&action=autosaveuserparameter\",
-            data:  { name: \"$parametername\", value: wert }
-          }) .done(function( data ) {
-            $success
-          });
-        });
-        $(\"[name='$feldname']\").focusout(function() {
-        var wert = $.base64Encode( $(\"[name='$feldname']\").val() );
-        if($(this).is(\"[type='checkbox']\") && !$(this).prop('checked'))wert = $.base64Encode('');
-          $.ajax({
-            type: \"POST\",
-            url: \"index.php?module=ajax&action=autosaveuserparameter\",
-            data:  { name: \"$parametername\", value: wert }
-          }) .done(function( data ) {
-            $success
-          });
-
-
-        });
-        ";
-
+      $tpl = "window.AutoSaveUserParameter('$feldname', '$parametername', () => { $success });";
       $this->app->Tpl->Add('AUTOCOMPLETE',$tpl);
     }
 

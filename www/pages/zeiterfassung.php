@@ -463,15 +463,11 @@ class Zeiterfassung { //extends GenZeiterfassung {
 
     if($cmd=='data' ||  $cmd=='getzeiterfassung' || $cmd=='updatezeiterfassung' || $cmd=='savezeiterfassung' || $cmd=='kalenderansicht' || $cmd=='formularansicht' || $cmd=='delzeiterfassung' || $cmd=='mitarbeiteransichtdata' || $cmd=='copyzeiterfassung')
     {
-	$start_string = $this->app->Secure->GetGET('start');
-	if ($start_string != "") {
-	      $start_datum = date('Y-m-d', $this->app->Secure->GetGET('start'));
-	}
-
-	$end_string = $this->app->Secure->GetGET('end');
-	if ($end_string != "") {
-	      $end_datum = date('Y-m-d', $this->app->Secure->GetGET('end'));
-	}
+        $tz = new DateTimeZone('Europe/Berlin');
+        $startDT = new DateTimeImmutable($this->app->Secure->GetGET('start'), $tz);
+        $start_datum = $startDT->format('Y-m-d');
+        $endDT = new DateTimeImmutable($this->app->Secure->GetGET('end'), $tz);
+        $end_datum = $endDT->format('Y-m-d');
 
       switch($cmd)
       {
@@ -516,7 +512,7 @@ class Zeiterfassung { //extends GenZeiterfassung {
               //if($data[$i]['farbe']!="")
               $data[$i]['color'] = '#999';//$data[$i]['farbe'];
               $data[$i]['task'] = 0;//$data[$i]['farbe'];
-              $data[$i]['id'] = 'kalender_'.$data[$i]['id'];
+              $data[$i]['id'] = -1;
             }
           }
 
@@ -769,7 +765,7 @@ class Zeiterfassung { //extends GenZeiterfassung {
       }
 
       header('Content-type: application/json');
-      echo json_encode($data);
+      echo json_encode($data ?? []);
       exit;
     }  
 
@@ -1026,7 +1022,7 @@ class Zeiterfassung { //extends GenZeiterfassung {
           "<input type=\"submit\" value=\"in Lieferschein &uuml;bernehmen\">&nbsp;<input type=\"submit\" value=\"als abgeschlossen markieren\"></td></tr></table>");
     }*/
 
-
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/TimeManagement/www/js/list.entry.ts']);
     $this->app->Tpl->Parse('PAGE','zeiterfassunguebersicht.tpl');
   }
 
@@ -1770,8 +1766,6 @@ class Zeiterfassung { //extends GenZeiterfassung {
 
     $this->app->erp->RunHook('zeiterfassung_create_guihook1');
 
-    $this->app->YUI->AutoSaveUserParameter('zeiterfassung_buchen_termine','zeiterfassung_buchen_termine',"$('#calendar').fullCalendar('refetchEvents');");
-    $this->app->YUI->AutoSaveUserParameter('zeiterfassung_buchen_stechuhr','zeiterfassung_buchen_stechuhr',"$('#calendar').fullCalendar('refetchEvents');");
     if($this->app->User->GetParameter('zeiterfassung_buchen_termine')=='1') {
       $checked='checked';
     } else {
@@ -1799,6 +1793,7 @@ class Zeiterfassung { //extends GenZeiterfassung {
 
     //$this->app->Tpl->Set(TABTEXT,'Zeiterfassung'); 
     $this->app->Tpl->Parse('TAB1', 'zeiterfassung_manuell.tpl');
+    $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/TimeManagement/www/js/create.entry.ts']);
     $this->app->Tpl->Parse('PAGE', 'zeiterfassung_buchen.tpl');
   }
 

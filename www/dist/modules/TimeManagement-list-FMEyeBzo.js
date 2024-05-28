@@ -1,0 +1,1 @@
+import{c as e}from"../vue-DC0yt6en.js";import{_ as i}from"../TimeManagementCalendar.vue_vue_type_script_setup_true_lang-CYvmVYkg.js";import"../CalendarDefaults-BghndKM6.js";const t={events:"./index.php?module=zeiterfassung&action=create&cmd=mitarbeiteransichtdata",initialView:"timeGridWeek",editable:!1};e(i,{options:t}).mount("#vueapp_calendar");

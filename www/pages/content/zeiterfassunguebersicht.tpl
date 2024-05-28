@@ -71,7 +71,7 @@
 <div class="col-xs-12 col-md-10 col-md-height">
 <div class="inside_white inside-full-height">
 <fieldset class="white"><legend>&nbsp;</legend>
-<div id='calendar'></div>
+<div id="vueapp_calendar"></div>
 </fieldset>
 </div>
 </div>
@@ -90,100 +90,6 @@
 </div>
 </div>
 
-<script type='text/javascript' src='./js/jquery.dateFormat-1.0.js'></script>
-<script type='text/javascript' src='./plugins/fullcalendar-1.6.7/fullcalendar.min.js?v=1'></script>
-<script type='text/javascript' src='./js/nocie.js'></script>
-
-<link rel='stylesheet' type='text/css' href='./plugins/fullcalendar-1.6.7/fullcalendar.css' />
-<link rel='stylesheet' type='text/css' href='./plugins/fullcalendar-1.6.7/fullcalendar.print.css' media='print' />
-
-<script type='text/javascript'>
-var projektname = 'hh';
-$(document).ready(function() {
-
-    $("#list").on("click", function() {
-      $('#calendar').fullCalendar('changeView','month');
-      $('#calendar').fullCalendar('changeView','agendaWeek');
-    });
-
-
-
-
-$('#calendar').fullCalendar({
-  theme: true,
-  defaultView: 'agendaWeek',
-  header: {
-    left: 'prev,next today tasks',
-    center: 'title',
-    right: 'month,agendaWeek,agendaDay'
-  },
-  allDayText: '{|Ganzt&auml;gig|}',
-  firstDay: 1,
-  dayNamesShort: ['{|Sonntag|}', '{|Montag|}', '{|Dienstag|}', '{|Mittwoch|}', '{|Donnerstag|}', '{|Freitag|}', '{|Samstag|}'],
-  dayNames: ['{|Sonntag|}', '{|Montag|}', '{|Dienstag|}', '{|Mittwoch|}', '{|Donnerstag|}', '{|Freitag|}', '{|Samstag|}'],
-  monthNames: ['{|Januar|}', '{|Februar|}', '{|März|}', '{|April|}', '{|Mai|}',
-    '{|Juni|}', '{|Juli|}', '{|August|}', '{|September|}', '{|Oktober|}',  '{|November|}', '{|Dezember|}'],
-  monthNamesShort: ['{|Januar|}', '{|Februar|}', '{|März|}', '{|April|}', '{|Mai|}',
-    '{|Juni|}', '{|Juli|}', '{|August|}', '{|September|}', '{|Oktober|}',  '{|November|}', '{|Dezember|}'],
-  timeFormat: 'H:mm',
-  buttonText: {
-    prev: "<span class='fc-text-arrow'>&lsaquo;</span>",
-    next: "<span class='fc-text-arrow'>&rsaquo;</span>",
-    prevYear: "<span class='fc-text-arrow'>&laquo;</span>",
-    nextYear: "<span class='fc-text-arrow'>&raquo;</span>",
-    today: '{|Heute|}',
-    month: '{|Monat|}',
-    week: '{|Woche|}',
-    day: '{|Tag|}'
-  },
-  axisFormat: 'HH:mm',
-  columnFormat: {
-    month: 'ddd',
-    week: 'ddd d.M',
-    day: 'dddd d.M'
-  },
-  weekNumbers: true,
-  weekNumberTitle: 'W',
-  selectable: false,
-  loading: function(isLoading, view) {
-    //var myView = $.cookie('currentView');
-    //var myViewDate = $.cookie('currentViewDate');
-
-    var myView = Nocie.Get('currentView')
-    var myViewDate = Nocie.Get('currentViewDate')
-
-
- if(isLoading && myView!=null) {
-      $('#calendar').fullCalendar('changeView', myView);
-      if(myViewDate!=null){
-        var mydate = Date.parse(myViewDate);
-        var year = $.format.date(mydate, 'yyyy'); 
-        var month = $.format.date(mydate, 'M') - 1; 
-        var day = $.format.date(mydate, 'd'); 
-        $('#calendar').fullCalendar( 'gotoDate', year, month, day);
-
-        Nocie.Remove('currentViewDate');
-        Nocie.Remove('currentView');
-      }
-    }
-  },
-  editable: false,
-  businessHours: true, // display business hours
-  events: "./index.php?module=zeiterfassung&action=create&cmd=mitarbeiteransichtdata" 
-  });
-
-  $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-  $('#calendar').fullCalendar('render');
-  });
-
-});
-
-
-
-
-
-
-</script>
 
 </div>
 

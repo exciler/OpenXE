@@ -7,7 +7,6 @@ import {CalendarOptions} from "@fullcalendar/core";
 import EventDialog from "./EventDialog.vue";
 import {onMounted, ref} from "vue";
 import EventInvitation from "@modules/Calendar/www/js/EventInvitation.vue";
-import "@res/css/fullcalendar.scss"
 import axios from "axios";
 
 const props = withDefaults(defineProps<{

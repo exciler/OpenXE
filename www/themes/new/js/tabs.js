@@ -22,4 +22,5 @@ $('#tabs').on('tabsactivate', function( event, ui ) {
         $(this).dataTable().fnSettings().sAjaxSource = $(this).dataTable().fnSettings().sAjaxSource.replace('&deferLoading=1','');
         $(this).DataTable().ajax.reload();
     });
+    document.querySelector('#tabs')?.dispatchEvent(new Event('tabs-activate'));
 });

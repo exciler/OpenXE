@@ -13,13 +13,19 @@
 */
 ?>
 <?php
+
+use Xentral\Components\Database\Database;
 use Xentral\Components\Http\JsonResponse;
+use Xentral\Components\Http\Request;
 
 include '_gen/aufgabe.php';
 
 class Aufgaben extends GenAufgabe {
   /** @var Application $app */
   var $app;
+
+  protected Database $db;
+  protected Request $request;
 
   /** @var string MODULE_NAME */
   const MODULE_NAME = 'Task';
@@ -477,6 +483,9 @@ CONCAT(if(a.prio=1 OR (a.abgabe_bis <= NOW() AND a.abgabe_bis!='0000-00-00'),CON
   public function __construct($app, $intern = false) {
     
     $this->app=$app;
+    $this->db = $app->Container->get('Database');
+    $this->request = $app->Container->get('Request');
+
     if($intern) {
       return;
     }
@@ -1306,6 +1315,7 @@ CONCAT(if(a.prio=1 OR (a.abgabe_bis <= NOW() AND a.abgabe_bis!='0000-00-00'),CON
         $this->app->Tpl->Set('AKTIVKALENDER',"aktiv");
         $this->app->Tpl->Set("AUFGABE_KALENDER_FILTER_KUNDE", $this->app->User->GetParameter("aufgabe_kalender_filter_kunde"));
         $this->app->Tpl->Parse('ANZEIGE',"aufgaben_kalender.tpl");
+        $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/Task/www/js/calendar.entry.ts']);
         break;
       case 'projects':
         $this->app->Tpl->Set('ACTIVEPROJECTS', 'aktiv');
@@ -2076,31 +2086,22 @@ CONCAT(if(a.prio=1 OR (a.abgabe_bis <= NOW() AND a.abgabe_bis!='0000-00-00'),CON
     $this->app->Tpl->Parse('PAGE', 'aufgabenuebersicht.tpl');
   }
 
-  /**
-   * @return JsonResponse
-   */
   public function AufgabenDragDrop(): JsonResponse
   {
+      $json = $this->request->getJson();
+      $id = (int) $json->id;
+      if (!$id)
+          return JsonResponse::BadRequest('Invalid id');
 
-    $aufgabeId = $this->app->Secure->GetGET('id');
-    $aufgabeDatum = $this->app->Secure->GetGET('start');
+      try {
+          $date = new DateTimeImmutable($json->date, new DateTimeZone('Europe/Berlin'));
+      } catch (Exception $e) {
+          return JsonResponse::BadRequest('Invalid date');
+      }
 
-    if ($aufgabeId && $aufgabeDatum) {
-      $this->app->DB->Update('
-        UPDATE `aufgabe` SET `abgabe_bis` = "' . $aufgabeDatum . '" WHERE `id` = "' . $aufgabeId . '"
-      ');
-      return new JsonResponse([
-        'status' => 1,
-        'statusText' => 'Gespeichert',
-        'debug' => $_GET
-      ]);
-    }
-
-    return new JsonResponse([
-      'status' => 0,
-      'statusText' => 'Fehler',
-      'debug' => $_GET
-    ]);
+      $sql = "UPDATE aufgabe SET abgabe_bis = :date WHERE id = :id";
+      $this->db->perform($sql, ['id' => $id, 'date' => $date->format('Y-m-d H:i:s')]);
+      return JsonResponse::NoContent();
   }
 
   function AufgabenSort() {
@@ -2145,8 +2146,11 @@ CONCAT(if(a.prio=1 OR (a.abgabe_bis <= NOW() AND a.abgabe_bis!='0000-00-00'),CON
       $subwhere .= " AND a.kunde='$kunde' ";
     }
 
-    $start = date("Y-m-d", $this->app->Secure->GetGET('start'));
-    $end = date("Y-m-d", $this->app->Secure->GetGET('end'));
+    $tz = new DateTimeZone('Europe/Berlin');
+    $startDT = new DateTimeImmutable($this->app->Secure->GetGET('start'), $tz);
+    $endDT = new DateTimeImmutable($this->app->Secure->GetGET('end'), $tz);
+    $start = $startDT->format('Y-m-d');
+    $end = $endDT->format('Y-m-d');
 
     //Produktion start - ende
     $data = $this->app->DB->SelectArr("SELECT DISTINCT a.id, CONCAT(IF(a.status='abgeschlossen','&#10003; ',''),".($withoutName?"''":"adr.name,': '").",a.aufgabe, if(a.kunde > 0,CONCAT(' (',ak.name,')'),'')) as title, a.abgabe_bis as start, a.abgabe_bis as ende FROM aufgabe a LEFT JOIN adresse adr ON adr.id=a.adresse LEFT JOIN adresse ak ON ak.id=a.kunde
