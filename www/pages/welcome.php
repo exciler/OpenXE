@@ -464,18 +464,15 @@ class Welcome
   
   public function WelcomePoll()
   {
-    //$saction = $this->app->Secure->GetGET("saction"); //Edit Bruno 14.12.17 wird nicht verwendet
     if(!empty($this->app->User) && method_exists($this->app->User, 'GetID') && !$this->app->User->GetID()) {
-      echo json_encode(array(array('event'=>'logout')));
-      exit;
+        return new JsonResponse([['event'=>'logout']]);
     }
     $sid = (int)$this->app->Secure->GetGET('sid');
     $noTimeoutUserEdit = $this->app->Secure->GetGET('nousertimeout');
 
     if($sid > 0 && empty($noTimeoutUserEdit)) {
-      $user = $this->app->Secure->GetGET('user'); //Edit Bruno 14.12.17 reingezogen
       $smodule = $this->app->Secure->GetGET('smodule');
-      $this->app->erp->TimeoutUseredit($smodule,$sid,$user);
+      $this->app->erp->TimeoutUseredit($smodule,$sid,$this->app->User->GetID());
     }
    
     $inv = false;
@@ -487,10 +484,9 @@ class Welcome
     if($cmd==='messages') {
       $result = $this->app->erp->UserEvent($inv);
       if(!empty($result) && is_array($result)) {
-        echo json_encode($result);
-        $this->app->ExitXentral();
+          return new JsonResponse($result);
       }
-      echo json_encode([]);
+      return new JsonResponse([]);
     }
 
     $this->app->ExitXentral();

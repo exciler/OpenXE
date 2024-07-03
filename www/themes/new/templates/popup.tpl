@@ -473,7 +473,7 @@ $( "#tabs" ).tabs({
 [MODULESTYLESHEET]
 </head>
 
-<body class="[LAYOUTFIXMARKERCLASS]">
+<body class="[LAYOUTFIXMARKERCLASS] .disablePoll">
 [PAGE]
 [MODULEJAVASCRIPTBODY]
 <script type="text/javascript" src="./js/ajax_end.js?v=3"></script>

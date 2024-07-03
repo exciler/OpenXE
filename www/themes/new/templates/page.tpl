@@ -102,7 +102,7 @@ $(document).ready(function() {
 [JAVASCRIPTMODULES]
 [MODULESTYLESHEET]
   </head>
-  <body class="[LAYOUTFIXMARKERCLASS]" data-module="[MODULE]" data-action="[ACTION]" data-version="[REVISION]">
+  <body class="[LAYOUTFIXMARKERCLASS]" data-module="[MODULE]" data-action="[ACTION]" data-id="[ID]" data-version="[REVISION]">
   	[SIDEBAR]
 
   	<div id="main">
@@ -285,7 +285,6 @@ $(document).ready(function() {
 <script type="text/javascript" src="./js/datatables/datatables-helper.js"></script>
 <script type="text/javascript" src="./js/download-spooler.js"></script>
 <script type="text/javascript" src="./js/stickybutton.js"></script>
-<script type="text/javascript" src="./js/lockscreen.js"></script>
 <script type="text/javascript" src="./js/filter.js"></script>
 <script type="text/javascript" src="./js/confirm-popup.js"></script>
 <script type="text/javascript" src="./js/ajax_end.js?v=8"></script>

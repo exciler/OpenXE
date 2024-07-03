@@ -28127,12 +28127,15 @@ function Firmendaten($field,$projekt="")
         if(!in_array($smodule,
           array('adresse', 'anfrage', 'angebot', 'arbeitsnachweis', 'artikel', 'auftrag', 'bestellung', 'gutschrift', 'inventur', 'lieferschein', 'preisanfrage', 'produktion', 'proformarechnung', 'rechnung', 'retoure', 'spedition')
         ))return;
-        $this->app->DB->Update("UPDATE $smodule SET useredittimestamp=NOW(),usereditid='$user' WHERE id = '$sid' AND (usereditid='$user' OR ifnull(useredittimestamp,'0000-00-00 00:00:00') = '0000-00-00 00:00:00' OR TIME_TO_SEC(TIMEDIFF(NOW(), useredittimestamp)) > 30) LIMIT 1");
+        $writeProtectAndWhere = "";
+        if (in_array($smodule, ['auftrag','rechnung','gutschrift','angebot','lieferschein']))
+            $writeProtectAndWhere = "AND schreibschutz != 1";
+        $this->app->DB->Update("UPDATE $smodule SET useredittimestamp=NOW(),usereditid='$user' WHERE id = '$sid' $writeProtectAndWhere AND (usereditid='$user' OR ifnull(useredittimestamp,'0000-00-00 00:00:00') = '0000-00-00 00:00:00' OR TIME_TO_SEC(TIMEDIFF(NOW(), useredittimestamp)) > 30) LIMIT 1");
         if(!$this->app->DB->error())return;//Bruno 14.12.17 Querys sparen aber bei Fehler altes Verhalten
         $useredittimestamp = $this->app->DB->Select("SELECT useredittimestamp FROM $smodule WHERE id='$sid' LIMIT 1");
         if($useredittimestamp=="0000-00-00 00:00:00" || $useredittimestamp=="")
         {
-          $this->app->DB->Select("UPDATE $smodule SET useredittimestamp=NOW(),usereditid='".$user."' WHERE id='$sid' LIMIT 1");
+          $this->app->DB->Select("UPDATE $smodule SET useredittimestamp=NOW(),usereditid='".$user."' WHERE id='$sid' $writeProtectAndWhere LIMIT 1");
         }
 
         // nur wenn timediff > 10

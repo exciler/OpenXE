@@ -105,7 +105,6 @@ $(document).ready(function() {
 [PAGE]
 [MODULEJAVASCRIPTBODY]
 <script type="text/javascript" src="./js/download-spooler.js"></script>
-<script type="text/javascript" src="./js/lockscreen.js"></script>
 <script type="text/javascript" src="./js/ajax_end.js?v=3"></script>
 </body>
 </html>
