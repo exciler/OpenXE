@@ -19,7 +19,7 @@ abstract class Versanddienstleister
   protected int $projectId;
   protected ?int $labelPrinterId;
   protected ?int $documentPrinterId;
-  protected bool $shippingMail;
+  protected int $shippingMail;
   protected ?int $businessLetterTemplateId;
   protected ?object $settings;
 
@@ -161,12 +161,6 @@ abstract class Versanddienstleister
       ORDER BY lp.sort";
     $ret['positions'] = $this->app->DB->SelectArr($sql) ?? [];
 
-    if ($sid === "lieferschein") {
-      $standardkg = $this->app->erp->VersandartMindestgewicht($lieferscheinId);
-    } else {
-      $standardkg = $this->app->erp->VersandartMindestgewicht();
-    }
-    $ret['weight'] = $standardkg;
     return $ret;
   }
 
@@ -368,10 +362,12 @@ abstract class Versanddienstleister
     return true;
   }
 
-  public function Paketmarke(string $target, string $docType, int $docId, $versandpaket = null): void
+  public function Paketmarke(string $target, string $docType, int $docId, $gewicht = 0, $versandpaket = null): void
   {
     $this->app->ModuleScriptCache->IncludeJavascriptModules(['classes/Modules/ShippingMethod/www/js/shipment.entry.js']);
     $address = $this->GetAdressdaten($docId, $docType);
+    $address['weight'] = $gewicht;
+
     if (isset($_SERVER['CONTENT_TYPE']) && ($_SERVER['CONTENT_TYPE'] === 'application/json')) {
       $json = $this->request->getJson();
       $ret = [];
@@ -456,6 +452,17 @@ abstract class Versanddienstleister
         $countries = Array();        
         $this->app->Tpl->addMessage('error', 'L&auml;nderliste ist leer. Siehe Einstellungen -> L&auml;nderliste.', false, 'PAGE');
     }  
+
+    switch ($this->shippingMail) {
+        case -1:
+            $address['email'] = '';
+        break;
+        case 1:
+            // User text template (not implemented)
+        break;
+        default:
+        break;
+    }
 
     $json['form'] = $address;
     $json['countries'] = $countries;

@@ -1434,14 +1434,16 @@ class Shopimporter_Shopware6 extends ShopimporterBase
                 continue;
             }
 
-            $mediaData = $this->shopwareRequest('POST', 'media?_response=true', []);
+            $mediaData = $this->shopwareRequest('POST', 'media?_response=true', [
+                'title' => $imageTitle,
+                'alt' => $imageAltText
+            ]);
             if(empty($mediaData['data']['id'])){
               $this->Shopware6Log('Error when creating media for sku: ' . $internalArticleData['nummer'],
                 ['mediaData' => $mediaData, 'title' => $imageTitle, 'text' => $imageAltText]);
               continue;
             }
             $mediaId = $mediaData['data']['id'];
-            $this->setMediaTitleAndAltText($mediaId, $imageTitle, $imageAltText);
 
             $mediaAssociationData = [
                 [
@@ -2903,6 +2905,9 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             }
 
             $this->addCoverImage($variantImageData, $variantProductId);
+            if($article['texteuebertragen']) {
+                $this->exportTranslationsForArticle($variant, $variantProductId);
+            }
         }
 
         $existingConfigurations = $this->shopwareRequest(

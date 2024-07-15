@@ -1213,7 +1213,7 @@ class Acl
   $nominal = array('
 # Generated file from class.acl.php
 # For detection of htaccess functionality
-SetEnv OPENXE_HTACCESS on
+SetEnv HTTP_OPENXE_HTACCESS on
 # Disable directory browsing 
 Options -Indexes
 # Set default page to index.php
@@ -1289,7 +1289,7 @@ Allow from all
         }
     }
 
-    if (!isset($_SERVER['OPENXE_HTACCESS'])) {
+    if (!isset($_SERVER['HTTP_OPENXE_HTACCESS'])) {
         return("htaccess nicht aktiv.");
     }
 
@@ -1298,6 +1298,7 @@ Allow from all
   }
 
   function refresh_githash() {
+    $gitinfo = array();
     $path = '../.git/';
     if (!is_dir($path)) {
       return;
@@ -1306,12 +1307,13 @@ Allow from all
     $refs = trim(substr($head,0,4));
     if ($refs == 'ref:') {
         $ref = substr($head,5);
-        $hash = trim(file_get_contents($path . $ref));
+        $gitinfo['hash'] = trim(file_get_contents($path . $ref));
+        $gitinfo['branch'] = basename($path . $ref);
     } else {
-        $hash = $head;
+        $gitinfo['hash'] = $head;
     }
-    if (!empty($hash)) {
-      file_put_contents("../githash.txt", $hash);
+    if (!empty($gitinfo)) {
+      file_put_contents("../gitinfo.json", json_encode($gitinfo));
     }
   }
 
