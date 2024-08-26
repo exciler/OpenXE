@@ -16624,10 +16624,9 @@ function Gegenkonto($ust_befreit,$ustid='', $doctype = '', $doctypeId = 0)
       $check = $this->app->DB->Select("SELECT $key FROM adresse WHERE id='$adresse' LIMIT 1");
       if($check!=${$key})
       {
-        $val = $this->app->DB->real_escape_string(${$key});
-        $this->app->DB->Update("UPDATE adresse SET $key='$val' WHERE id='$adresse' LIMIT 1");
+        $this->app->DB->Update("UPDATE adresse SET $key='".${$key}."' WHERE id='$adresse' LIMIT 1");
         $logfile = $this->app->DB->Select("SELECT `logfile` FROM adresse WHERE id='$adresse' LIMIT 1");
-        $this->app->DB->Update("UPDATE adresse SET `logfile`='".$logfile." Update Feld $key alt:$check neu:".$val.";' WHERE id='$adresse' LIMIT 1");
+        $this->app->DB->Update("UPDATE adresse SET `logfile`='".$logfile." Update Feld $key alt:$check neu:".${$key}.";' WHERE id='$adresse' LIMIT 1");
       }
 
     }
@@ -34762,13 +34761,6 @@ function Firmendaten($field,$projekt="")
           }
 
         }
-
-        if ($art == 'auftrag') {
-          $dest_country = $this->app->DB->Select("SELECT coalesce(nullif(lieferland,''), land) FROM auftrag WHERE id='$id' LIMIT 1");
-          $deliverythresholdvatid = $this->app->DB->Select("SELECT ustid FROM lieferschwelle WHERE empfaengerland = '$dest_country' AND verwenden = 1 AND ueberschreitungsdatum <> '' LIMIT 1");
-          if (!empty($deliverythresholdvatid))
-            $this->app->DB->Update("UPDATE auftrag SET deliverythresholdvatid='$deliverythresholdvatid' WHERE id='$id' LIMIT 1");
-        }
         $this->RunHook('ANABREGSNeuberechnenEnde',2, $id, $art);
       }
 
@@ -37445,7 +37437,7 @@ function Firmendaten($field,$projekt="")
            FROM datei_stichwoerter AS ds 
            JOIN (SELECT datei, MAX(id) AS id FROM datei_version GROUP BY datei) AS dv ON dv.datei = ds.datei
            JOIN datei AS d on ds.datei = d.id
-           WHERE ds.objekt LIKE 'Artikel' AND d.geloescht = 0
+           WHERE ds.objekt LIKE 'Artikel' AND d.geloescht = 0 AND
             ds.parameter = '%d' AND 
              (ds.subjekt LIKE 'Shopbild' OR ds.subjekt LIKE 'Druckbild' OR ds.subjekt LIKE 'Bild') 
            ORDER BY ds.subjekt LIKE 'Shopbild' DESC, ds.subjekt LIKE 'Druckbild' DESC, ds.sort
