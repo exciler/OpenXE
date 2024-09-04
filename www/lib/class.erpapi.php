@@ -7077,155 +7077,138 @@ title: 'Abschicken',
   {
     // admin menu
     $menu = 0;
+
+    // ------ Stammdaten
     $navarray['menu']['admin'][++$menu]['first']  = array('Stammdaten','adresse','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Adressen','adresse','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Artikel','artikel','list');
     $navarray['menu']['admin'][$menu]['sec'][] = array('Projekte','projekt','list');
 
+    // ------ Verkauf
     $navarray['menu']['admin'][++$menu]['first']  = array('Verkauf','auftrag','list');
     if($this->ModulVorhanden("anfrage")){
       $navarray['menu']['admin'][$menu]['sec'][] = array('Anfrage', 'anfrage', 'list');
     }
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Angebot'.($this->Firmendaten("bezeichnungangebotersatz") && $this->Firmendaten("bezeichnungangebotersatz") != 'Angebot'? ' / '.$this->Firmendaten("bezeichnungangebotersatz"):''),'angebot','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Auftrag','auftrag','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('POS','pos','list');
 
-    $navarray['menu']['admin'][++$menu]['first']  = array('Einkauf','auftrag','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Preisanfrage','preisanfrage','list');
+    // ------ Beschaffung
+    $navarray['menu']['admin'][++$menu]['first']  = array('Beschaffung','auftrag','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Bestellung','bestellung','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Bestellvorschlag','bestellvorschlag','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Erweiterter Bestellvorschlag','bestellvorschlagapp','list');
-
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Preisanfrage','preisanfrage','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Produktion','produktion','list');
 
+    // ------ Logistik
     $navarray['menu']['admin'][++$menu]['first'] = array('Logistik','lager','list');
-    $navarray['menu']['admin'][$menu]['sec'][]   = array('Wareneingang','wareneingang','list');
-    $navarray['menu']['admin'][$menu]['sec'][]   = array('Lieferschein','lieferschein','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Versand','versandpakete','lieferungen');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Artikelkontingente','artikelkontingente','list');
+    $navarray['menu']['admin'][$menu]['sec'][]   = array('Ein- und auslagern','lager','letztebewegungen');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Inventur','inventur','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kommissionieraufkleber','kommissionieraufkleber','list');
+    $navarray['menu']['admin'][$menu]['sec'][]   = array('Kommissionierung','kommissionierung','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lagermindestmengen','lagermindestmengen','list');
     $navarray['menu']['admin'][$menu]['sec'][]   = array('Lagerverwaltung','lager','list');
+    $navarray['menu']['admin'][$menu]['sec'][]   = array('Lieferschein','lieferschein','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Mindesthaltbarkeit','mhdwarning','list');
     if($this->ModulVorhanden('lagermobil')) {
       $navarray['menu']['admin'][$menu]['sec'][]   = array('Mobile Lagerverwaltung','lagermobil','list');
     }
     if($this->ModulVorhanden('multiorderpicking')) {
       $navarray['menu']['admin'][$menu]['sec'][]  = array('Multiorder-Picking','multiorderpicking','list');
     }
-    $navarray['menu']['admin'][$menu]['sec'][]   = array('Reservierung','lager','reservierungen');
-    $navarray['menu']['admin'][$menu]['sec'][]   = array('Kommissionierung','kommissionierung','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Inventur','inventur','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Versandzentrum','versanderzeugen','offene');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Produktionszentrum','produktionszentrum','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kommissionieraufkleber','kommissionieraufkleber','list');
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Mindesthaltbarkeit','mhdwarning','list');
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lagermindestmengen','lagermindestmengen','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Artikelkontingente','artikelkontingente','list');
-    $navarray['menu']['admin'][$menu]['sec'][]   = array('Ein- und auslagern','lager','letztebewegungen');
+    $navarray['menu']['admin'][$menu]['sec'][]   = array('Reservierung','lager','reservierungen');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Versand','versandpakete','lieferungen');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Versandzentrum','versanderzeugen','offene');
+    $navarray['menu']['admin'][$menu]['sec'][]   = array('Wareneingang','wareneingang','list');
     $navarray['menu']['admin'][$menu]['sec'][]   = array('Zwischenlager','lager','buchenzwischenlager');
 
+    // ------ Buchhaltung
     $navarray['menu']['admin'][++$menu]['first']  = array('Buchhaltung','rechnung','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Rechnungen','rechnung','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zahlungseingang','zahlungseingang','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Reisekosten','reisekosten','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Arbeitsnachweis','arbeitsnachweis','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Gutschrift / '.$this->Firmendaten("bezeichnungstornorechnung"),'gutschrift','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Proformarechnung','proformarechnung','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kontoausz&uuml;ge','kontoauszuege','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Buchungen','fibu_buchungen','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Abolauf','rechnungslauf','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Mahnwesen','mahnwesen','list');
 
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Abolauf','rechnungslauf','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Arbeitsnachweis','arbeitsnachweis','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Buchungen','fibu_buchungen','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Dokumenten Scanner','docscan','list');
+
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Gutschriften / '.$this->Firmendaten("bezeichnungstornorechnung"),'gutschrift','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kontoausz&uuml;ge','kontoauszuege','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lieferantengutschriften','lieferantengutschrift','list');
+
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Mahnwesen','mahnwesen','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Proformarechnung','proformarechnung','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Rechnungen','rechnung','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Reisekosten','reisekosten','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Finanzbuchhaltung Export','buchhaltungexport','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zahlungsverkehr','zahlungsverkehr','ueberweisung');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Verbandsabrechnungen','verband','offene');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Vertreterabrechnungen','vertreter','list');
-    if($this->ModulVorhanden('provisionenartikelvertreter'))
+    if ($this->ModulVorhanden('provisionenartikelvertreter'))
     {
       $navarray['menu']['admin'][$menu]['sec'][]  = array('Provisionen','provisionenartikelvertreter','list');
-    }else{
+    } else {
       $navarray['menu']['admin'][$menu]['sec'][]  = array('Provisionen','provisionenartikel','list');
     }
-
     if($this->Firmendaten("modul_mlm")=="1"){
       $navarray['menu']['admin'][$menu]['sec'][] = array('Multilevel', 'multilevel', 'list');
     }
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Lohnabrechnung','lohnabrechnung','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Verbindlichkeiten','verbindlichkeit','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lieferantengutschriften','lieferantengutschrift','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Kassenbuch','kasse','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zahlungseingang','zahlungseingang','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zahlungsverkehr','zahlungsverkehr','ueberweisung');
 
+    // ------ Controlling
     $navarray['menu']['admin'][++$menu]['first']  = array('Controlling','marketing','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Verkaufszahlen','verkaufszahlen','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Umsatzstatistik','umsatzstatistik','allgemein');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Statistiken','statistiken','dashboard');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Aktionscodes','aktionscodes','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Berichte','report','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Management Board','managementboard','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Aktionscodes','aktionscodes','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Statistiken','statistiken','dashboard');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Umsatzstatistik','umsatzstatistik','allgemein');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Verkaufszahlen','verkaufszahlen','list');
 
+    // ------ Verwaltung
     $navarray['menu']['admin'][++$menu]['first']  = array('Verwaltung','rechnung','list');
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Ticketregeln','ticketregeln','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zeitkonten','zeiterfassung','list');
     if(!$this->RechteVorhanden('mitarbeiterzeiterfassung','dashboard')){
       $navarray['menu']['admin'][$menu]['sec'][]  = array('Antrag einreichen','mitarbeiterzeiterfassung','timemanagementrequest');
     }
     else{
       $navarray['menu']['admin'][$menu]['sec'][]  = array('Mitarbeiterzeiterfassung','mitarbeiterzeiterfassung','dashboard');
     }
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Import/Export Zentrale','importvorlage','uebersicht');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('W&auml;hrungen','waehrungumrechnung','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Seriennummern','seriennummern','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Chargen','chargen','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('RMA Lieferungen','rma','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Service & Support','service','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Etikettendrucker','etikettendrucker','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('W&auml;hrungen','waehrungumrechnung','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Ticketregeln','ticketregeln','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zeitkonten','zeiterfassung','list');
 
+    // ------ System
     $navarray['menu']['admin'][++$menu]['first']  = array('System','rechnung','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Einstellungen','einstellungen','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Online-Shops / Marktplätze','onlineshops','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Backup','backup','list','recover','delete','reset');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Upgrade','upgrade','list','recover','delete','reset');
-    //$navarray['menu']['admin'][$menu]['sec'][]  = array('AppStore','appstore','list');
 
+    // ------ Mein Bereich
     $navarray['menu']['admin'][++$menu]['first']  = array('Mein Bereich','welcome','main');
     $startseite = $this->app->DB->Select("SELECT startseite FROM user WHERE id='".$this->app->User->GetID()."' LIMIT 1");
-    if($startseite!="")
-      $navarray['menu']['admin'][$menu]['sec'][]  = array('Meine Startseite','welcome','startseite');
-
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Startseite','welcome','start');
-//    $navarray['menu']['admin'][$menu]['sec'][]  = array('Meine Apps','welcome','meineapps');
-    if($this->app->User->GetType() === 'admin') {
-  //    $navarray['menu']['admin'][$menu]['sec'][]  = ['Learning Dashboard', 'learningdashboard', 'list'];
+    if($startseite!="") {
+        $navarray['menu']['admin'][$menu]['sec'][]  = array('Meine Startseite','welcome','startseite');
     }
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Tickets','ticket','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kalender','kalender','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Pinnwand','welcome','pinwand');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Aufgaben','aufgaben','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('E-Mail','webmail','list');
-
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Chat','chat','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zeiterfassung','zeiterfassung','create');
-
-//    $navarray['menu']['admin'][$menu]['sec'][]  = array('Stechuhr','stechuhr','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Wiedervorlage','wiedervorlage','list');
-
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Wiki','wiki','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Interner Support', 'internalsupport', 'list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Einstellungen','welcome','settings');
-//    $navarray['menu']['admin'][$menu]['sec'][]  = array('Datenschutz', 'dataprotection','list');
-//    $navarray['menu']['admin'][$menu]['sec'][]  = array('Lizenz','appstore','buy');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('E-Mail','webmail','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kalender','kalender','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Interner Support', 'internalsupport', 'list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Pinnwand','welcome','pinwand');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Startseite','welcome','start');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Tickets','ticket','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Wiedervorlage','wiedervorlage','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Wiki','wiki','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Zeiterfassung','zeiterfassung','create');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Abmelden','welcome','logout');
 
     return $this->CalculateNavigation($navarray);
@@ -31277,15 +31260,15 @@ function Firmendaten($field,$projekt="")
           $variante_von = $this->app->DB->Select("SELECT variante_von FROM artikel WHERE id = '$artikel' LIMIT 1");
           if($variante_von)$beschreibung = $this->app->DB->real_escape_string($this->app->DB->Select("SELECT anabregs_text FROM artikel WHERE id='$variante_von' LIMIT 1"));
         }
-        if($this->ModulVorhanden('artikel_texte')){
-          if(array_key_exists($belegsprache,$adresssprachen)){
+
+        if(array_key_exists($belegsprache,$adresssprachen)){
             $belegsprache = $adresssprachen[$belegsprache];
-          }
-          $artikelbeschreibung = $this->app->DB->Select("SELECT beschreibung FROM artikel_texte WHERE artikel=$artikel AND sprache='$belegsprache'");
-          if($artikelbeschreibung){
-            $beschreibung = $artikelbeschreibung;
-          }
         }
+        $artikelbeschreibung = $this->app->DB->Select("SELECT beschreibung FROM artikel_texte WHERE artikel=$artikel AND sprache='$belegsprache'");
+        if($artikelbeschreibung){
+            $beschreibung = $artikelbeschreibung;
+        }
+
       }
       //$vpe = $this->app->DB->Select("SELECT vpe FROM verkaufspreise WHERE id='$verkauf' LIMIT 1");
       $sort = $this->app->DB->Select("SELECT MAX(sort) FROM ".$typ."_position WHERE $typ='$id' LIMIT 1");
@@ -31300,20 +31283,19 @@ function Firmendaten($field,$projekt="")
         if($this->app->DB->Select("SELECT adr.id FROM auftrag auf INNER JOIN adresse adr ON auf.adresse = adr.id AND adr.sprache = 'englisch' WHERE auf.id = '$id' LIMIT 1"))
           $name = $this->app->DB->Select("SELECT name_en FROM artikel WHERE id = '$artikel'");
         if($name === '')$name = $this->app->DB->Select("SELECT name_de FROM artikel WHERE id = '$artikel'");
-        if($this->ModulVorhanden('artikel_texte')){
-          if(array_key_exists($belegsprache,$adresssprachen)){
+
+        if(array_key_exists($belegsprache,$adresssprachen)){
             $belegsprache = $adresssprachen[$belegsprache];
-          }
-          $artikelbezeichnung = $this->app->DB->Select(
+        }
+        $artikelbezeichnung = $this->app->DB->Select(
             "SELECT name 
             FROM artikel_texte 
             WHERE artikel=$artikel AND sprache='$belegsprache' 
             ORDER BY name <> '' DESC 
             LIMIT 1"
-          );
-          if($artikelbezeichnung){
+        );
+        if($artikelbezeichnung){
             $name = $artikelbezeichnung;
-          }
         }
       }
 
@@ -38105,7 +38087,7 @@ function Firmendaten($field,$projekt="")
         $sql_erweiterung = '';
         if(!empty($gruppenarr))
         {
-          $sql_erweiterung .= ' OR v.gruppe IN ('.implode(' ', $gruppenarr).') ';
+          $sql_erweiterung .= ' OR v.gruppe IN ('.implode(', ', $gruppenarr).') ';
         }
         if(!$guenstigste_vk) {
           $vkarr = $this->app->DB->SelectArr("SELECT * FROM verkaufspreise v WHERE v.ab_menge <= '$menge' AND
