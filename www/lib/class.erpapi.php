@@ -17198,7 +17198,7 @@ function CheckShopTabelle($artikel)
     return $taxrates;
   }
 
-  function ImportAuftrag($adresse,$warenkorb,$projekt,$shop="",$auftrag=0)
+  function ImportAuftrag($adresse,$warenkorb,$projekt,$shop="",$auftrag=0) : array
   {
     $this->RunHook('ImportAuftragBefore',4, $adresse,$warenkorb,$projekt,$shop);
     if(!empty($this->app->stringcleaner)){
@@ -17709,6 +17709,9 @@ function CheckShopTabelle($artikel)
 
   if($doctype === 'angebot'){
     $this->app->DB->Update("UPDATE angebot SET anfrage = '".$this->app->DB->real_escape_string($warenkorb['onlinebestellnummer'])."' WHERE id = '$auftrag' LIMIT 1");
+  }
+  if($doctype === 'auftrag'){
+    $this->app->DB->Update("UPDATE auftrag SET ihrebestellnummer = '".$this->app->DB->real_escape_string($warenkorb['ihrebestellnummer'])."' WHERE id = '$auftrag' LIMIT 1");
   }
 
   $this->app->DB->Update("UPDATE $doctype SET
@@ -18673,16 +18676,24 @@ function CheckShopTabelle($artikel)
         $artikelporto = $artikelportoermaessigt;
       }
 
-      if(empty($artikelporto) && $this->app->DB->Select("SELECT portoartikelanlegen FROM shopexport WHERE id = '$shop' LIMIT 1"))
-      {
-        if($warenkorb['versandkostennetto'] != 0 || $warenkorb['versandkostenbrutto'] != 0 || $portocheck == 1){
-          $portoartikelarr = array('projekt'=>$projekt,'porto'=>1, 'lagerartikel'=>0,'name_de'=>'Porto','umsatzsteuer'=>'normal');
-          $artikelporto = $this->app->erp->InsertUpdateArtikel($portoartikelarr);
-          if($artikelporto){
-            $this->app->DB->Update("UPDATE shopexport SET artikelporto = '$artikelporto' WHERE id = '$shop' AND artikelporto = 0 LIMIT 1");
-          }
+        if(empty($artikelporto)) {
+            if ($this->app->DB->Select("SELECT portoartikelanlegen FROM shopexport WHERE id = '$shop' LIMIT 1"))
+            {
+                if($warenkorb['versandkostennetto'] != 0 || $warenkorb['versandkostenbrutto'] != 0 || $portocheck == 1)
+                {
+                    $portoartikelarr = array('projekt'=>$projekt,'porto'=>1, 'lagerartikel'=>0,'name_de'=>'Porto','umsatzsteuer'=>'normal');
+                    $artikelporto = $this->app->erp->InsertUpdateArtikel($portoartikelarr);
+                    if($artikelporto)
+                    {
+                        $this->app->DB->Update("UPDATE shopexport SET artikelporto = '$artikelporto' WHERE id = '$shop' AND artikelporto = 0 LIMIT 1");
+                    }
+                }
+            } else {
+                $error_msg = 'Importauftrag Shop '.$shop.' Fehler: Kein Portoartikel vorhanden';
+                $this->LogFile($error_msg,['Onlinebestellnummer' => $warenkorb['onlinebestellnummer']]);
+                return(array("status" => false, "message" => $error_msg, "onlinebestellnummer" => $warenkorb['onlinebestellnummer']));
+            }
         }
-      }
       $umsatzsteuer_porto = $this->app->DB->Select("SELECT umsatzsteuer FROM artikel WHERE id='$artikelporto' LIMIT 1");
 
       $versandname = '';
@@ -19028,7 +19039,7 @@ function CheckShopTabelle($artikel)
     }
   }
 
-  return $auftrag;
+  return array("status" => true, "$auftragid" => $auftrag);
 }
 
 
@@ -21021,7 +21032,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
         $anzges = 0;
         $anzfehler = 0;
 
-        $result = null; // 1 on success
+        $result = null; // $result['status'] == 1 on success
 
         if(!empty($extnummer) && is_array($extnummer)) {
           foreach($extnummer as $nummer) {
@@ -21052,9 +21063,9 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
         }
 
 
-       $this->LogFile('*** UPDATE '.$lagerartikel[$ij]['nummer'].' '.$lagerartikel[$ij]['name_de'].' Shop: '.$shop.' Lagernd: '.$verkaufbare_menge.' Korrektur: '.round((float) ($verkaufbare_menge_korrektur - $verkaufbare_menge),7).' Pseudolager: '.round((float) $pseudolager,8).' Result: '.gettype($result).' '.$result);
+        $this->LogFile('*** UPDATE '.$lagerartikel[$ij]['nummer'].' '.$lagerartikel[$ij]['name_de'].' Shop: '.$shop.' Lagernd: '.$verkaufbare_menge.' Korrektur: '.round((float) ($verkaufbare_menge_korrektur - $verkaufbare_menge),7).' Pseudolager: '.round((float) $pseudolager,8).' Result: '.(is_array($result)?$result['status']:$result), $result);
 
-        if ($result == 1) {
+        if ((is_array($result)?$result['status'] == 1:false) || $result === 1) {
             $cacheQuantity = (int) $verkaufbare_menge_korrektur + (int) $pseudolager;
             $this->app->DB->Update(
               "UPDATE `artikel` SET `cache_lagerplatzinhaltmenge` = '{$cacheQuantity}'
@@ -27557,6 +27568,16 @@ function Firmendaten($field,$projekt="")
         return $buchstaben_anteil_string.$neue_nummer;
       }
 
+      function CalcNextArtikelNummer($nummer) {
+        $check = null;
+        do {
+           $nummer = $this->CalcNextNummer($nummer);
+           $sql = "SELECT id FROM artikel WHERE nummer = '".$nummer."'";
+           $check = $this->app->DB->Select($sql);
+        } while (!empty($check));
+        return ($nummer);
+      }
+
       function GetNextNummer($type,$projekt="",$data="")
       {
         $doctype = $type;
@@ -28031,7 +28052,7 @@ function Firmendaten($field,$projekt="")
               $nurzahlen = preg_replace("/[^0-9]/","",$next_nummer_alt);
               $laenge = strlen($nurzahlen);
 
-              $next_nummer = $this->CalcNextNummer($next_nummer_alt);
+              $next_nummer = $this->CalcNextArtikelNummer($next_nummer_alt);
               //$nurbuchstaben.str_pad($nurzahlen+1, $laenge  ,'0', STR_PAD_LEFT);
               $neue_nummer = $next_nummer;
 
@@ -28044,12 +28065,12 @@ function Firmendaten($field,$projekt="")
             if($eigenernummernkreis=="1")
             {
               $neue_nummer = $this->app->DB->Select("SELECT next_artikelnummer FROM projekt WHERE id='$projekt' LIMIT 1");
-              if($this->app->DB->Select("SELECT id FROM artikel WHERE nummer = '".$this->app->DB->real_escape_string($neue_nummer)."' LIMIT 1"))$neue_nummer = $this->CalcNextNummer($neue_nummer);
-              $next_nummer = $this->CalcNextNummer($neue_nummer);
+              if($this->app->DB->Select("SELECT id FROM artikel WHERE nummer = '".$this->app->DB->real_escape_string($neue_nummer)."' LIMIT 1"))$neue_nummer = $this->CalcNextArtikelNummer($neue_nummer);
+              $next_nummer = $this->CalcNextArtikelNummer($neue_nummer);
               $this->app->DB->Update("UPDATE projekt SET next_artikelnummer='".$next_nummer."' WHERE id='$projekt' LIMIT 1");
             } else {
               //zentraler nummernkreis mit prefix
-              $next_nummer = $this->CalcNextNummer($this->Firmendaten("next_artikelnummer"));
+              $next_nummer = $this->CalcNextArtikelNummer($this->Firmendaten("next_artikelnummer"));
               $this->FirmendatenSet("next_artikelnummer",$next_nummer);
               if($next_nummer_alt!="") $neue_nummer=$next_nummer_alt.$next_nummer;
               else $neue_nummer = $next_nummer;
@@ -28064,15 +28085,15 @@ function Firmendaten($field,$projekt="")
           if($eigenernummernkreis)
           {
             $neue_nummer = $this->app->DB->Select("SELECT next_artikelnummer FROM projekt WHERE id='$projekt' LIMIT 1");
-            if($this->app->DB->Select("SELECT id FROM artikel WHERE nummer = '".$this->app->DB->real_escape_string($neue_nummer)."' LIMIT 1"))$neue_nummer = $this->CalcNextNummer($neue_nummer);
-            $next_nummer = $this->CalcNextNummer($neue_nummer);
+            if($this->app->DB->Select("SELECT id FROM artikel WHERE nummer = '".$this->app->DB->real_escape_string($neue_nummer)."' LIMIT 1"))$neue_nummer = $this->CalcNextArtikelNummer($neue_nummer);
+            $next_nummer = $this->CalcNextArtikelNummer($neue_nummer);
             $this->app->DB->Update("UPDATE projekt SET next_artikelnummer='".$next_nummer."' WHERE id='$projekt' LIMIT 1");
           }else{
             $firmennummer = $this->app->erp->Firmendaten('next_artikelnummer');
             if($firmennummer)
             {
               $next_nummer = $firmennummer;
-              $neue_nummer = $this->CalcNextNummer($next_nummer);
+              $neue_nummer = $this->CalcNextArtikelNummer($next_nummer);
               $this->FirmendatenSet('next_artikelnummer', $neue_nummer);
               $neue_nummer = $this->app->erp->Firmendaten('next_artikelnummer');
             } else {
@@ -28094,10 +28115,11 @@ function Firmendaten($field,$projekt="")
                   $neue_nummer = $this->app->DB->Select("SELECT MAX(CAST(nummer AS UNSIGNED)) FROM artikel WHERE nummer LIKE '1%'");
                   if(($neue_nummer=="" || $neue_nummer=="0")) $neue_nummer = "100000";
               }
-              $neue_nummer = $this->CalcNextNummer($neue_nummer);//$neue_nummer + 1;
+              $neue_nummer = $this->CalcNextArtikelNummer($neue_nummer);//$neue_nummer + 1;
             }
           }
         }
+
         $this->app->erp->ProzessUnlock($process_lock);
         $neue_nummer = str_replace('{JAHR}',date('Y'),$neue_nummer);
         $neue_nummer = str_replace('{MONAT}',date('m'),$neue_nummer);
