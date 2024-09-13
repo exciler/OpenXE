@@ -4,7 +4,7 @@
   "scripts": {
     "api-docs:validate": "./node_modules/raml2html/bin/raml2html --validate www/api/docs.raml > /dev/null",
     "api-docs:build": "./node_modules/raml2html/bin/raml2html --validate --theme raml2html-werk-theme --input www/api/docs.raml --output www/api/docs-tmp.html && cat www/api/docs-tmp.html | sed -e 's/<\\/head>/<link rel=\\\"stylesheet\\\" href=\\\"\\.\\/assets\\/docs_custom\\.css\\\"><\\/head>/' > www/api/docs.html && rm www/api/docs-tmp.html",
-    "dev": "vite",
+    "dev": "vite -d --cors --host ::",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -15,6 +15,7 @@
   "dependencies": {
     "@vitejs/plugin-vue": "^5",
     "axios": "^1",
+    "glob": "^10.3.12",
     "primevue": "^3",
     "vite": "^5",
     "vue": "^3"

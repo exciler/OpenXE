@@ -1,11 +1,11 @@
 {
-  "classes/Modules/MatrixProduct/www/js/entry.jsx": {
-    "file": "assets/modules/MatrixProduct-D_s5EKHN.js",
+  "classes/Modules/MatrixProduct/www/js/entry.js": {
+    "file": "modules/MatrixProduct-9c7DrvjY.js",
     "name": "modules/MatrixProduct",
-    "src": "classes/Modules/MatrixProduct/www/js/entry.jsx",
+    "src": "classes/Modules/MatrixProduct/www/js/entry.js",
     "isEntry": true,
     "css": [
-      "assets/MatrixProduct-DnrbCVE3.css"
+      "assets/MatrixProduct-4Oiurn1N.css"
     ]
   }
 }
