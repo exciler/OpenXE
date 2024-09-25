@@ -8,7 +8,8 @@ COPY package.json package-lock.json vite.config.js /app/
 RUN npm install
 COPY classes /app/classes
 COPY resources /app/resources
-RUN node_modules/.bin/vite build
+COPY www /app/www
+RUN npm run build
 
 #FROM php:8.1-fpm as fpm_server
 FROM php:8.1-apache as web_server
@@ -22,5 +23,5 @@ RUN apt-get update && apt-get install -y ${DEB_PKG} ${DEB_PKG_TMP} && \
     docker-php-ext-install ${PHP_EXT} && \
     apt-get remove --purge -y ${DEB_PKG_TMP}
 
-COPY . /var/www/html
-COPY --from=frontend /app/www/dist /var/www/html/www/dist
+COPY --chown=www-data:www-data . /var/www/html
+COPY --chown=www-data:www-data --from=frontend /app/www/dist /var/www/html/www/dist
