@@ -313,6 +313,7 @@ class BestellungPDF extends BriefpapierCustom {
       $value['herstellernummer'] = $value['artherstellernummer'];// $this->app->DB->Select("SELECT herstellernummer FROM artikel WHERE id='".$value['artikel']."' LIMIT 1");
       $value['hersteller'] = $value['arthersteller'];//$this->app->DB->Select("SELECT hersteller FROM artikel WHERE id='".$value['artikel']."' LIMIT 1");
 
+      $value = $this->CheckPosition($value, 'bestellung', $this->doctypeid, $value['id']);
       $this->addItem(
         array(
           'belegposition'=>$value['id'],
