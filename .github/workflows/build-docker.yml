@@ -2,7 +2,7 @@ name: build-docker
 on: [push]
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: gitea.ewsp.de
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
