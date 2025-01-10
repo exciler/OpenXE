@@ -2199,6 +2199,18 @@ public function NavigationHooks(&$menu)
     return false;
   }
 
+    // Rechnung special treatment because of XML
+    function RechnungArchivieren($id) {
+        $sql = "SELECT xmlrechnung FROM rechnung WHERE id = '".$id."' LIMIT 1";
+        $xmlrechnung = $this->app->DB->Select($sql);
+        if ($xmlrechnung) {
+            $rechnungsmodul = $this->app->loadModule('rechnung', false);
+            return($rechnungsmodul->RechnungArchiviereXML($id));
+        } else {
+            $this->PDFArchivieren('rechnung',$id,true);
+        }
+    }
+
   // @refactor in Location Klasse
   function UrlOrigin($s, $use_forwarded_host=false)
   {
@@ -3267,7 +3279,7 @@ function LieferscheinEinlagern($id,$grund="Lieferschein Einlagern", $lpiids = nu
               );
               $this->app->erp->ANABREGSNeuberechnen($invoice['id'], 'rechnung');
               if($invoice['schreibschutz']) {
-                $this->app->erp->PDFArchivieren('rechunng', $invoice['id'], true);
+                $this->app->erp->RechnungArchivieren($invoice['id']);
               }
             }
           }
@@ -15234,20 +15246,21 @@ function Gegenkonto($ust_befreit,$ustid='', $doctype = '', $doctypeId = 0)
     }
 
     $rechnungarr = $this->app->DB->SelectRow(
-      "SELECT adresse, email, name,belegnr,projekt,sprache,schreibschutz,zuarchivieren 
+      "SELECT adresse, email, name,belegnr,projekt,sprache,schreibschutz,zuarchivieren,xmlrechnung
       FROM rechnung WHERE id='$id' LIMIT 1"
     );
     if(empty($rechnungarr)) {
       return;
     }
     if(!empty($rechnungarr['schreibschutz']) && !empty($rechnungarr['zuarchivieren'])) {
-      $this->app->erp->PDFArchivieren('rechnung', $id, true);
+      $this->app->erp->RechnungArchivieren($id);
     }
     $adresse = $rechnungarr['adresse'];
     $to = $rechnungarr['email'];
     $to_name = $rechnungarr['name'];
     $belegnr = $rechnungarr['belegnr'];
     $projekt = $rechnungarr['projekt'];
+    $xmlrechnung = $rechnungarr['xmlrechnung'];
 
     $sprache = $rechnungarr['sprache'];
     if($sprache=='' && $adresse > 0) {
@@ -15272,21 +15285,27 @@ function Gegenkonto($ust_befreit,$ustid='', $doctype = '', $doctypeId = 0)
     $betreff = $this->ParseUserVars('rechnung',$id,$betreff); // 19.01.2018 eingefuegt BW
     if($id > 0)
     {
-      $this->app->erp->BriefpapierHintergrunddisable = false;
-      if(class_exists('RechnungPDFCustom'))
-      {
-        $Brief = new RechnungPDFCustom($this->app,$projekt);
-      }else{
-        $Brief = new RechnungPDF($this->app,$projekt);
-      }
-      $Brief->GetRechnung($id);
-      $arrtmpfile[] = $Brief->displayTMP();
 
-      if(!$Brief->DocumentArchiviert()) {
-        $Brief->ArchiviereDocument(true, true);
+      if (!$xmlrechnung) {
+          $this->app->erp->BriefpapierHintergrunddisable = false;
+          if(class_exists('RechnungPDFCustom'))
+          {
+            $Brief = new RechnungPDFCustom($this->app,$projekt);
+          }else{
+            $Brief = new RechnungPDF($this->app,$projekt);
+          }
+          $Brief->GetRechnung($id);
+          $arrtmpfile[] = $Brief->displayTMP();
+
+          if(!$Brief->DocumentArchiviert()) {
+            $Brief->ArchiviereDocument(true, true);
+          }
+          $md5arr[] = @md5_file($arrtmpfile[(!empty($arrtmpfile)?count($arrtmpfile):0)-1]);
+      } else {
+        $arrtmpfile = Array();
+        $md5arr = Array();
       }
 
-      $md5arr[] = @md5_file($arrtmpfile[(!empty($arrtmpfile)?count($arrtmpfile):0)-1]);
       // anhaenge automatisch mitversenden
       $resultdateien = $this->app->DB->SelectArr("SELECT datei FROM datei_stichwoerter WHERE objekt LIKE 'Rechnung' AND parameter='$id'");
       $cResultdateien = !empty($resultdateien)?count($resultdateien):0;
@@ -23476,54 +23495,63 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
       if($typ=="rechnung")
       {
         // sende
-        $this->app->erp->BriefpapierHintergrunddisable = !$this->app->erp->BriefpapierHintergrunddisable;
-        if(class_exists('RechnungPDFCustom'))
-        {
-          $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
-        }else{
-          $Brief = new RechnungPDF($this->app,$projektbriefpapier);
-        }
-        $Brief->GetRechnung($id);
+        $xmlrechnug = $this->app->DB->Select("SELECT xmlrechnung FROM rechnung WHERE id ='".$id."' LIMIT 1");
+        if ($xmlrechnung) {
+            $xmlrechnungresult = $this->app->erp->GetXMLRechnung($id);
+            if ($xmlrechnungresult['success']) {
+                $tmpfile = $xmlrechnungresult['xml'];
+            } else {
+                throw new exception("XML Rechnung fehlgeschlagen!");
+            }
+        } else {
+            $this->app->erp->BriefpapierHintergrunddisable = !$this->app->erp->BriefpapierHintergrunddisable;
+            if(class_exists('RechnungPDFCustom'))
+            {
+              $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
+            }else{
+              $Brief = new RechnungPDF($this->app,$projektbriefpapier);
+            }
+            $Brief->GetRechnung($id);
 
-        if(isset($sammelpdf))
-        {
-          foreach($sammelpdf as $dat)
-          {
-            $Brief->AddPDF($dat);
-          }
-        }
+            if(isset($sammelpdf))
+            {
+              foreach($sammelpdf as $dat)
+              {
+                $Brief->AddPDF($dat);
+              }
+            }
 
-        //$Brief->ArchiviereDocument();
-        $tmpfile = $Brief->displayTMP();
-        $Brief->ArchiviereDocument(true);
-        unlink($tmpfile);
-        $this->app->erp->BriefpapierHintergrunddisable = !$this->app->erp->BriefpapierHintergrunddisable;
-        if(class_exists('RechnungPDFCustom'))
-        {
-          $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
-        }else{
-          $Brief = new RechnungPDF($this->app,$projektbriefpapier);
+            //$Brief->ArchiviereDocument();
+            $tmpfile = $Brief->displayTMP();
+            $Brief->ArchiviereDocument(true);
+            unlink($tmpfile);
+            $this->app->erp->BriefpapierHintergrunddisable = !$this->app->erp->BriefpapierHintergrunddisable;
+            if(class_exists('RechnungPDFCustom'))
+            {
+              $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
+            }else{
+              $Brief = new RechnungPDF($this->app,$projektbriefpapier);
+            }
+            $Brief->GetRechnung($id);
+            $tmpfile = $Brief->displayTMP();
+            $Brief->ArchiviereDocument(true);
+            if(isset($sammelpdf))
+            {
+              unlink($tmpfile);
+              if(class_exists('RechnungPDFCustom'))
+              {
+                $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
+              }else{
+                $Brief = new RechnungPDF($this->app,$projektbriefpapier);
+              }
+              $Brief->GetRechnung($id);
+              foreach($sammelpdf as $dat)
+              {
+                $Brief->AddPDF($dat);
+              }
+              $tmpfile = $Brief->displayTMP();
+            }
         }
-        $Brief->GetRechnung($id);
-        $tmpfile = $Brief->displayTMP();
-        $Brief->ArchiviereDocument(true);
-        if(isset($sammelpdf))
-        {
-          unlink($tmpfile);
-          if(class_exists('RechnungPDFCustom'))
-          {
-            $Brief = new RechnungPDFCustom($this->app,$projektbriefpapier);
-          }else{
-            $Brief = new RechnungPDF($this->app,$projektbriefpapier);
-          }
-          $Brief->GetRechnung($id);
-          foreach($sammelpdf as $dat)
-          {
-            $Brief->AddPDF($dat);
-          }
-          $tmpfile = $Brief->displayTMP();
-        }
-
         //$Brief->ArchiviereDocument();
 
       }
@@ -29216,6 +29244,24 @@ function Firmendaten($field,$projekt="")
         }
       }
 
+      function SetXMLRechnung($id)
+      {
+        $obj = $this->app->erp->LoadModul('rechnung');
+        if(!empty($obj) && method_exists($obj,'SetXMLRechnung')) {
+          return $obj->SetXMLRechnung($id);
+        }
+        return 0;
+      }
+
+      function GetXMLRechnung($id)
+      {
+        $obj = $this->app->erp->LoadModul('rechnung');
+        if(!empty($obj) && method_exists($obj,'RechnungSmarty')) {
+          return $obj->RechnungSmarty(id: $id, returnvalue: true);
+        }
+        return 0;
+      }
+
       function BelegFreigabe($beleg,$id)
       {
         if($id <= 0 || empty($beleg)) {
@@ -29270,6 +29316,9 @@ function Firmendaten($field,$projekt="")
               SET a.`laststorage_changed` = NOW() WHERE `ap`.auftrag = %d', $id
             )
           );
+        }
+        if ($beleg === 'rechnung') {        
+          $this->SetXMLRechnung($id);
         }
       }
 
@@ -33029,7 +33078,6 @@ function Firmendaten($field,$projekt="")
         }
       }
 
-
       function DeleteBestellung($id)
       {
         /** @var Bestellung $obj */
@@ -33040,7 +33088,6 @@ function Firmendaten($field,$projekt="")
         }
       }
 
-
       function CreateRechnung($adresse="")
       {
         /** @var Rechnung $obj */
@@ -33049,7 +33096,6 @@ function Firmendaten($field,$projekt="")
           return $obj->CreateRechnung($adresse);
         }
       }
-
 
       public function GetStandardWaehrung($projekt=0)
       {
@@ -36339,23 +36385,6 @@ function Firmendaten($field,$projekt="")
         return $tmpname;
       }
 
-      function CreateDateiOhneInitialeVersion($titel,$beschreibung,$nummer,$ersteller,$without_log=false)
-      {
-        if(!$without_log)
-        {
-          $this->app->DB->Insert("INSERT INTO datei (id,titel,beschreibung,nummer,firma) VALUES
-              ('','$titel','$beschreibung','$nummer','".$this->app->User->GetFirma()."')");
-        } else {
-          $this->app->DB->InsertWithoutLog("INSERT INTO datei (id,titel,beschreibung,nummer,firma) VALUES
-              ('','$titel','$beschreibung','$nummer',1)");
-        }
-
-        $fileid = $this->app->DB->GetInsertID();
-        //$this->AddDateiVersion($fileid,$ersteller,$name,"Initiale Version",$datei,$without_log);
-
-        return  $fileid;
-      }
-  
       function GetDMSPath($id, $path = '', $cache = false)
       {
         $ids = explode('_', $id, 2);
@@ -36453,7 +36482,7 @@ function Firmendaten($field,$projekt="")
         }
       }
 
-      function CreateDateiWithStichwort($name, $titel,$beschreibung,$nummer,$datei, $ersteller ,$subjekt,$objekt,$parameter, $path = "",$without_log=false)
+      function CreateDateiWithStichwort($name, $titel,$beschreibung,$nummer,$datei, $ersteller ,$subjekt,$objekt,$parameter, $path = "",$without_log=false,$geschuetzt=null)
       {
         $dateien = $this->app->DB->SelectArr("SELECT dv.datei, dv.id FROM datei_stichwoerter ds 
           INNER JOIN datei d ON ds.datei = d.id AND ifnull(d.geloescht,0) = 0
@@ -36489,12 +36518,12 @@ function Firmendaten($field,$projekt="")
             }
           }
         }
-        $fileid = $this->CreateDatei($name,$titel,$beschreibung,$nummer,$datei,$ersteller,$without_log,$path);
+        $fileid = $this->CreateDatei($name,$titel,$beschreibung,$nummer,$datei,$ersteller,$without_log,$path,$geschuetzt);
         $this->AddDateiStichwort($fileid,$subjekt,$objekt,$parameter,$without_log);
         return $fileid;
       }
 
-      function CreateDatei($name,$titel,$beschreibung,$nummer,$datei,$ersteller,$without_log=false,$path="")
+      function CreateDatei($name,$titel,$beschreibung,$nummer,$datei,$ersteller,$without_log=false,$path="",$geschuetzt=null)
       {
         // Anführungszeichen in Unterstriche wandeln
         $name = str_replace(['\\\'', '\\"', '\'', '"'], '_', $name);
@@ -36506,13 +36535,15 @@ function Firmendaten($field,$projekt="")
                 titel,
                 beschreibung,
                 nummer,
-                firma
+                firma,
+                geschuetzt
             ) VALUES (
                 '',
                 '".$this->app->DB->real_escape_string($titel)."',
                 '".$this->app->DB->real_escape_string($beschreibung)."',
                 '".$this->app->DB->real_escape_string($nummer)."',
-                '".$this->app->User->GetFirma()."'
+                '".$this->app->User->GetFirma()."',
+                '".$geschuetzt."'
             )"
           );
         } else {
@@ -36521,13 +36552,15 @@ function Firmendaten($field,$projekt="")
                 titel,
                 beschreibung,
                 nummer,
-                firma
+                firma,
+                geschuetzt
             ) VALUES (
                 '',
                 '".$this->app->DB->real_escape_string($titel)."',
                 '".$this->app->DB->real_escape_string($beschreibung)."',
                 '".$this->app->DB->real_escape_string($nummer)."',
-                1
+                1,
+                '".$geschuetzt."'
             )
           ");
         }
@@ -36724,6 +36757,12 @@ function Firmendaten($field,$projekt="")
         if(!$id){
           return false;
         }
+
+        $geschuetzt = $this->app->DB->Select("SELECT geschuetzt FROM datei WHERE id = '".$id."'");
+        if ($geschuetzt) {
+          return false;
+        }
+
         $error = false;
         $versionen = $this->app->DB->SelectArr("SELECT * FROM datei_version WHERE datei = '".$id."'");
         if($versionen)

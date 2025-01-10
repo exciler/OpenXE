@@ -718,6 +718,10 @@ class Lieferschein extends GenLieferschein
     }
     
     $etiketten_positionen = $this->app->DB->Select("SELECT etiketten_positionen FROM projekt WHERE id='$projekt' LIMIT 1");
+    $etikett_adresse = $this->app->DB->SelectRow("SELECT lieferscheinpositionetikettdruck, lieferscheinpositionetikett FROM adresse WHERE id ='".$adresse."' LIMIT 1");
+    if ($etikett_adresse['lieferscheinpositionetikettdruck']) {
+        $etiketten_positionen = 1;
+    }
     if($etiketten_positionen  > 0)
       $etiketten = "<option value=\"positionenetiketten\">Positionen als Etiketten</option>";
     $casestorno = "case 'storno': if(!confirm('Wirklich stornieren?')) return document.getElementById('aktion$prefix').selectedIndex = 0; else window.location.href='index.php?module=lieferschein&action=delete&id=%value%'; break;";
@@ -876,22 +880,19 @@ class Lieferschein extends GenLieferschein
       $this->app->Tpl->Set('AUFTRAG','-');
     }
    
+    $link_zur_rechnung = "CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;',".$this->app->YUI->GetRechnungFileDownloadLinkIconSQL().",'&nbsp;            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>')";
+
     if($auftragArr[0]['auftragid'] > 0){
       $rechnung = $this->app->DB->SelectArr(
         ($auftragArr[0]['auftragid']?
           "SELECT 
-          CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\">',if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),'&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
-          FROM rechnung r WHERE r.auftragid='".$auftragArr[0]['auftragid']."' AND r.auftragid <> '0'
+            ".$link_zur_rechnung." as rechnung          FROM rechnung r WHERE r.auftragid='".$auftragArr[0]['auftragid']."' AND r.auftragid <> '0'
           union 
           SELECT 
-          CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\">',if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),'&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
-          FROM rechnung r INNER JOIN sammelrechnung_position s ON r.id = s.rechnung INNER JOIN auftrag_position p ON s.auftrag_position_id = p.id WHERE p.auftrag='".$auftragArr[0]['auftragid']."'
+            ".$link_zur_rechnung." as rechnung          FROM rechnung r INNER JOIN sammelrechnung_position s ON r.id = s.rechnung INNER JOIN auftrag_position p ON s.auftrag_position_id = p.id WHERE p.auftrag='".$auftragArr[0]['auftragid']."'
           union ":"")."
           SELECT 
-          CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\">',if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),'&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+            ".$link_zur_rechnung." as rechnung
           FROM rechnung r INNER JOIN sammelrechnung_position s ON r.id = s.rechnung 
           INNER JOIN lieferschein_position lp ON lp.id = s.lieferschein_position_id
           WHERE lp.lieferschein='$id'
@@ -903,14 +904,11 @@ class Lieferschein extends GenLieferschein
       if($auftragArr[0]['rechnungid'] > 0){
 
         $rechnung = $this->app->DB->SelectArr("SELECT 
-          CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\">',if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),'&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+              ".$link_zur_rechnung." as rechnung
           FROM rechnung r WHERE r.id='".$auftragArr[0]['rechnungid']."' AND r.id <> '0'
-          union 
-          
+          union          
           SELECT 
-          CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\">',if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),'&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+              ".$link_zur_rechnung." as rechnung
           FROM rechnung r INNER JOIN sammelrechnung_position s ON r.id = s.rechnung 
           INNER JOIN lieferschein_position lp ON lp.id = s.lieferschein_position_id
           WHERE lp.lieferschein='$id'
@@ -2106,6 +2104,11 @@ class Lieferschein extends GenLieferschein
         $projectId
       )
     );
+    $etikett_adresse = $this->app->DB->SelectRow("SELECT lieferscheinpositionetikettdruck, lieferscheinpositionetikett FROM adresse WHERE id = (SELECT adresse FROM lieferschein WHERE id = '".$deliveryNoteId."') LIMIT 1");
+    if ($etikett_adresse['lieferscheinpositionetikettdruck']) {
+        $projectRow['etiketten_positionen'] = 1;
+        $projectRow['etiketten_art'] = $etikett_adresse['lieferscheinpositionetikett'];
+    }
     if(empty($projectRow) || $projectRow['etiketten_positionen'] <= 0) {
       return false;
     }

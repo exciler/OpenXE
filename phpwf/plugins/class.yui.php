@@ -4215,14 +4215,14 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
 
         $sortmodus = $this->TableSearchFilter($name, 1, 'sortmodus',  0,0,  'checkbox');
         // headings
-        $heading = array('','','','Titel', 'Stichwort', 'Version','Gr&ouml;&szlig;e', 'Ersteller','Version','Datum','Sortierung','Men&uuml;');
-        $width = array('1%','1%','10','40%', '15%', '5%','10%','15%', '10%', '10%','15%', '10%','5%','1%');
-        $findcols = array('open','d.id','d.id',"CONCAT(d.titel,' ',v.dateiname)", 's.subjekt', 'v.version',"if(v.size!='',if(v.size > 1024*1024,CONCAT(ROUND(v.size/1024/1024,2),' MB'),CONCAT(ROUND(v.size/1024,2),' KB')),'')", 'v.ersteller','v.bemerkung','v.datum', 's.sort','s.id');
+        $heading = array('','','','Titel', 'Stichwort', 'Version','Gr&ouml;&szlig;e', 'Ersteller','Beschreibung','Datum','Sortierung','Gesch&uuml;tzt','Men&uuml;');
+        $width = array('1%','1%','10','40%', '15%', '5%','10%','15%', '10%', '10%','15%', '10%','5%','1%','1%');
+        $findcols = array('open','d.id','d.id',"CONCAT(d.titel,' ',v.dateiname)", 's.subjekt', 'v.version',"if(v.size!='',if(v.size > 1024*1024,CONCAT(ROUND(v.size/1024/1024,2),' MB'),CONCAT(ROUND(v.size/1024,2),' KB')),'')", 'v.ersteller','d.beschreibungbemerkung','v.datum', 's.sort','d.geschuetzt','s.id');
         $searchsql = array('d.titel', 's.subjekt', 'v.version',"if(v.size!='',if(v.size > 1024*1024,CONCAT(ROUND(v.size/1024/1024,2),' MB'),CONCAT(ROUND(v.size/1024,2),' KB')),'')", 'v.ersteller','v.bemerkung','v.dateiname',"DATE_FORMAT(v.datum, '%d.%m.%Y')");
 
         $menu = "<table cellpadding=0 cellspacing=0><tr><td nowrap><a href=\"#\" onclick=editdatei(%value%,\"$cmd\")><img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/edit.svg\" border=\"0\"></a>&nbsp;<a href=\"index.php?module=dateien&action=send&id=%value%\"><img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/download.svg\" border=\"0\"></a>&nbsp;<a href=\"#\" onclick=DeleteDialog(\"index.php?module=dateien&action=delete&cmd=".urlencode($objekt)."&id=%value%\")><img src=\"./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/delete.svg\" border=\"0\" ></a></td></tr></table>";
-        $menucol = 11;
-        $alignright=array(6,7,11);
+        $menucol = 12;
+        $alignright=array(6,7,11,12);
 
         if(!function_exists('imagejpeg'))
         {
@@ -4232,10 +4232,21 @@ url:strUrl, success:function(html){strReturn = html;}, async:false
         }
         
         // SQL statement
-        $sql = "SELECT SQL_CALC_FOUND_ROWS d.id,'<img src=./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/details_open.png class=details>' as open,concat('<input type=\"checkbox\" id=\"auswahl_',d.id,'\"  onchange=\"chauswahl();\" value=\"1\" />'),
-        $img, 
-        
-        if(d.titel!='',CONCAT(d.titel,'<br><i style=color:#999>',v.dateiname,'</i>'),v.dateiname), s.subjekt, v.version, if(v.size!='',if(v.size > 1024*1024,CONCAT(ROUND(v.size/1024/1024,2),' MB'),CONCAT(ROUND(v.size/1024,2),' KB')),''), v.ersteller, v.bemerkung, DATE_FORMAT(v.datum, '%d.%m.%Y'),s.sort,".($sortmodus?"s.id": "d.id")." 
+        $sql = "SELECT SQL_CALC_FOUND_ROWS 
+            d.id,
+            '<img src=./themes/{$this->app->Conf->WFconf['defaulttheme']}/images/details_open.png class=details>' as open,
+            CONCAT('<input type=\"checkbox\" id=\"auswahl_',d.id,'\"  onchange=\"chauswahl();\" value=\"1\" />'),
+            $img,        
+            if(d.titel!='',CONCAT(d.titel,'<br><i style=color:#999>',v.dateiname,'</i>'),v.dateiname), 
+            s.subjekt,
+            v.version,
+            if(v.size!='',if(v.size > 1024*1024,CONCAT(ROUND(v.size/1024/1024,2),' MB'),CONCAT(ROUND(v.size/1024,2),' KB')),''),
+            v.ersteller,
+            d.beschreibung,
+            ".$this->app->erp->FormatDate("v.datum").",
+            s.sort,
+            d.geschuetzt,
+            ".($sortmodus?"s.id": "d.id")." 
             FROM `datei` AS `d` 
             INNER JOIN `datei_stichwoerter` AS `s` ON d.id=s.datei
             LEFT JOIN (
@@ -6758,11 +6769,11 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
         $menu .= "<img src=\"themes/{$this->app->Conf->WFconf['defaulttheme']}/images/copy.svg\" border=\"0\">";
         $menu .= "</a>";
         $menu .= "</td>";
-        $menu .= "<td>";
+/*        $menu .= "<td>";
         $menu .= "<a href=\"index.php?module=rechnung&action=pdf&id=%value%\">";
         $menu .= "<img src=\"themes/{$this->app->Conf->WFconf['defaulttheme']}/images/pdf.svg\" border=\"0\">";
         $menu .= "</a>";
-        $menu .= "</td>";
+        $menu .= "</td>";*/
         $menu .= "<td>";
         $menu .= '<a href="#" class="label-manager" data-label-column-number="6" data-label-reference-id="%value%" data-label-reference-table="rechnung">';
         $menu .= '<span class="label-manager-icon"></span>';
@@ -6811,6 +6822,10 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
 
         $width[] = '1%';
         $findcols[] = 'r.id';
+        $heading[] = '';
+
+        $width[] = '1%';
+        $findcols[] = 'r.id';
         $heading[] = 'Men&uuml;';
 
         $parameter = $this->app->User->GetParameter('table_filter_rechnung');
@@ -6838,8 +6853,9 @@ r.land as land, p.abkuerzung as projekt, r.zahlungsweise as zahlungsweise,
                     if(r.soll-r.ist!=0 AND r.ist > 0,FORMAT(r.ist-r.soll,2{$extended_mysql55}),FORMAT((r.soll-r.ist)*-1,2{$extended_mysql55})),
                     '') 
                 as fehlt,
-                if(r.status = 'storniert' AND r.teilstorno = 1,'TEILSTORNO',UPPER(r.status))  as status,
-                ".(!empty($zusatzcols)?implode(', ',$zusatzcols).',':'')." 
+                if(r.status = 'storniert' AND r.teilstorno = 1,'TEILSTORNO',UPPER(r.status))  as status
+                ".(!empty($zusatzcols)?','.implode(', ',$zusatzcols):'').",
+                ".$this->GetRechnungFileDownloadLinkIconSQL().",
                 r.id
                 FROM  rechnung r LEFT JOIN projekt p ON p.id=r.projekt LEFT JOIN adresse adr ON r.adresse=adr.id LEFT JOIN auftrag au ON au.id = r.auftragid ";
         if(isset($parameter['artikel']) && !empty($parameter['artikel'])) {
@@ -14151,30 +14167,7 @@ source: "index.php?module=ajax&action=filter&filtername=' . $filter . $extendurl
       }
       $werte = $werte . $values[$i + 1];
       $this->app->Tpl->Add('CHARTS', "c.add('', '$color', [ $werte]);");
-    }
-    
-    function DateiUploadNeuVersion($parsetarget, $datei) {
-      $speichern = $this->app->Secure->GetPOST("speichern");
-      $module = $this->app->Secure->GetGET("module");
-      $action = $this->app->Secure->GetGET("action");
-      $id = $this->app->Secure->GetGET("id");
-      if($id)$this->app->Tpl->Set('ID',$id);
-
-      // Get files here
-      if ($speichern != "") {
-        $retval = $this->FilesFromUploadtoDMS(null, null, $datei);
-        if ($retval !== true) {
-            $this->app->Tpl->Set('ERROR', implode(', ',$retval));
-            $this->app->erp->EnableTab("tabs-2");
-        } else {
-            header("Location: index.php?module=$module&action=$action&id=$id");
-        }
-      }
-
-      $this->app->Tpl->Set('STARTDISABLE', "<!--");
-      $this->app->Tpl->Set('ENDEDISABLE', "-->");
-      $this->app->Tpl->Parse($parsetarget, "datei_neudirekt.tpl");
-    }
+    }     
     
     function DateiUpload($parsetarget, $objekt, $parameter, $optionen = null) {
       $speichern = $this->app->Secure->GetPOST("speichern");
@@ -15933,4 +15926,24 @@ function IframeDialog($width, $height, $src = "") {
     return 'convert(cast(convert('.$field.' using  latin1) as binary) using utf8)';
     //return $field.' COLLATE utf8_general_ci'; ersetzt Original
   }
+
+    public function GetRechnungFileDownloadLinkIconSQL($tablename = 'r') {
+        return(
+            "IF(".$tablename.".xmlrechnung,
+            CONCAT('<a href=\"index.php?module=rechnung&action=xml&id=',".$tablename.".id,'\"><img src=\"themes/".$this->app->Conf->WFconf['defaulttheme']."/images/xml.svg\" border=\"0\">'),
+            CONCAT('<a href=\"index.php?module=rechnung&action=pdf&id=',".$tablename.".id,'\"><img src=\"themes/".$this->app->Conf->WFconf['defaulttheme']."/images/pdf.svg\" border=\"0\">')
+            )"
+        );
+    }
+
+    public function GetRechnungFileDownloadLinkIcon($id) {
+        $xmlrechnung =  $this->app->DB->SelectRow("SELECT belegnr, xmlrechnung FROM rechnung WHERE id = '".$id."' LIMIT 1");
+        if ($xmlrechnung['belegnr'] == '') {
+            return('');
+        }  else if ($xmlrechnung['xmlrechnung']) {
+            return("<a href=\"index.php?module=rechnung&action=xml&id=%value%\"><img border=\"0\" src=\"./themes/new/images/xml.svg\" title=\"XML\"></a>");
+        } else {
+           return("<a href=\"index.php?module=rechnung&action=pdf&id=%value%\"><img border=\"0\" src=\"./themes/new/images/pdf.svg\" title=\"PDF\"></a>");
+        }
+    }
 }

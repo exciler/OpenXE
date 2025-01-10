@@ -1640,6 +1640,7 @@ class Auftrag extends GenAuftrag
    *
    * @return string
    */
+/* XENTRAL Legacy
   public function AuftragTrackingTabelle($id)
   {
     $table = new EasyTable($this->app);
@@ -1676,6 +1677,7 @@ class Auftrag extends GenAuftrag
 
     return $result;
   }
+*/
   
   function AuftragPDFfromArchiv()
   {
@@ -2117,26 +2119,28 @@ class Auftrag extends GenAuftrag
 
     /* rechnungen */
   
+    $link_zur_rechnung = "CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;',".$this->app->YUI->GetRechnungFileDownloadLinkIconSQL().",'&nbsp;            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>')";
+
     $sammelrechnungcheck = $this->app->DB->Select("SELECT * FROM sammelrechnung_position LIMIT 1");
     if($sammelrechnungcheck) {
       $rechnung = $this->app->DB->SelectPairs(
         "SELECT 
-          r.id, CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+              r.id,
+              ".$link_zur_rechnung." as rechnung
           FROM rechnung r 
           WHERE r.auftragid='$id'
           union 
           SELECT 
-          r.id,CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+              r.id,
+              ".$link_zur_rechnung." as rechnung
           FROM rechnung r 
           INNER JOIN sammelrechnung_position s ON r.id = s.rechnung 
           INNER JOIN auftrag_position p ON s.auftrag_position_id = p.id 
           WHERE p.auftrag='$id'
           union 
           SELECT 
-          r.id,CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>') as rechnung
+              r.id,
+              ".$link_zur_rechnung." as rechnung
           FROM rechnung r 
           INNER JOIN sammelrechnung_position s ON r.id = s.rechnung 
           INNER JOIN lieferschein_position lp ON lp.id = s.lieferschein_position_id
@@ -2158,9 +2162,8 @@ class Auftrag extends GenAuftrag
     else{
       $rechnung = $this->app->DB->SelectPairs(
         "SELECT 
-          r.id, CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>'
-          ) as rechnung
+              r.id,
+              ".$link_zur_rechnung." as rechnung
         FROM rechnung r 
         WHERE r.auftragid='$id'"
       );
@@ -2176,10 +2179,9 @@ class Auftrag extends GenAuftrag
     if(!$rechnung) {
       $rechnung = $this->app->DB->SelectPairs(
         "SELECT 
-                r.id, CONCAT('<a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"',if(r.status='storniert',' title=\"Rechnung storniert\"><s>','>'),if(r.belegnr='0' OR r.belegnr='','ENTWURF',r.belegnr),if(r.status='storniert','</s>',''),'</a>&nbsp;<a href=\"index.php?module=rechnung&action=pdf&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/pdf.svg\" title=\"Rechnung PDF\" border=\"0\"></a>&nbsp;
-            <a href=\"index.php?module=rechnung&action=edit&id=',r.id,'\" target=\"_blank\"><img src=\"./themes/new/images/edit.svg\" title=\"Rechnung bearbeiten\" border=\"0\"></a>'
-                    ) as rechnung
-         FROM rechnung r 
+              r.id,
+              ".$link_zur_rechnung." as rechnung
+          FROM rechnung r 
          INNER JOIN auftrag a ON a.rechnungid = r.id
          WHERE a.id='$id' 
       ");
@@ -5071,7 +5073,7 @@ class Auftrag extends GenAuftrag
         foreach($lieferscheine as $deliveryNoteId => $deliveryNoteNumber) {
           $optional .= "&nbsp;<input type=\"button\" value=\"LS "
             .$deliveryNoteNumber
-            ."\" onclick=\"window.location.href='index.php?module=lieferschein&action=pdf&id="
+            ."\" onclick=\"window.location.href='index.php?module=lieferschein&action=edit&id="
             .$deliveryNoteId."'\">";
         }
       }
@@ -5084,7 +5086,7 @@ class Auftrag extends GenAuftrag
         foreach($rechnungen as $invoiceId => $invoiceNumber) {
           $optional .= "&nbsp;<input type=\"button\" value=\"RE "
             .$invoiceNumber
-            ."\" onclick=\"window.location.href='index.php?module=rechnung&action=pdf&id="
+            ."\" onclick=\"window.location.href='index.php?module=rechnung&action=edit&id="
             .$invoiceId."'\">";
         }
       }
@@ -5260,11 +5262,13 @@ class Auftrag extends GenAuftrag
       $this->app->Tpl->Add('AUFTRAGSDOKUMENTE',"</fieldset>");
     }
 
+/* XENTRAL Legacy
     //suche alle LS zu diesem Auftrag
     if($auftragsnummer>0) {
       $trackingInfo = $this->AuftragTrackingTabelle(empty($deliveryNoteIds)?0: $id);
       $this->app->Tpl->Set('VERSAND', $trackingInfo);
     } 
+*/
 
     // UST
     $ust_ok = $orderRow['ust_ok'];//$this->app->DB->Select("SELECT ust_ok FROM auftrag WHERE id='$id' LIMIT 1");
@@ -5639,6 +5643,12 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
           $etiketten_art = $projektarr['etiketten_art'];//$this->app->DB->Select("SELECT etiketten_art FROM projekt WHERE id='$projekt' LIMIT 1");
           $etiketten_drucker = $projektarr['etiketten_drucker'];//$this->app->DB->Select("SELECT etiketten_drucker FROM projekt WHERE id='$projekt' LIMIT 1");
           $etiketten_sort= $projektarr['etiketten_sort'];//$this->app->DB->Select("SELECT etiketten_drucker FROM projekt WHERE id='$projekt' LIMIT 1");
+
+          $etikett_adresse = $this->app->DB->SelectRow("SELECT lieferscheinpositionetikettdruck, lieferscheinpositionetikett FROM adresse WHERE id ='".$adresse."' LIMIT 1");
+          if ($etikett_adresse['lieferscheinpositionetikettdruck']) {
+            $etiketten_positionen = 1;
+            $etiketten_art = $etikett_adresse['lieferscheinpositionetikett'];
+          }
         }
         if($etiketten_positionen > 0)
         {
@@ -5717,7 +5727,7 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
 
           $this->app->erp->ANABREGSNeuberechnen($rechnung,"rechnung");
           $this->app->erp->rechnung_zahlstatus_berechnen($id);
-          $this->app->erp->PDFArchivieren("rechnung",$rechnung);
+          $this->app->erp->RechnungArchivieren($rechnung);
         }
       }
       // auftrag_position geliefert_menge und geliefert anpassen
@@ -5805,10 +5815,17 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
                 $kommissionierung = $this->app->erp->GetNextKommissionierung();
  
                 $druckercode = $this->app->erp->Projektdaten($projekt,'druckerlogistikstufe1');          
-                $etikettendrucker = $this->app->erp->Projektdaten($projekt,'etiketten_drucker');          
+                $etikettautodruck = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung');
+                $etikettendrucker = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung_drucker');
+                $etikettart = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung_art');
                        
                 $sql = "SELECT etikett, etikettautodruck FROM adresse WHERE id =".$adresse; 
                 $settings = $this->app->DB->SelectRow($sql);               
+
+                if ($settings['etikettautodruck']) {
+                    $etikettautodruck = true;
+                    $etikettart = $settings['etikett'];
+                }
 
                 $this->Kommissionieren(
                     kommissionierung : $kommissionierung,
@@ -5818,8 +5835,8 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
                     lagerplatzliste: $auslagernresult,
                     mengedruck: $projektarr['autodruckkommissionierscheinstufe1']?$projektarr['autodruckkommissionierscheinstufe1menge']:0,
                     druckercode: $druckercode,
-                    mengeetiketten: $settings['etikettautodruck']?1:0,
-                    etikett: $settings['etikettautodruck']?$settings['etikett']:0,
+                    mengeetiketten: $etikettautodruck?1:0,
+                    etikett: $etikettautodruck?$etikettart:0,
                     etikettendrucker: $etikettendrucker);
             }
                
@@ -6129,15 +6146,12 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
         }
         unlink($tmpfile);
       }
-
       // Send the invoice as last step
       if($autodruckrechnungstufe1mail && $rechnung > 0)
       {
         $this->app->erp->Rechnungsmail($rechnung);
       }      
-
       $this->app->erp->RunHook('auftrag_versand_ende', 1, $id);
-
       // wenn per URL aufgerufen      
       if($internmodus!='1')
       {
@@ -6579,14 +6593,25 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
                                 projekt.autodruckkommissionierscheinstufe1menge,
                                 adresse.etikett,
                                 adresse.etikettautodruck,
-                                projekt.id as projekt
+                                projekt.id as projekt,
+                                auftrag.adresse
                             FROM projekt 
                             INNER JOIN auftrag ON projekt.id = auftrag.projekt
                             INNER JOIN adresse ON adresse.id = auftrag.adresse
                             WHERE auftrag.id = '".$v."'"
                         );
 
-                        $etikettendrucker = $this->app->erp->Projektdaten($settings['projekt'],'etiketten_drucker');          
+                        $etikettautodruck = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung');
+                        $etikettendrucker = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung_drucker');
+                        $etikettart = $this->app->erp->Projektdaten($projekt,'etiketten_kommissionierung_art');
+                               
+                        $sql = "SELECT etikett, etikettautodruck FROM adresse WHERE id =".$settings['adresse']; 
+                        $adressesettings = $this->app->DB->SelectRow($sql);
+
+                        if ($adressesettings['etikettautodruck']) {
+                            $etikettautodruck = true;
+                            $etikettart = $adressesettings['etikett'];
+                        }
 
                         $this->Kommissionieren(
                             kommissionierung : $kid,
@@ -6596,8 +6621,8 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
                             lagerplatzliste: $auslagernresult,
                             mengedruck: $settings['autodruckkommissionierscheinstufe1']?$settings['autodruckkommissionierscheinstufe1menge']:0,
                             druckercode: $druckercode,
-                            mengeetiketten: $settings['etikettautodruck']?1:0,
-                            etikett: $vorkommissionieren_ohne_etiketten?0:($settings['etikettautodruck']?$settings['etikett']:0),
+                            mengeetiketten: $etikettautodruck?1:0,
+                            etikett: $vorkommissionieren_ohne_etiketten?0:($etikettautodruck?$etikettart:0),
                             etikettendrucker: $etikettendrucker);                       
                     }
                 }
@@ -7383,10 +7408,6 @@ Die Gesamtsumme stimmt nicht mehr mit urspr&uuml;nglich festgelegten Betrag '.
                     druckercode: $etikettendrucker
                 );                    
             }
-
-            //function EtikettenDrucker($kennung,$anzahl,$tabelle,$id,$variables="",$xml="",$druckercode="",$filenameprefix="",$xmlaspdf=false,$adresse=0,$verwendenals="")
         }
-
-
     }
 }

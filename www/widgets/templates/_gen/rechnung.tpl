@@ -4,7 +4,7 @@
    <ul>
       <li><a href="#tabs-1">Rechnung</a></li>
       <li><a href="#tabs-2" onclick="callCursor();">Positionen</a></li>
-      <li><a href="index.php?module=rechnung&action=inlinepdf&id=[ID]&frame=true#tabs-3">Vorschau</a></li>
+      <li [PDFVORSCHAUHIDDEN]><a href="index.php?module=rechnung&action=inlinepdf&id=[ID]&frame=true#tabs-3">Vorschau</a></li>
       [FURTHERTABS]
    </ul>
    <div id="tabs-1">
@@ -98,6 +98,10 @@
                            <tr>
                               <td>[ABWEICHENDEBEZEICHNUNGBESCHRIFTUNG]:</td>
                               <td>[ABWEICHENDEBEZEICHNUNG][MSGABWEICHENDEBEZEICHNUNG]&nbsp;</td>
+                           </tr>
+                           <tr>
+                              <td>{|XML-Rechnung|}:</td>
+                              <td>[XMLRECHNUNG][MSGXMLRECHNUNG]&nbsp;</td>
                            </tr>
                         </table>
                      </fieldset>
