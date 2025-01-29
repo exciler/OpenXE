@@ -43,6 +43,9 @@ class Shopimporter_Shopware6 extends ShopimporterBase
 
     private $normalTaxId;
     private $reducedTaxId;
+
+    private $deliveryTimeId;
+
     public $protocol;
 
     /** @var bool  */
@@ -200,6 +203,9 @@ class Shopimporter_Shopware6 extends ShopimporterBase
         if (curl_error($ch)) {
             $this->error[] = curl_error($ch);
         }
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($code == 400)
+            $this->Shopware6Log("Shopware-Request failed", $response);
         curl_close($ch);
 
         return json_decode($response, true);
@@ -593,6 +599,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
         $this->shopwareMediaFolder = $einstellungen['felder']['shopwareMediaFolder'];
         $this->normalTaxId = $einstellungen['felder']['normalTaxId'];
         $this->reducedTaxId = $einstellungen['felder']['reducedTaxId'];
+        $this->deliveryTimeId = $einstellungen['felder']['deliveryTimeId'];
         $query = sprintf('SELECT `steuerfreilieferlandexport` FROM `shopexport`  WHERE `id` = %d', $this->shopid);
         $this->taxationByDestinationCountry = !empty($this->app->DB->Select($query));
 
@@ -684,6 +691,11 @@ class Shopimporter_Shopware6 extends ShopimporterBase
                     'reducedTaxId' => [
                         'typ' => 'text',
                         'bezeichnung' => '{|TaxId für Steuersatz "ermäßigt"|}',
+                        'size' => 40,
+                    ],
+                    'deliveryTimeId' => [
+                        'typ' => 'text',
+                        'bezeichnung' => 'Standard-Lieferzeit (Id)',
                         'size' => 40,
                     ],
                     'statesToFetch' => [
@@ -919,8 +931,9 @@ class Shopimporter_Shopware6 extends ShopimporterBase
     public function ImportSendList()
     {
         $articleList = $this->CatchRemoteCommand('data');
+        $articleList = array_slice($articleList, 0, 10);
 
-        $successCounter = 0;
+        $successList = [];
         foreach ($articleList as $article) {
             $number = $article['nummer'];
             $articleInfo = $this->shopwareRequest(
@@ -964,7 +977,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
 
             $systemFieldsToAdd = $this->systemFieldsToExport($article, $articleIdShopware);
 
-            $deliveryTimeId = null;
+            $deliveryTimeId = $this->deliveryTimeId;
             if(!empty($article['lieferzeitmanuell'])){
               $deliveryTimeId = $this->getDeliveryTimeId($article['lieferzeitmanuell']);
             }
@@ -1120,10 +1133,10 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             }
           }
 
-          $successCounter++;
+          $successList[] = $article['artikelid'];
         }
 
-        return $successCounter;
+        return ['articlelist' => $successList];
     }
 
   protected function exportBulkPriceForGroup(string $productId, string $groupName, PriceData $priceData): void

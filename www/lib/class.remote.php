@@ -1941,7 +1941,7 @@ class Remote {
                 if (!empty($artikelexport) && !$nurlager) {
                     $result = $this->sendlist($id, $data, true);
                 }
-                if (!empty($lagerexport)) {
+                else if (!empty($lagerexport)) {
                     $result = $this->sendlistlager($id, $data);
                 }
                 return $result;
@@ -2067,7 +2067,7 @@ class Remote {
         if (!empty($artikelexport) && !$nurlager) {
             $result = $this->sendlist($id, $data, true);
         }
-        if (!empty($lagerexport)) {
+        else if (!empty($lagerexport)) {
             $result = $this->sendlistlager($id, $data);
         }
         return $result;
