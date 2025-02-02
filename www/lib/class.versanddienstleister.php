@@ -154,8 +154,8 @@ abstract class Versanddienstleister
           $pos = new CustomsDeclarationItem();
           $pos->description = $row['bezeichnung'];
           $pos->quantity = $row['menge'];
-          $pos->hsCode = $row['zolltarifnummer'];
-          $pos->originCountryCode = $row['herkunftsland'];
+          $pos->hsCode = $row['zolltarifnummer'] ?? '';
+          $pos->originCountryCode = $row['herkunftsland'] ?? '';
           $pos->itemValue = $row['zolleinzelwert'];
           $pos->itemWeight = $row['zolleinzelgewicht'];
           $ret->positions[] = $pos;

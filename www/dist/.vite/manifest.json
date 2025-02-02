@@ -1,13 +1,13 @@
 {
   "_vue-!~{003}~.js": {
-    "file": "assets/vue-ddBtUCvb.css",
+    "file": "assets/vue-CMXOvwpj.css",
     "src": "_vue-!~{003}~.js"
   },
-  "_vue-BEWyf7FO.js": {
-    "file": "vue-BEWyf7FO.js",
+  "_vue-BGepilzd.js": {
+    "file": "vue-BGepilzd.js",
     "name": "vue",
     "css": [
-      "assets/vue-ddBtUCvb.css"
+      "assets/vue-CMXOvwpj.css"
     ],
     "assets": [
       "assets/primeicons-DMOk5skT.eot",
@@ -18,21 +18,21 @@
     ]
   },
   "classes/Modules/MatrixProduct/www/js/entry.js": {
-    "file": "modules/MatrixProduct-CnbzGaDi.js",
+    "file": "modules/MatrixProduct-C2Gu_q6G.js",
     "name": "modules/MatrixProduct",
     "src": "classes/Modules/MatrixProduct/www/js/entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-BEWyf7FO.js"
+      "_vue-BGepilzd.js"
     ]
   },
   "classes/Modules/ShippingMethod/www/js/shipment.entry.js": {
-    "file": "modules/ShippingMethod-shipment-C65zfRkw.js",
+    "file": "modules/ShippingMethod-shipment-32soFRWF.js",
     "name": "modules/ShippingMethod-shipment",
     "src": "classes/Modules/ShippingMethod/www/js/shipment.entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-BEWyf7FO.js"
+      "_vue-BGepilzd.js"
     ]
   },
   "node_modules/primeicons/fonts/primeicons.eot": {
