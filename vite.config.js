@@ -28,6 +28,7 @@ const inputs = globSync(globpattern)
 
 /** @type {import('vite').UserConfig} */
 export default {
+    base: './',
     build: {
         rollupOptions: {
             input: {
