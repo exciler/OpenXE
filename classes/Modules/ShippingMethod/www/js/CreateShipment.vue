@@ -296,12 +296,12 @@ onBeforeUpdate(autoselectproduct);
           </Column>
           <Column field="totalValue" :header="t('common.totalValue')">
             <template #body="{data}">
-              {{ n(Number(data.menge*data.zolleinzelwert || 0), 'currency') }}
+              {{ n(Number(data.quantity*data.itemValue || 0), 'currency') }}
             </template>
           </Column>
           <Column field="totalWeight" :header="t('common.totalWeight')">
             <template #body="{data}">
-              {{ n(Number(data.menge*data.zolleinzelgewicht || 0), 'weight') }}
+              {{ n(Number(data.quantity*data.itemWeight || 0), 'weight') }}
             </template>
           </Column>
           <Column>
