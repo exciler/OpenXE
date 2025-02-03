@@ -22,6 +22,12 @@ de:
     hscode: HS-Code
     itemValue: Einzelwert
     itemWeight: Einzelgewicht
+    shipmentType:
+      gift: Geschenk
+      documents: Dokumente
+      goods: Waren
+      sample: Handelsmuster
+      return: Rücksendung
 en:
   title: Print shipping labels for {carrier}
   package: Package
@@ -46,3 +52,9 @@ en:
     hscode: HS-Code
     itemValue: Item value
     itemWeight: Item weight
+    shipmentType:
+      gift: Gift
+      documents: Documents
+      goods: Goods
+      sample: Samples
+      return: Return
