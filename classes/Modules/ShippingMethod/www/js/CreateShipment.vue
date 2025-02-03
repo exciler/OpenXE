@@ -37,7 +37,7 @@ const shipmentTypes = [
 const totalValue = computed(() => {
   let sum = 0;
   for (const pos of model.value.customsDeclaration.positions) {
-    sum += (pos.menge * pos.zolleinzelwert) || 0;
+    sum += (pos.quantity * pos.itemValue) || 0;
   }
   return sum;
 });
@@ -45,7 +45,7 @@ const totalValue = computed(() => {
 const totalWeight = computed(() => {
   let sum = 0;
   for (const pos of model.value.customsDeclaration.positions) {
-    sum += (pos.menge * pos.zolleinzelgewicht) || 0;
+    sum += (pos.quantity * pos.itemWeight) || 0;
   }
   return sum;
 });
@@ -55,7 +55,7 @@ const availProducts = computed(() => {
 })
 
 function addPosition() {
-  model.value.customsDeclaration.positions.push({bezeichnung: 'EDIT', menge: 0, hscode: 'EDIT', zolleinzelwert: 0, zolleinzelgewicht: 0});
+  model.value.customsDeclaration.positions.push({description: 'EDIT', quantity: 0, hsCode: 'EDIT', itemValue: 0, itemWeight: 0});
 }
 
 function deletePosition(index) {
