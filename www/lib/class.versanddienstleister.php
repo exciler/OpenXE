@@ -156,8 +156,8 @@ abstract class Versanddienstleister
           $pos->quantity = $row['menge'];
           $pos->hsCode = $row['zolltarifnummer'] ?? '';
           $pos->originCountryCode = $row['herkunftsland'] ?? '';
-          $pos->itemValue = $row['zolleinzelwert'];
-          $pos->itemWeight = $row['zolleinzelgewicht'];
+          $pos->itemValue = floatval($row['zolleinzelwert']);
+          $pos->itemWeight = floatval($row['zolleinzelgewicht']);
           $ret->positions[] = $pos;
       }
       return $ret;
