@@ -561,7 +561,7 @@ class Shopimporter_Woocommerce extends ShopimporterBase
     for($i=0;$i<(!empty($tmp)?count($tmp):0);$i++){
       $return[$i] = new ArticleExportResult();
       $artikel = $tmp[$i]['artikel'];
-      $return[$i]->articleId = $artikel;
+      $return[$i]->articleId = intval($artikel);
       $nummer = $tmp[$i]['nummer'];
       if(!empty($tmp[$i]['artikelnummer_fremdnummern'][0]['nummer'])){
         $nummer = $tmp[$i]['artikelnummer_fremdnummern'][0]['nummer'];

@@ -968,7 +968,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
         $return = [];
         foreach ($articleList as $article) {
             $articleResult = new ArticleExportResult();
-            $articleResult->articleId = $article['artikel'];
+            $articleResult->articleId = intval($article['artikel']);
             $number = $article['nummer'];
             $articleInfo = $this->shopwareRequest(
                 'GET',

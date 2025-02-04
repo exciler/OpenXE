@@ -1210,7 +1210,7 @@ class Shopimporter_Shopware extends ShopimporterBase
 
       //Schritt 2: Artikeleigenschaften
       $artikel = $tmp[$i]['artikel'];
-      $return[$i]->articleId = $artikel;
+      $return[$i]->articleId = intval($artikel);
       $nummer = isset($tmp[$i]['fremdnummer'])?$tmp[$i]['fremdnummer']:$tmp[$i]['nummer'];
       $inaktiv = $tmp[$i]['inaktiv'];
       $name_de = $tmp[$i]['name_de'];

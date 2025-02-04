@@ -755,7 +755,7 @@ class Shopimporter_Shopify extends ShopimporterBase
     for($i=0;$i<$ctmp;$i++)
     {
       $return[$i] = new ArticleExportResult();
-      $return[$i]->articleId = $tmp[$i]['artikel'];
+      $return[$i]->articleId = intval($tmp[$i]['artikel']);
       if($tmp[$i]['variante'] && $tmp[$i]['variantevon'] != ''){
         $return[$i]->message = "Variantenexport ist nur über den Hauptartikel möglich.";
         continue;
