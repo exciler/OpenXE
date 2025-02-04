@@ -1193,6 +1193,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             $articleResult->extArticleId = $articleIdShopware;
             $articleResult->success = true;
             $articleResult->message = 'Artikelexport erfolgreich';
+            $return[] = $articleResult;
         }
 
         return $return;
