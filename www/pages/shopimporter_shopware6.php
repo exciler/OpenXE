@@ -16,6 +16,7 @@
 <?php
 
 use Xentral\Components\Http\JsonResponse;
+use Xentral\Modules\Onlineshop\Data\ArticleExportResult;
 use Xentral\Modules\Onlineshop\Data\OrderStatus;
 use Xentral\Modules\Onlineshop\Data\OrderStatusUpdateRequest;
 use Xentral\Modules\Shopware6\Client\Shopware6Client;
@@ -964,8 +965,10 @@ class Shopimporter_Shopware6 extends ShopimporterBase
         $articleList = $this->CatchRemoteCommand('data');
         $articleList = array_slice($articleList, 0, 10);
 
-        $successList = [];
+        $return = [];
         foreach ($articleList as $article) {
+            $articleResult = new ArticleExportResult();
+            $articleResult->articleId = $article['artikel'];
             $number = $article['nummer'];
             $articleInfo = $this->shopwareRequest(
                 'GET',
@@ -1037,7 +1040,9 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             }
 
             if (empty($manufacturerId)) {
-                return 'error: Für den Artikelexport ist die Herstellerinformation zwingend erforderlich';
+                $articleResult->message = 'Für den Artikelexport ist die Herstellerinformation zwingend erforderlich';
+                $return[] = $articleResult;
+                continue;
             }
 
             $isCloseOut = false;
@@ -1149,6 +1154,8 @@ class Shopimporter_Shopware6 extends ShopimporterBase
 
             if (empty($result['data']) || is_array($result['errors'])) {
                 $this->Shopware6Log('Artikelexport fehlgeschlagen', ['data:' => $data, 'response' => $result]);
+                $articleResult->message = 'Artikelexport fehlgeschlagen, weitere Hinweise im Logfile';
+                $return[] = $articleResult;
                 continue;
             }
 
@@ -1161,6 +1168,8 @@ class Shopimporter_Shopware6 extends ShopimporterBase
                     'Artikelexport bei Bild&uuml;bertragung fehlgeschlagen',
                     ['data:' => $data, 'response' => $result],
                 );
+                $articleResult->message = 'Artikelexport bei Bildübertragung fehlgeschlagen';
+                $return[] = $articleResult;
                 continue;
             }
 
@@ -1181,10 +1190,12 @@ class Shopimporter_Shopware6 extends ShopimporterBase
                 }
             }
 
-            $successList[] = $article['artikelid'];
+            $articleResult->extArticleId = $articleIdShopware;
+            $articleResult->success = true;
+            $articleResult->message = 'Artikelexport erfolgreich';
         }
 
-        return ['articlelist' => $successList];
+        return $return;
     }
 
     protected function exportBulkPriceForGroup(string $productId, string $groupName, PriceData $priceData): void
