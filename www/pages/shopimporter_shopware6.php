@@ -1510,6 +1510,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             $mediaData = $this->shopwareRequest('POST', 'media?_response=true', [
                 'title' => $imageTitle,
                 'alt' => $imageAltText,
+                'fileName' => $filename,
             ]);
             if (empty($mediaData['data']['id'])) {
                 $this->Shopware6Log(
@@ -1534,7 +1535,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             ];
             $this->shopwareRequest('POST', '_action/sync?_response=true', $mediaAssociationData);
 
-            $url = $this->ShopUrl . '_action/media/' . $mediaId . '/upload?extension=' . $extension . '&fileName=' . $filename;
+            $url = $this->ShopUrl . '_action/media/' . $mediaId . '/upload?extension=' . $extension . '&fileName=' . urlencode($filename);
             $ch = curl_init();
             $setHeaders = [
                 'Content-Type:image/' . $extension,
@@ -1546,7 +1547,10 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             curl_setopt($ch, CURLOPT_HTTPHEADER, $setHeaders);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_exec($ch);
+            $response = curl_exec($ch);
+            if (curl_errno($ch) > 0 || curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 400) {
+                $this->Shopware6Log("Curl error", ['error' => curl_error($ch), 'response' => $response, 'url' => $url]);
+            }
 
             $internalMediaIds[] = $mediaId;
         }
