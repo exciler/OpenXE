@@ -1510,7 +1510,6 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             $mediaData = $this->shopwareRequest('POST', 'media?_response=true', [
                 'title' => $imageTitle,
                 'alt' => $imageAltText,
-                'fileName' => $filename,
             ]);
             if (empty($mediaData['data']['id'])) {
                 $this->Shopware6Log(
