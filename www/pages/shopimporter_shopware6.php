@@ -963,7 +963,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
     public function ImportSendList()
     {
         $articleList = $this->CatchRemoteCommand('data');
-        $articleList = array_slice($articleList, 0, 10);
+        $articleList = array_slice($articleList, 0, 50);
 
         $return = [];
         foreach ($articleList as $article) {
