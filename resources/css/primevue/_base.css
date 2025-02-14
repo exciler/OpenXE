@@ -6,12 +6,10 @@
 
 @import "basecomponent.css";
 @import "autocomplete.css";
-@import "checkbox.css";
 @import "dialog.css";
 @import "dropdown.css";
 @import "icons.css";
 @import "listbox.css";
-@import "multiselect.css";
 
 .p-component-overlay {
     background-color: rgba(170,170,170,0.7);
