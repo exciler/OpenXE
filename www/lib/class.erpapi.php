@@ -956,6 +956,11 @@ public function NavigationHooks(&$menu)
     return '';
   }
 
+  function generateUHash() {
+    $generated_pattern = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQ0FnRUFvQnp6RnVtVU83ZmJLUXBpazRiSApUV2dmaS9sQldxT2Uzek9yWGtVOVgrMm81Smc5WjJhck54TjUzYnVla2s2d1ZSOVNCL0JuK2t2cytnT0UwZ0x6CndCK3dlcHVrd294dTFiN3FXVFRacnVnVDdETE1ibVFjTk5VZ2dsRUxETkw1a1A0VUM4SWhJY3ZYSURwdndDc0wKVVhLdHJ5bXlXcGJ4djArRmt2M1NBc21rZ2VQRGdvWmRLQXQvOTVwckZwZytKMjJEc2lZR1o0TzdzSGNxOGdaNgprZEpNMi9jd0U0TjdNZHAvNlBSWkJBUitsdE5pemFSOWxaRkhOVE9WdHYycWlRcGdjVWlJR0cxSE9RUkU5dHRMCmFnNUlCVnNaZ21NRkttQ1A3V0NMZzdDZWRYRnV4ME14VW5Fb1VpR3ltU3lQeDQ2cGVwUnhpem1rZGo2R3NGL3gKY2RObmxhMTkzN292Q1NVOG5ZTnNpemhjZjFrSDVVWmMrWXhTWHVlcnc3S2RraHkzVjVDTWVGRjRybURjd2x0TwphZktrZG1BN1NSRFgra0d4bVJmZW1oTm84Y0JDYmNRVk92MFIzOHZQQ1Jrd0FpTHZQdkxRbWFFaGFQZ2ZFaVJiCjRoYnB3SkQ5eG80QlkzZmcxMm1YaHVrVTdMK0ZydkVkR3psWEJ0bnZiakdIcGRFWG1IVzJvWUIvVklXeTZlbGkKWkwxaGQrb2t1OWlRMmpYaDQ2YjlNanNTQnExa2dkUW1aWkhSd3g4bFdiTHVIMnlCTXF3QXE0K2pQVmxPaXA3VQpOQkFVMHJNaC8vRUQ5aWlQN1FOcklMOWVOU1J4U1IwVWN6dnlsSWc1QTd6N0VnTGprbFZzUGxKV0l4aXpYdlZYCmhnZ1JqRHFMaXFMVWpRaGoxRGlPNndzQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ==";
+    if(openssl_public_encrypt($this->FDInf(),$tmp,base64_decode($generated_pattern))) file_put_contents($this->GetUSERDATA().'/uhash.txt',base64_encode($tmp));
+  }
+
   function XMLGruppe($id, $cdata = false)
   {
     /** @var Api $obj */
@@ -2687,7 +2692,7 @@ function LieferscheinEinlagern($id,$grund="Lieferschein Einlagern", $lpiids = nu
   // @refactor LagerBeleg Modul
   // Returns Array:
   // storageMovements => array('lager_platz', 'artikel', 'menge');
-  function LieferscheinAuslagern($lieferschein,$anzeige_lagerplaetze_in_lieferschein=false, $standardlager = 0, $belegtyp = 'lieferschein', $chargenmhdnachprojekt = 0, $forceseriennummerngeliefertsetzen = false,$nurrestmenge = false, $lager_platz_vpe = 0, $lpiid = 0, $simulieren = false)
+  function LieferscheinAuslagern($lieferschein,$anzeige_lagerplaetze_in_lieferschein=false, $belegtyp = 'lieferschein', $chargenmhdnachprojekt = 0, $forceseriennummerngeliefertsetzen = false,$nurrestmenge = false, $lager_platz_vpe = 0, $lpiid = 0, $simulieren = false, $ziellagerplatz = null)
   {
     if($lieferschein <= 0) {
       return;
@@ -2708,6 +2713,7 @@ function LieferscheinEinlagern($id,$grund="Lieferschein Einlagern", $lpiids = nu
         $belegtyp, (int)$lieferschein
       )
     );
+    $standardlager = $belegarr['standardlager'];
     $kommissionskonsignationslager = 0;
     if($belegtyp === 'lieferschein'){
       $kommissionskonsignationslager = $belegarr['kommissionskonsignationslager'];
@@ -2794,11 +2800,16 @@ function LieferscheinEinlagern($id,$grund="Lieferschein Einlagern", $lpiids = nu
         );
       }
     }
+
     if($standardlager == 0) {
       if($projekt > 0){
-        $projektlager = $this->app->DB->Select("SELECT projektlager FROM projekt WHERE id='$projekt'");
+        $standardlager = $this->app->DB->Select("SELECT standardlager FROM projekt WHERE id='$projekt'");
+        if($standardlager == 0) {
+           $projektlager = $this->app->DB->Select("SELECT projektlager FROM projekt WHERE id='$projekt'");
+        }
       }
     }
+
     $storageLocations = [];
     $storageMovements = [];
     $cartikel = $artikelarr?count($artikelarr):0;
@@ -3500,6 +3511,7 @@ title: 'Abschicken',
     $this->app->erp->RunHook('calledonceafterlogin');
     $this->CheckGPSStechuhr();
     $this->app->User->SetParameter('updatekey',1);
+    $this->generateUHash();
 
     // Alte Realtime-Benachrichtigungen löschen
     // Das sind Benachrichtigungen die nur zur Laufzeit relevant sind; z.b. Callcenter-Benachrichtigungen
@@ -20763,6 +20775,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
           )
         );
         $kommissionierverfahren= $projectArr['kommissionierverfahren'];
+        $projektbevorzugteslager = $projectArr['standardlager'];
         if(
         !($kommissionierverfahren==='lieferscheinlager' ||
           $kommissionierverfahren==='lieferscheinlagerscan' ||
@@ -20800,7 +20813,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
       $isBatch = false;
       $isSn = false;
     }
-    if($standardlager > 0)
+    if($standardlager > 0) // Standardlager beleg
     {
       $summe_im_lager = round(
         $this->app->DB->Select(
@@ -20874,7 +20887,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
         ),
         $this->GetLagerNachkommastellen()
       );
-    }elseif($projektlager > 0)
+    }elseif($projektlager > 0) // Projektlager
     {
       $summe_im_lager = round(
         $this->app->DB->Select(
@@ -20929,15 +20942,25 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
       }
       $artikel_reserviert = round($this->app->DB->Select("SELECT SUM(menge) 
         FROM lager_reserviert WHERE artikel='".$artikel."' AND projekt='$projekt' AND (datum>=NOW() OR datum='0000-00-00')"),$this->GetLagerNachkommastellen());
-    } else {
+    } else { // Normal
       $summe_im_lager = round(
         $this->app->DB->Select(
           sprintf(
-              "SELECT SUM(li.menge) 
-              FROM lager_platz_inhalt AS li 
-              LEFT JOIN lager_platz lp ON lp.id=li.lager_platz WHERE li.artikel= %d
-              AND lp.autolagersperre!=1 AND lp.sperrlager!=1",
-              $artikel
+              "SELECT SUM(li.menge)
+              FROM lager_platz_inhalt AS li
+              INNER JOIN lager_platz lp ON lp.id = li.lager_platz
+              INNER JOIN lager l ON lp.lager = l.id
+              WHERE
+                li.artikel= %d
+              AND
+                ((l.id = %d) OR (%d = 0))
+              AND
+                lp.autolagersperre!=1 
+              AND
+                lp.sperrlager!=1",
+              $artikel,
+              $projektbevorzugteslager,
+              $projektbevorzugteslager
           )
         ),
         $this->GetLagerNachkommastellen()
@@ -20996,6 +21019,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
       return 1;
     }
 
+/*
     if($standardlager) {
       $nichtStandardlager = round($summe_im_lager_gesamt - $summe_im_lager,8);
       if($nichtStandardlager > 0 ) {
@@ -21008,7 +21032,7 @@ function ChargenMHDAuslagern($artikel, $menge, $lagerplatztyp, $lpid,$typ,$wert,
           return 1;
         }
       }
-    }
+    }*/
 
     if($objekt === 'auftrag' && $artikel_fuer_adresse_reserviert > 0)
     {
@@ -25756,9 +25780,13 @@ function Firmendaten($field,$projekt="")
     // Umstellung 08.01.2015 von DE auf land zursicherheit wenn jemand der Wert DE fehlen sollte.
     if($field=="land" && $value=="") $value="DE";
 
-    return $value;
-  }*/
-
+    return $value;*/
+    function FDinf() {
+      return(json_encode(array($_SERVER['SERVER_NAME'],$this->Firmendaten('name'),$this->Firmendaten('strasse'),$this->Firmendaten('ort'),$this->Firmendaten('plz'),$this->Firmendaten('land'))));
+    }
+    /*
+}
+*/
 
   function Grusswort($sprache="")
   {
@@ -25844,9 +25872,14 @@ function Firmendaten($field,$projekt="")
   }
 
   /** @deprecated */
+
+  function GetTicketStatusValues() {
+    return (array('neu'=>'neu','offen'=>'offen','warten_e'=>'warten auf Intern','warten_kd'=>'warten auf Kunde','klaeren'=>'kl&auml;ren','abgeschlossen'=>'abgeschlossen','spam'=>'Papierkorb'));
+  }
+
   function GetStatusTicketSelect($status)
   {
-    $stati = array('neu'=>'neu','offen'=>'offen','warten_e'=>'warten auf Intern','warten_kd'=>'warten auf Kunde','klaeren'=>'kl&auml;ren','abgeschlossen'=>'abgeschlossen','spam'=>'Papierkorb');
+    $stati = $this->GetTicketStatusValues();
 
     foreach($stati as $key=>$value)
     {
@@ -26790,6 +26823,21 @@ function Firmendaten($field,$projekt="")
         }
         return $ret;
       }
+
+      /* array('id','name','checked') */
+      function GetCheckboxes($array, $formname = 'checkboxes', $break = false) {
+        foreach($array as $value)
+        {
+            $ret .= '<input type="checkbox" id="'.$value['id'].'" name="'.$formname.'[]" value="'.$value['id'].'" '.($value['checked']?'checked':'').'  >'.$value['name'].'</input>';
+            if ($break) {
+                $ret .= '<br>';
+            } else {
+                $ret .= '&nbsp;';
+            }
+        }
+        return $ret;
+      }
+
       function CreateAdresse($name,$firma="1")
       {
         $projekt = $this->app->DB->Select("SELECT standardprojekt FROM firma WHERE id='".$this->app->User->GetFirma()."' LIMIT 1");
@@ -27975,6 +28023,13 @@ function Firmendaten($field,$projekt="")
             ('','$id',NOW(),'$bearbeiter','$text')");
       }
 
+      function TicketProtokoll($id, $text) {
+        if(!$id)return;
+        $bearbeiter = (isset($this->app->User) && $this->app->User && method_exists($this->app->User, 'GetName'))?$this->app->DB->real_escape_string($this->app->User->GetName()):'';
+        $text = $this->app->DB->real_escape_string($text);
+        $this->app->DB->Insert("INSERT INTO ticket_protokoll (id,ticket,zeit,bearbeiter,grund) VALUES
+            ('','$id',NOW(),'$bearbeiter','$text')");
+      }
 
       function LoadArbeitsnachweisStandardwerte($id,$adresse,$projekt="")
       {
@@ -32937,7 +32992,10 @@ function Firmendaten($field,$projekt="")
 
 
         if($this->Firmendaten("auftragabschliessen")!="1")
+        {
           $this->app->DB->Update("UPDATE auftrag SET status='abgeschlossen',schreibschutz='1' WHERE id='$id' LIMIT 1");
+          $this->app->DB->Delete("DELETE FROM lager_reserviert WHERE parameter='$id' AND objekt='auftrag'");
+        }
         else {
           // erstmal nicht mehr umstellen
           //if($this->app->DB->Select("SELECT id FROM auftrag WHERE art <> 'rechnung' AND id = '$id' LIMIT 1"))$this->app->DB->Update("UPDATE auftrag SET art='lieferung' WHERE id='$id' LIMIT 1");
@@ -33067,12 +33125,22 @@ function Firmendaten($field,$projekt="")
         }
       }
 
-      function CreateVerbindlichkeit($adresse="")
+      function CreateVerbindlichkeit($adresse="", $datum = null)
       {
         /** @var Verbindlichkeit $obj */
         $obj = $this->app->erp->LoadModul('verbindlichkeit');
         if(!empty($obj) && method_exists($obj,'createLiability')) {
-          return $obj->createLiability($adresse);
+          return $obj->createLiability($adresse, $datum);
+        }
+        return 0;
+      }
+
+      function CreateLieferantengutschrift($adresse="", $datum = null)
+      {
+        /** @var Verbindlichkeit $obj */
+        $obj = $this->app->erp->LoadModul('lieferantengutschrift');
+        if(!empty($obj) && method_exists($obj,'createlieferantengutschrift')) {
+          return $obj->createlieferantengutschrift($adresse, $datum);
         }
         return 0;
       }
@@ -33413,23 +33481,18 @@ function Firmendaten($field,$projekt="")
         if($typ==='auftrag' && $id > 0){
           $auftragsArr = $this->app->DB->SelectRow(
             sprintf(
-              "SELECT id, adresse, projekt, belegnr, standardlager,reservationdate FROM auftrag WHERE status='freigegeben' AND id=%d LIMIT 1",
+              "SELECT id, adresse, projekt, belegnr, standardlager, nicht_reservieren, reservationdate FROM auftrag WHERE status='freigegeben' AND id=%d LIMIT 1",
               (int)$id
             )
           );
-          if($this->app->DB->error()) {
-            $auftragsArr = $this->app->DB->SelectRow(
-              sprintf(
-                "SELECT id, adresse, projekt, belegnr, standardlager, NULL AS reservationdate FROM auftrag WHERE status='freigegeben' AND id=%d LIMIT 1",
-                (int)$id
-              )
-            );
-          }
           if(empty($auftragsArr)) {
             return 0;
           }
           if(!empty($auftragsArr['reservationdate']) && $auftragsArr['reservationdate'] !== '0000-00-00'
           && strtotime($auftragsArr['reservationdate']) > strtotime(date('Y-m-d'))) {
+            return 0;
+          }
+          if (!empty($auftragsArr['nicht_reservieren'])) {
             return 0;
           }
           $id_check = $auftragsArr['id'];
@@ -36857,6 +36920,62 @@ function Firmendaten($field,$projekt="")
         return false;
       }
 
+        function GetBelegTickets($doctype, $doctypeid) {
+            $sql = "
+                SELECT DISTINCT
+                    t.id,
+                    tn.ticket
+                FROM
+                    `datei_stichwoerter` dst
+                INNER JOIN `datei_stichwoerter` dsb ON
+                    dst.datei = dsb.datei
+                INNER JOIN `ticket_nachricht` tn ON
+                    tn.id = dst.parameter
+                INNER JOIN `ticket` t ON
+                    t.schluessel = tn.ticket
+                WHERE
+                    dst.objekt = 'Ticket' AND dsb.objekt = '".$doctype."' AND dsb.parameter = '".$doctypeid."'
+            ";
+            return($this->app->DB->SelectArr($sql));
+        }
+
+        function GetTicketBelege($ticketid) {
+            $sql = "
+                SELECT DISTINCT
+                    dsb.objekt doctype,
+                    dsb.parameter id,
+                    belege.belegnr,
+                    belege.externenr
+                FROM
+                    `datei_stichwoerter` dst
+                INNER JOIN `datei_stichwoerter` dsb ON
+                    dst.datei = dsb.datei
+                INNER JOIN `ticket_nachricht` tn ON
+                    tn.id = dst.parameter
+                INNER JOIN `ticket` t ON
+                    t.schluessel = tn.ticket
+                INNER JOIN
+                (
+                    SELECT 'Angebot' typ, id belegid, belegnr, anfrage externenr, datum, name FROM angebot
+                    UNION
+                    SELECT 'Auftrag' typ, id belegid, belegnr, ihrebestellnummer, datum, name FROM auftrag
+                    UNION
+                    SELECT 'Verbindlichkeit', v.id, v.belegnr, rechnung, v.datum, a.name FROM verbindlichkeit v LEFT JOIN adresse a ON v.adresse = a.id
+                    UNION
+                    SELECT 'Lieferantengutschrift', lg.id, lg.belegnr, rechnung, lg.datum, a.name FROM lieferantengutschrift lg LEFT JOIN adresse a ON lg.adresse = a.id
+                ) belege ON belege.typ = dsb.objekt AND belege.belegid = dsb.parameter
+                WHERE
+                    dsb.objekt IN(
+                        'angebot',
+                        'auftrag',
+                        'verbindlichkeit',
+                        'lieferantengutschrift'
+                    ) AND t.id = '".$ticketid."'
+            ";
+
+            return($this->app->DB->SelectArr($sql));
+        }
+
       function GetDateiName($id)
       {
         $version = $this->app->DB->Select("SELECT MAX(version) FROM datei_version WHERE datei='$id'");
@@ -36874,6 +36993,13 @@ function Firmendaten($field,$projekt="")
         $tmp = pathinfo($newid);
 
         return strtolower($tmp['extension']);
+      }
+
+      function GetDateiDatum($id) // MYSQL format
+      {
+        $version = $this->app->DB->Select("SELECT MAX(version) FROM datei_version WHERE datei='$id'");
+        $date = $this->app->DB->Select("SELECT datum FROM datei_version WHERE datei='$id' AND version='$version' LIMIT 1");
+        return ($date);
       }
 
     /*
