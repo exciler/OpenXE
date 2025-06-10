@@ -3565,10 +3565,6 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             }
 
             foreach ($lineItems['data'] as $lineItem) {
-                $productPriceType = $orderPriceType;
-                if (empty($lineItem['attributes']['price']['calculatedTaxes'][0]['taxRate'])) {
-                    $productPriceType = 'price_netto';
-                }
                 $articleId = null;
                 if ($lineItem['attributes']['price']['unitPrice'] < 0) {
                     $articleId = $voucherArticleNumber;
@@ -3579,9 +3575,10 @@ class Shopimporter_Shopware6 extends ShopimporterBase
                     'articleid' => $articleId,
                     'name' => $lineItem['attributes']['label'],
                     'quantity' => $lineItem['attributes']['quantity'],
-                    $productPriceType => $lineItem['attributes']['price']['unitPrice'],
+                    'price' => $lineItem['attributes']['price']['unitPrice'],
                     'steuersatz' => $lineItem['attributes']['price']['calculatedTaxes'][0]['taxRate'],
                 ];
+                $product['price_netto'] = 100 * $product['price'] / (100 + $product['steuersatz']);
                 $this->parseBogxData($lineItem, $product);
                 $cart['articlelist'][] = $product;
             }
