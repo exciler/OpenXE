@@ -3550,16 +3550,15 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             $order['lineItems'] = $lineItems;
             $cart['articlelist'] = [];
 
-            $taxRate = 0;
-            foreach ($lineItems['data'] as $lineItem) {
-                if ($lineItem['attributes']['price']['calculatedTaxes'][0]['taxRate'] > $taxRate) {
-                    $taxRate = $lineItem['attributes']['price']['calculatedTaxes'][0]['taxRate'];
-                }
-            }
+            $taxes = [];
+            $this->app->erp->RunHook('getTaxRatesFromShopOrder', 2, $taxedCountry, $taxes);
 
-            $orderPriceType = 'price';
+            if (isset($taxes['normal']) && $taxes['normal'] > 0)
+                $cart['steuersatz_normal'] = $taxes['normal'];
+            if (isset($taxes['ermaessigt']) && $taxes['ermaessigt'] > 0)
+                $cart['steuersatz_ermaessigt'] = $taxes['ermaessigt'];
+
             if (in_array($order['attributes']['taxStatus'], ['net', 'tax-free'])) {
-                $orderPriceType = 'price_netto';
                 $cart['versandkostennetto'] = $cart['versandkostenbrutto'];
                 unset($cart['versandkostenbrutto']);
             }
