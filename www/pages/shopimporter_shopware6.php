@@ -3533,7 +3533,7 @@ class Shopimporter_Shopware6 extends ShopimporterBase
             $cart['zahlungsweise'] = $paymentMethod['data']['attributes']['name'];
 
             $taxedCountry = $land;
-            if ($this->taxationByDestinationCountry) {
+            if ($this->taxationByDestinationCountry && !empty($cart['abweichendelieferadresse'])) {
                 $taxedCountry = $lieferadresseLand;
             }
             if ($order['attributes']['amountTotal'] === $order['attributes']['amountNet']) {
