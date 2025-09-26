@@ -34569,6 +34569,17 @@ function Firmendaten($field,$projekt="")
           }
 
         }
+
+        if ($art==='rechnung' || $art==='gutschrift' || $art==='proformarechnung') {
+            $deliverythresholdvatid = $this->app->DB->Select("SELECT ustid 
+                FROM $art a
+                LEFT OUTER JOIN lieferschein l ON a.lieferschein=l.id
+                LEFT OUTER JOIN lieferschwelle s ON s.empfaengerland=coalesce(l.land, r.land)
+                WHERE a.id = $id
+                AND s.verwenden = 1");
+            $this->app->DB->Update("UPDATE $art SET deliverythresholdvatid = '$deliverythresholdvatid' WHERE id = $id");
+        }
+
         $this->RunHook('ANABREGSNeuberechnenEnde',2, $id, $art);
       }
 
