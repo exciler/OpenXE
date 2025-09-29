@@ -1,17 +1,17 @@
 {
-  "_AutoComplete-1QdRTtlV.js": {
-    "file": "AutoComplete-1QdRTtlV.js",
+  "_AutoComplete-CpMY5XDQ.js": {
+    "file": "AutoComplete-CpMY5XDQ.js",
     "name": "AutoComplete",
     "imports": [
-      "_vue-BB-C6qj1.js"
+      "_vue-CFfGPaOb.js"
     ]
   },
   "_vue-!~{005}~.js": {
     "file": "assets/vue-CMXOvwpj.css",
     "src": "_vue-!~{005}~.js"
   },
-  "_vue-BB-C6qj1.js": {
-    "file": "vue-BB-C6qj1.js",
+  "_vue-CFfGPaOb.js": {
+    "file": "vue-CFfGPaOb.js",
     "name": "vue",
     "css": [
       "assets/vue-CMXOvwpj.css"
@@ -34,32 +34,32 @@
     ]
   },
   "classes/Modules/CrossSelling/www/js/entry.js": {
-    "file": "modules/CrossSelling-ZiRVDAiH.js",
+    "file": "modules/CrossSelling-CN3cmErU.js",
     "name": "modules/CrossSelling",
     "src": "classes/Modules/CrossSelling/www/js/entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-BB-C6qj1.js",
-      "_AutoComplete-1QdRTtlV.js"
+      "_vue-CFfGPaOb.js",
+      "_AutoComplete-CpMY5XDQ.js"
     ]
   },
   "classes/Modules/MatrixProduct/www/js/entry.js": {
-    "file": "modules/MatrixProduct-qE3XKAub.js",
+    "file": "modules/MatrixProduct-BfgqvGAc.js",
     "name": "modules/MatrixProduct",
     "src": "classes/Modules/MatrixProduct/www/js/entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-BB-C6qj1.js",
-      "_AutoComplete-1QdRTtlV.js"
+      "_vue-CFfGPaOb.js",
+      "_AutoComplete-CpMY5XDQ.js"
     ]
   },
   "classes/Modules/ShippingMethod/www/js/shipment.entry.js": {
-    "file": "modules/ShippingMethod-shipment-DJpJpC26.js",
+    "file": "modules/ShippingMethod-shipment-B8P3Cqsg.js",
     "name": "modules/ShippingMethod-shipment",
     "src": "classes/Modules/ShippingMethod/www/js/shipment.entry.js",
     "isEntry": true,
     "imports": [
-      "_vue-BB-C6qj1.js"
+      "_vue-CFfGPaOb.js"
     ]
   },
   "node_modules/primeicons/fonts/primeicons.eot": {
