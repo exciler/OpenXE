@@ -34573,7 +34573,7 @@ function Firmendaten($field,$projekt="")
             $deliverythresholdvatid = $this->app->DB->Select("SELECT s.ustid 
                 FROM $art a
                 LEFT OUTER JOIN lieferschein l ON a.lieferschein=l.id
-                LEFT OUTER JOIN lieferschwelle s ON s.empfaengerland=coalesce(l.land, r.land)
+                LEFT OUTER JOIN lieferschwelle s ON s.empfaengerland=coalesce(l.land, a.land)
                 WHERE a.id = $id
                 AND s.verwenden = 1");
             $this->app->DB->Update("UPDATE $art SET deliverythresholdvatid = '$deliverythresholdvatid' WHERE id = $id");
