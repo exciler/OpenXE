@@ -34570,7 +34570,7 @@ function Firmendaten($field,$projekt="")
         }
 
         if ($art==='rechnung' || $art==='gutschrift' || $art==='proformarechnung') {
-            $deliverythresholdvatid = $this->app->DB->Select("SELECT ustid 
+            $deliverythresholdvatid = $this->app->DB->Select("SELECT s.ustid 
                 FROM $art a
                 LEFT OUTER JOIN lieferschein l ON a.lieferschein=l.id
                 LEFT OUTER JOIN lieferschwelle s ON s.empfaengerland=coalesce(l.land, r.land)
