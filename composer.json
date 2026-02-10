@@ -36,8 +36,25 @@
       "OpenXE\\": "src"
     },
     "classmap": [
+      "conf/",
+      "phpwf/",
+      "www/docscan/",
       "www/widgets/",
-      "www/lib/versandarten/"
+      "www/lib/versandarten/",
+      "www/lib/class.navigation_edit.php",
+      "www/lib/class.xtea.php",
+      "www/lib/class.ustid.php",
+      "www/plugins/class.ics.php",
+      "www/lib/PrinterBase.php",
+      "www/lib/TransferBase.php",
+      "www/lib/ShopimporterBase.php",
+      "www/lib/imap.inc.php",
+      "www/lib/class.help.php",
+      "www/lib/class.printer.php",
+      "www/lib/class.image.php",
+      "www/lib/class.location.php",
+      "www/lib/class.remote.php",
+      "www/lib/class.erpapi.php"
     ]
   },
   "config": {
