@@ -9,7 +9,7 @@ COPY resources /app/resources
 COPY www /app/www
 RUN npm run build
 
-FROM php:8.1-apache AS web_server
+FROM php:8.2-apache AS web_server
 ARG PHP_EXT
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
