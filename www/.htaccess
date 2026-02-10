@@ -18,6 +18,11 @@ Allow from all
     Order Allow,Deny
     Allow from all
 </Files>
+# Allow access to app.php
+<Files app.php>
+    Order Allow,Deny
+    Allow from all
+</Files>
 # Allow access to inline PDF viewer
 <Files viewer.html>
     Order Allow,Deny
@@ -27,4 +32,19 @@ Allow from all
     Order Allow,Deny
     Allow from all
 </Files>
+<FilesMatch ".">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
 # end
+RewriteEngine On
+
+RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
+RewriteRule ^(.*) - [E=BASE:%1]
+
+RewriteCond %{ENV:REDIRECT_STATUS} ^$
+RewriteRule ^app\.php(?:/(.*)|$) %{ENV:BASE}/$1 [R=301,L]
+
+RewriteRule ^app\.php - [L]
+
+RewriteRule ^ %{ENV:BASE}/app.php [L]
