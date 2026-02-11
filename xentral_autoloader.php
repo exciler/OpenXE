@@ -42,4 +42,4 @@ function xentral_autoloader($class) {
   }
 }
 
-spl_autoload_register('xentral_autoloader');
+//spl_autoload_register('xentral_autoloader');

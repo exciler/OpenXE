@@ -17,10 +17,6 @@ if($memory_limit)
     $memory_changed = @ini_set('memory_limit', 512*1024*1024);
   }
 }
-if(file_exists(dirname(__DIR__).'/phpwf/plugins/class.devtools.php'))include_once(dirname(__DIR__).'/phpwf/plugins/class.devtools.php');
-
-
-include_once (dirname(__DIR__).'/xentral_autoloader.php');
 
 if(!isset($_GET['module']) || $_GET['module'] != 'api')
 {

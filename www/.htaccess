@@ -47,4 +47,8 @@ RewriteRule ^app\.php(?:/(.*)|$) %{ENV:BASE}/$1 [R=301,L]
 
 RewriteRule ^app\.php - [L]
 
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} !^.+\.php$
+RewriteRule ^ - [L]
+
 RewriteRule ^ %{ENV:BASE}/app.php [L]

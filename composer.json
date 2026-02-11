@@ -25,7 +25,9 @@
     "symfony/http-kernel": "^v7.4",
     "symfony/yaml": "^v7.4",
     "tecnickcom/tcpdf": "^6",
-    "y0lk/oauth1-etsy": "1.1.0"
+    "y0lk/oauth1-etsy": "1.1.0",
+    "symfony/twig-bundle": "^7.4",
+    "symfony/security-bundle": "^7.4"
   },
   "replace": {
     "itbz/fpdf": "*"
@@ -68,7 +70,12 @@
   },
   "config": {
     "platform": {
-      "php": "8.2.0"
+      "php": "8.2.0",
+      "ext-gd": "8.2.0"
     }
+  },
+  "require-dev": {
+    "symfony/profiler-pack": "^1.0",
+    "symfony/web-profiler-bundle": "^7.4"
   }
 }
