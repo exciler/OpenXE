@@ -1,0 +1,64 @@
+<div id="sidebar" {{ sidebar_collapsed ? 'class=collapsed' : '' }}>
+    <div class="sidebar-toggle">
+        <svg width="26" height="13" viewBox="0 0 26 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.2314 12.0769H25.2314" stroke="#94979E" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10.2314 6.53857H25.2314" stroke="#94979E" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10.2314 1H25.2314" stroke="#94979E" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg id="sidebar-toggle-arrow" width="6" height="13" viewBox="0 0 6 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.9999 3L4.57323 6.57333C4.62013 6.62017 4.64648 6.68372 4.64648 6.75C4.64648 6.81628 4.62013 6.87983 4.57323 6.92667L0.999899 10.5" stroke="#94979E" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <a class="logo-index" href="{{ path('openxe_legacy_index') }}" title="OpenXE">
+        <div class="sidebar_logo">{{ svg_logo|raw }}</div>
+        <div class="sidebar_icon_logo">{{ svg_icon_logo|raw }}</div>
+    </a>
+
+    <div class="sidebar-list small-items separator-bottom">
+        {% for item in userItems %}
+        <a href="{{ item.link }}" class="list-item {{ item.active ? 'current-module' : '' }}">
+            {{ item.svg|raw }}
+            <div class="title">{{ item.title }}</div>
+            {% if item.counter > 0 %}
+                <div class="item-counter">{{ item.counter }}</div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="sidebar-list">
+        {% for item in navItems %}
+            <div class="list-item {{ item.active ? 'current-module' : '' }}">
+            {{ item.svg|raw }}
+            <div class="title">{{ item.title }}</div>
+            {% if item.children %}
+                <div class="sidebar-submenu">
+                    <div>
+                        {% for sub in item.children %}
+                            <a href="{{ sub.link }}">{{ sub.title }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="sidebar-list bottom">
+        {% for item in fixedItems %}
+            {% if item.isAnchor %}
+                <a href="{{ item.href }}" class="list-item {{ item.active ? 'current-module' : '' }}">
+                    {{ item.svg|raw }}
+                    <div class="title">{{ item.title }}</div>
+                </a>
+            {% else %}
+                <div {{ item.id }} class="list-item">
+                    {{ item.svg|raw }}
+                    <div class="title">{{ item.title }}</div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="sidebar-software-version">OpenXE v{{ version }}</div>
+</div>

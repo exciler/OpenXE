@@ -14,6 +14,7 @@
 ?>
 <?php
 
+use Psr\Container\ContainerInterface;
 use Xentral\Core\LegacyConfig\ConfigLoader;
 
 /**
@@ -49,8 +50,9 @@ class ApplicationCore
 
   /** @var \Xentral\Core\DependencyInjection\ServiceContainer $Container */
   public $Container;
+  public ?ContainerInterface $SymfonyContainer;
 
-  public function __construct($config = null,$group='')
+  public function __construct($config = null)
   {
     if($config === null)
     {

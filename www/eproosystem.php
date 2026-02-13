@@ -27,6 +27,8 @@
  * - usw....
  */
 
+use Psr\Container\ContainerInterface;
+
 date_default_timezone_set('Europe/Berlin');
 ini_set('default_charset', 'UTF-8');
 
@@ -60,10 +62,11 @@ class erpooSystem extends Application
    * @var Config $Conf
    */
 
-  public function __construct($config,$group='')
+  public function __construct(?Config $config, ?ContainerInterface $serviceContainer = null)
   {
     $this->uselaendercache = false;
-    parent::__construct($config, $group);
+    parent::__construct($config);
+    $this->SymfonyContainer = $serviceContainer;
 
     if(WithGUI()){
       $module = $this->Secure->GetGET('module');
@@ -362,20 +365,17 @@ class erpooSystem extends Application
 
       $activeCategory = $appstore->GetCategoryByModule($activeModule, $this->Secure->GetGET('id'));
 
-      $appointmentCount = (int)$this->DB->Select(
-          sprintf(
-              "SELECT COUNT(ke.id) 
-        FROM kalender_event AS ke 
-        LEFT JOIN kalender_user AS ku ON ku.event=ke.id
-        WHERE DATE_FORMAT(ke.von,'%%Y-%%m-%%d')=DATE_FORMAT(NOW(),'%%Y-%%m-%%d') 
-            AND (
-                ke.adresse=%d
-                OR ke.adresseintern=%d 
-                OR ku.userid=%d 
-        )",
-              $this->User->GetAdresse(),$this->User->GetAdresse(), $this->User->GetID()
-          )
-      );
+      /** @var \Doctrine\ORM\EntityManagerInterface $em */
+      $em = $this->SymfonyContainer->get('doctrine.orm.entity_manager');
+
+      $appointmentCount = $em->getConnection()->executeQuery(
+          "SELECT COUNT(ke.id)
+               FROM kalender_event AS ke
+               LEFT JOIN kalender_user AS ku ON ku.event=ke.id
+               WHERE DATE_FORMAT(ke.von,'%Y-%m-%d')=DATE_FORMAT(NOW(),'%Y-%m-%d')
+                 AND (ke.adresse=:addressid OR ke.adresseintern=:addressid OR ku.userid=:userid)",
+              ['addressid' => $this->User->GetAdresse(), 'userid' => $this->User->GetID()])
+          ->fetchOne();
 
       if($appointmentCount <=0) {
           $appointmentCount=0;
@@ -424,73 +424,38 @@ class erpooSystem extends Application
       ];*/
 
 
-      $userItems = '<div class="sidebar-list small-items separator-bottom">';
+      $userItems = [];
 
       foreach($possibleUserItems as $title => $data){
+          $item = [];
           $classList = '';
-          $link = $data['link'];
-          $counter = isset($data['counter']) && ((is_int($data['counter']) && $data['counter'] >= 1)
-            || (is_string($data['counter']) && $data['counter'] !== ''))
-              ? '<div class="item-counter">'. $data['counter'] .'</div>'
-              : '';
-          $svg = $this->getSVG($svgPath, $title);
-          $active = '';
-
-          if(strtolower($title) === strtolower($activeModule)){
-              $active = 'current-module';
-          }
+          $item['link'] = $data['link'] .'&top=' .base64_encode($title);
+          $item['title'] = $this->Tpl->pruefeuebersetzung($title);
+          $item['counter'] = $data['counter'] ?? 0;
+          $item['svg'] = $this->getSVG($svgPath, $title);
+          $item['active'] = strtolower($title) === strtolower($activeModule);
 
           if(isset($data['type']) && $data['type'] === 'cta'){
               $classList .= 'button button-secondary';
           }
-          $userItems .=
-              '<a href="'. $link .'&top=' .base64_encode($title).'" class="list-item '. $active .' '. $classList .'">'
-              . $svg
-              . '<div class="title">'. $this->Tpl->pruefeuebersetzung($title) .'</div>'
-              . $counter
-              .'</a>';
+          $userItems[] = $item;
       }
 
-      $userItems .= '</div>';
 
       // Creates main navigation steps
-      $naviHtml = '<div class="sidebar-list">';
+      $navItems = [];
 
       foreach($navigation as $key => $listitem){
+          $item = [];
           if(!empty($listitem)){
-              if (isset($listitem['original_title'])) {
-                  $svg = $this->getSVG($svgPath, $listitem['original_title']);
-              } else {
-                  $svg = $this->getSVG($svgPath, $listitem['title']);
-              }
-              $active = '';
-              if($listitem['active']) {
-                $active = 'current-module';
-              }
-
-              $naviHtml .=
-                  '<div class="list-item '. $active .'">'
-                        . $svg .
-                        '<div class="title">'. $listitem['title'] .'</div>';
-
-              if(isset($listitem["sec"])){
-                  $naviHtml .=
-                      '<div class="sidebar-submenu">
-                            <div>';
-
-                  foreach($listitem["sec"] as $subkey => $subitem){
-                      $naviHtml .= '<a href="'. $subitem['link'].'">'. $subitem['title'] .'</a>';
-                  }
-
-                  $naviHtml .= '</div>
-                        </div>';
-              }
-
-              $naviHtml .= '</div>';
+              $item['svg'] = $this->getSVG($svgPath, $listitem['original_title'] ?? $listitem['title']);;
+              $item['active'] = $listitem['active'];
+              $item['title'] = $listitem['title'];
+              $item['children'] = $listitem['sec'];
           }
+          $navItems[] = $item;
       }
 
-      $naviHtml .= '</div>';
 
     /** @var Dataprotection $obj */
       $obj = $this->loadModule('dataprotection');
@@ -505,59 +470,45 @@ class erpooSystem extends Application
 
       // Creates fixed bottom navigation items
 //      $possibleFixedItems['Datenschutz'] = 'index.php?module=dataprotection&action=list';
-
-      $fixedItems = '<div class="sidebar-list bottom">';
+      $fixedItems = [];
 
       foreach($possibleFixedItems as $title => $link){
-          $svg = $this->getSVG($svgPath, $title);
-          $active = '';
-
-          if(strtolower($title) === strtolower($activeModule)){
-              $active = 'current-module';
-          }
+          $item = [];
+          $item['svg'] = $this->getSVG($svgPath, $title);
+          $item['active'] = strtolower($title) === strtolower($activeModule);
+          $item['title'] = $this->Tpl->pruefeuebersetzung($title);
 
           if(strpos($link, 'index.php?') !== false){
-              $fixedItems .=
-                  '<a href="'. $link .'&top=' .base64_encode($title).'" class="list-item '. $active .'">'
-                  . $svg .
-                  '<div class="title">'. $this->Tpl->pruefeuebersetzung($title) .'</div>'
-                  .'</a>';
+              $item['isAnchor'] = true;
+              $item['href'] = $link .'&top=' .base64_encode($title);
           } elseif(strpos($link, 'id="') !== false) {
-              $fixedItems .=
-                  '<div ' . $link . ' class="list-item">'
-                  . $svg .
-                  '<div class="title">'. $this->Tpl->pruefeuebersetzung($title) .'</div>'
-                  .'</div>';
+              $item['isAnchor'] = false;
+              $item['id'] = $link;
+          } else {
+              continue;
           }
-      }
-
-      $fixedItems .= '</div>';
-
-      $version = '';
-      if(isset($version_revision) && $version_revision != '') {
-        $version .= '<div class="sidebar-software-version">OpenXE V.'. $version_revision .'</div>';
+          $fixedItems[] = $item;
       }
 
       if($userId = $this->User->GetID()){
-
-      /** @var \Xentral\Modules\User\Service\UserConfigService $userConfig */
-      $userConfig = $this->Container->get('UserConfigService');
-      $sidebarCollapsed = $userConfig->tryGet('sidebar_collapsed', $userId);
-      $sidebarClasses = $sidebarCollapsed === true ? 'class="collapsed"' : '';
-      }else{
-          $sidebarClasses = '';
+          /** @var \Xentral\Modules\User\Service\UserConfigService $userConfig */
+          $userConfig = $this->Container->get('UserConfigService');
+          $sidebarCollapsed = $userConfig->tryGet('sidebar_collapsed', $userId);
       }
 
       // set generated HTML to template
-      $this->Tpl->Set('USERITEMS',  $userItems);
-      $this->Tpl->Set('NAVIGATIONITEMS',  $naviHtml);
-      $this->Tpl->Set('FIXEDITEMS',  $fixedItems);
-      $this->Tpl->Set('XENTRALVERSION', $version);
-      $this->Tpl->Set('SIDEBAR_CLASSES', $sidebarClasses);
-      $this->Tpl->Add('SIDEBARLOGO','<div class="sidebar_logo">'.@file_get_contents(__DIR__ . '/themes/new/templates/sidebar_logo.svg').'</div>');
-      $this->Tpl->Add('SIDEBARLOGO','<div class="sidebar_icon_logo">'.@file_get_contents(__DIR__ . '/themes/new/templates/sidebar_icon_logo.svg').'</div>');
-
-      $this->Tpl->Parse('SIDEBAR', 'sidebar.tpl');
+      /** @var \Twig\Environment $twig */
+      $twig = $this->SymfonyContainer->get('twigpublic');
+      $sidebar = $twig->render('_sidebar.html.twig', [
+          'version' => $version_revision ?? null,
+          'sidebar_collapsed' => $sidebarCollapsed ?? false,
+          'fixedItems' => $fixedItems,
+          'navItems' => $navItems,
+          'userItems' => $userItems,
+          'svg_logo' => $this->getSVG('themes/new/templates/', 'sidebar_logo'),
+          'svg_icon_logo' => $this->getSVG('themes/new/templates/', 'sidebar_icon_logo'),
+      ]);
+      $this->Tpl->Set('SIDEBAR', $sidebar);
       $this->Tpl->Parse('PROFILE_MENU', 'profile_menu.tpl');
   }
 

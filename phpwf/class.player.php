@@ -25,6 +25,9 @@
  * Player for PHP Applications
  */
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
+
 class Player {
 
   public $DefautTemplates;
@@ -57,7 +60,7 @@ class Player {
     $this->app->Page->CreateNavigation($this->app->erp->Navigation());
   }
 
-  public function Run($sessionObj)
+  public function Run($sessionObj) : Response
   {
     $this->app = $sessionObj->app;
     // play application only when layer 2 said that its ok
@@ -245,11 +248,11 @@ class Player {
       {
         $this->app->erp->Systemlog("Keine gueltige Benutzer ID erhalten",1);
         @session_destroy();
-        echo str_replace('BACK',"index.php?module=welcome&action=login",$this->app->Tpl->FinalParse("permissiondenied.tpl"));
+        return new Response(str_replace('BACK',"index.php?module=welcome&action=login",$this->app->Tpl->FinalParse("permissiondenied.tpl")));
       }
       else {
         $this->app->erp->Systemlog("Fehlendes Recht",1);
-        echo str_replace('BACK',isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:'',$this->app->Tpl->FinalParse("permissiondenied.tpl"));
+        return new Response(str_replace('BACK',isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:'',$this->app->Tpl->FinalParse("permissiondenied.tpl")));
       }
       exit;
     }
@@ -279,7 +282,7 @@ class Player {
     if($this->app->BuildNavigation==true)
     {
       if($right==1) 
-        echo $this->app->Tpl->FinalParse('right.tpl');
+        return new Response($this->app->Tpl->FinalParse('right.tpl'));
       else
       {
         if($module==='welcome' && $action==='login'){
@@ -298,10 +301,10 @@ class Player {
           }
 
           $this->app->erp->RunHook('loginpage');
-          echo $this->app->Tpl->FinalParse('loginpage.tpl');
+          return new Response($this->app->Tpl->FinalParse('loginpage.tpl'));
         }
         elseif($module==='welcome' && $action==='passwortvergessen'){
-          echo $this->app->Tpl->FinalParse('passwortvergessenpage.tpl');
+            return new Response($this->app->Tpl->FinalParse('passwortvergessenpage.tpl'));
         }
         else {
           $this->app->erp->addFav();
@@ -316,29 +319,28 @@ class Player {
             )
             && ($isadminadmin = $this->app->acl->IsAdminadmin()))
           {
-            header('Location: index.php?module=welcome&action=start');
-            exit;
+            return new RedirectResponse('index.php?module=welcome&action=start');
           }
 
           $this->app->HeaderBoxen();
           if($this->app->erp->UserDevice()==='smartphone'){
-            echo $this->app->Tpl->FinalParse('page_smartphone.tpl');
+            return new Response($this->app->Tpl->FinalParse('page_smartphone.tpl'));
           }
           else{
 
             $this->app->Tpl->Set('VUEJS', 'vue.min.js');
             $this->app->erp->RunHook('before_final_parse_page');
-            echo $this->app->Tpl->FinalParse('page.tpl');
+            return new Response($this->app->Tpl->FinalParse('page.tpl'));
           }
         }
       }
     }
     else {
       if($this->app->PopupJS){
-        echo $this->app->Tpl->FinalParse('popup_js.tpl');
+        return new Response($this->app->Tpl->FinalParse('popup_js.tpl'));
       }
       else{
-        echo $this->app->Tpl->FinalParse('popup.tpl');
+        return new Response($this->app->Tpl->FinalParse('popup.tpl'));
       }
     }
   }
