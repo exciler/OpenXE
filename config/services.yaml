@@ -1,0 +1,13 @@
+services:
+  OpenXE\:
+    resource: '../src/'
+    autowire: true
+    autoconfigure: true
+
+  Config:
+    class: Config
+    factory: ['Xentral\Core\LegacyConfig\ConfigLoader', 'load']
+
+  twigpublic:
+    alias: twig
+    public: true

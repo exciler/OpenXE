@@ -12,21 +12,22 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '606a39d89246991a373564698c2d8383' => __DIR__ . '/..' . '/symfony/polyfill-php85/bootstrap.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
+        'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
+        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
+        'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
         '89efb1254ef2d1c5d80096acd12c4098' => __DIR__ . '/..' . '/twig/twig/src/Resources/core.php',
         'ffecb95d45175fd40f75be8a23b34f90' => __DIR__ . '/..' . '/twig/twig/src/Resources/debug.php',
         'c7baa00073ee9c61edf148c51917cfb4' => __DIR__ . '/..' . '/twig/twig/src/Resources/escaper.php',
         'f844ccf1d25df8663951193c3fc307c8' => __DIR__ . '/..' . '/twig/twig/src/Resources/string_loader.php',
-        'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         '383eaff206634a77a1be54e64e6459c7' => __DIR__ . '/..' . '/sabre/uri/lib/functions.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
-        'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '2b9d0f43f9552984cfa82fee95491826' => __DIR__ . '/..' . '/sabre/event/lib/coroutine.php',
         'd81bab31d3feb45bfe2f283ea3c8fdf7' => __DIR__ . '/..' . '/sabre/event/lib/Loop/functions.php',
         'a1cce3d26cc15c00fcd0b3354bd72c88' => __DIR__ . '/..' . '/sabre/event/lib/Promise/functions.php',
         '3569eecfeed3bcf0bad3c998a494ecb8' => __DIR__ . '/..' . '/sabre/xml/lib/Deserializer/functions.php',
         '93aa591bc4ca510c520999e34229ee79' => __DIR__ . '/..' . '/sabre/xml/lib/Serializer/functions.php',
+        '9d2b9fc6db0f153a0a149fefb182415e' => __DIR__ . '/..' . '/symfony/polyfill-php84/bootstrap.php',
         'c9d07b32a2e02bc0fc582d4f0c1b56cc' => __DIR__ . '/..' . '/laminas/laminas-servicemanager/src/autoload.php',
         '662a729f963d39afe703c9d9b7ab4a8c' => __DIR__ . '/..' . '/symfony/polyfill-php83/bootstrap.php',
         'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
@@ -62,6 +63,7 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'S' =>
         array (
             'Symfony\\Polyfill\\Php85\\' => 23,
+            'Symfony\\Polyfill\\Php84\\' => 23,
             'Symfony\\Polyfill\\Php83\\' => 23,
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
@@ -84,6 +86,7 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
             'Symfony\\Component\\Routing\\' => 26,
             'Symfony\\Component\\PropertyInfo\\' => 31,
             'Symfony\\Component\\PropertyAccess\\' => 33,
+            'Symfony\\Component\\Process\\' => 26,
             'Symfony\\Component\\PasswordHasher\\' => 33,
             'Symfony\\Component\\HttpKernel\\' => 29,
             'Symfony\\Component\\HttpFoundation\\' => 33,
@@ -100,8 +103,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
             'Symfony\\Bundle\\WebProfilerBundle\\' => 33,
             'Symfony\\Bundle\\TwigBundle\\' => 26,
             'Symfony\\Bundle\\SecurityBundle\\' => 30,
+            'Symfony\\Bundle\\MakerBundle\\' => 27,
             'Symfony\\Bundle\\FrameworkBundle\\' => 31,
             'Symfony\\Bridge\\Twig\\' => 20,
+            'Symfony\\Bridge\\Doctrine\\' => 24,
             'SwissPaymentSlip\\SwissPaymentSlip\\' => 34,
             'SwissPaymentSlip\\SwissPaymentSlipPdf\\' => 37,
             'SwissPaymentSlip\\SwissPaymentSlipFpdf\\' => 38,
@@ -128,6 +133,7 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
             'Psr\\Container\\' => 14,
             'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
+            'PhpParser\\' => 10,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
         'O' =>
@@ -163,6 +169,19 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         ),
         'D' =>
         array (
+            'Doctrine\\SqlFormatter\\' => 22,
+            'Doctrine\\Persistence\\' => 21,
+            'Doctrine\\ORM\\' => 13,
+            'Doctrine\\Migrations\\' => 20,
+            'Doctrine\\Instantiator\\' => 22,
+            'Doctrine\\Inflector\\' => 19,
+            'Doctrine\\Deprecations\\' => 22,
+            'Doctrine\\DBAL\\' => 14,
+            'Doctrine\\Common\\Lexer\\' => 22,
+            'Doctrine\\Common\\Collections\\' => 28,
+            'Doctrine\\Common\\' => 16,
+            'Doctrine\\Bundle\\MigrationsBundle\\' => 33,
+            'Doctrine\\Bundle\\DoctrineBundle\\' => 31,
             'Datto\\JsonRpc\\Http\\Examples\\' => 28,
             'Datto\\JsonRpc\\Http\\' => 19,
             'Datto\\JsonRpc\\' => 14,
@@ -198,6 +217,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'Symfony\\Polyfill\\Php85\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php85',
+        ),
+        'Symfony\\Polyfill\\Php84\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php84',
         ),
         'Symfony\\Polyfill\\Php83\\' =>
         array (
@@ -287,6 +310,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         array (
             0 => __DIR__ . '/..' . '/symfony/property-access',
         ),
+        'Symfony\\Component\\Process\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/process',
+        ),
         'Symfony\\Component\\PasswordHasher\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/password-hasher',
@@ -351,6 +378,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         array (
             0 => __DIR__ . '/..' . '/symfony/security-bundle',
         ),
+        'Symfony\\Bundle\\MakerBundle\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/maker-bundle/src',
+        ),
         'Symfony\\Bundle\\FrameworkBundle\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/framework-bundle',
@@ -358,6 +389,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'Symfony\\Bridge\\Twig\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/twig-bridge',
+        ),
+        'Symfony\\Bridge\\Doctrine\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/doctrine-bridge',
         ),
         'SwissPaymentSlip\\SwissPaymentSlip\\' =>
         array (
@@ -440,6 +475,10 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
+        'PhpParser\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
+        ),
         'PHPMailer\\PHPMailer\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
@@ -507,6 +546,58 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'FastRoute\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/fast-route/src',
+        ),
+        'Doctrine\\SqlFormatter\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/sql-formatter/src',
+        ),
+        'Doctrine\\Persistence\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/persistence/src/Persistence',
+        ),
+        'Doctrine\\ORM\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/orm/src',
+        ),
+        'Doctrine\\Migrations\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/migrations/src',
+        ),
+        'Doctrine\\Instantiator\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/instantiator/src/Doctrine/Instantiator',
+        ),
+        'Doctrine\\Inflector\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/inflector/src',
+        ),
+        'Doctrine\\Deprecations\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/deprecations/src',
+        ),
+        'Doctrine\\DBAL\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/dbal/src',
+        ),
+        'Doctrine\\Common\\Lexer\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/lexer/src',
+        ),
+        'Doctrine\\Common\\Collections\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/collections/src',
+        ),
+        'Doctrine\\Common\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/event-manager/src',
+        ),
+        'Doctrine\\Bundle\\MigrationsBundle\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/doctrine-migrations-bundle/src',
+        ),
+        'Doctrine\\Bundle\\DoctrineBundle\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/doctrine-bundle/src',
         ),
         'Datto\\JsonRpc\\Http\\Examples\\' =>
         array (
@@ -600,6 +691,7 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'DateMalformedStringException' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateMalformedStringException.php',
         'DateObjectError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateObjectError.php',
         'DateRangeError' => __DIR__ . '/..' . '/symfony/polyfill-php83/Resources/stubs/DateRangeError.php',
+        'Deprecated' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Deprecated.php',
         'DocscanAuth' => __DIR__ . '/../..' . '/www/docscan/classes/DocscanAuth.php',
         'DocscanDir' => __DIR__ . '/../..' . '/www/docscan/classes/DocscanDir.php',
         'DocscanFile' => __DIR__ . '/../..' . '/www/docscan/classes/DocscanFile.php',
@@ -664,6 +756,7 @@ class ComposerStaticInitf2aaa3f1adc1ffb3332e4dfe516c43a8
         'ProvisionsgutschriftPDF' => __DIR__ . '/../..' . '/www/lib/dokumente/class.provisionsgutschrift.php',
         'QRcode' => __DIR__ . '/..' . '/tecnickcom/tcpdf/include/barcodes/qrcode.php',
         'RechnungPDF' => __DIR__ . '/../..' . '/www/lib/dokumente/class.rechnung.php',
+        'ReflectionConstant' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/ReflectionConstant.php',
         'ReisekostenPDF' => __DIR__ . '/../..' . '/www/lib/dokumente/class.reisekosten.php',
         'Remote' => __DIR__ . '/../..' . '/www/lib/class.remote.php',
         'RetourePDF' => __DIR__ . '/../..' . '/www/lib/dokumente/class.retoure.php',

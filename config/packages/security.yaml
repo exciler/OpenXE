@@ -1,0 +1,15 @@
+security:
+  access_denied_url: /index.php
+  providers:
+    db_user_provider:
+      entity:
+        class: OpenXE\Entity\Users\User
+        property: id
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      provider: db_user_provider
+      custom_authenticators:
+        - OpenXE\Security\LegacyAuthenticator

@@ -27,7 +27,8 @@
     "tecnickcom/tcpdf": "^6",
     "y0lk/oauth1-etsy": "1.1.0",
     "symfony/twig-bundle": "^7.4",
-    "symfony/security-bundle": "^7.4"
+    "symfony/security-bundle": "^7.4",
+    "symfony/orm-pack": "^2.7"
   },
   "replace": {
     "itbz/fpdf": "*"
@@ -76,6 +77,7 @@
   },
   "require-dev": {
     "symfony/profiler-pack": "^1.0",
-    "symfony/web-profiler-bundle": "^7.4"
+    "symfony/web-profiler-bundle": "^7.4",
+    "symfony/maker-bundle": "^1.66"
   }
 }
