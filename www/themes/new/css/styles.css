@@ -135,7 +135,7 @@ html {
     transition: all .3s;
 }
 
-#sidebar .sidebar-toggle #sidebar-toogle-arrow{
+#sidebar .sidebar-toggle #sidebar-toggle-arrow{
     position: absolute;
     left: 0;
     top: 0;
@@ -146,7 +146,7 @@ html {
     left: 90px;
 }
 
-#sidebar.collapsed .sidebar-toggle #sidebar-toogle-arrow{
+#sidebar.collapsed .sidebar-toggle #sidebar-toggle-arrow{
     transform: rotate(0deg);
 }
 

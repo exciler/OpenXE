@@ -410,7 +410,7 @@ class TemplateParser {
   
   function pruefeuebersetzung($text, $_type = 'page', $element = null, $withspan = true)
   {
-    if(is_null($this->uebersetzungmodulvorhanden))
+    if(!isset($this->uebersetzungmodulvorhanden))
     {
       $this->uebersetzungmodulvorhanden = true;
       if(!$this->app->erp->ModulVorhanden('wawision_uebersetzung'))$this->uebersetzungmodulvorhanden = false;

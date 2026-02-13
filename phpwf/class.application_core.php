@@ -147,7 +147,7 @@ class ApplicationCore
     if(isset($this->getter[$value]))
     {
       $class = $this->getter[$value]['class'];
-      if($this->getter[$value]['app']){
+      if($this->getter[$value]['app'] ?? false){
         $this->$value = new $class($this);
         return $this->$value;
       }

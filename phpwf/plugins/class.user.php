@@ -486,7 +486,7 @@ class User
       $this->loadUserRowInCacheProperty($userId);
     }
     $defaultLanguages = ['german','english'];
-    $languages = $this->cache[$cacheKey]['sprachebevorzugen'];
+    $languages = $this->cache[$cacheKey]['sprachebevorzugen'] ?? [];
 
     if(empty($languages)) {
       return $defaultLanguages;

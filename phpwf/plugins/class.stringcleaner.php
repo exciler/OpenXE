@@ -33,6 +33,9 @@
       $this->app = $app;
       if(class_exists('HTMLPurifier_Config')) {
         $this->htmlpuriferconfig = HTMLPurifier_Config::createDefault();
+        $path = $app->erp->GetTMP().'/HTMLPurifier/DefinitionCache/Serializer';
+        if (!is_dir($path)) mkdir($path, 0777, true);
+        $this->htmlpuriferconfig->set('Cache.SerializerPath', $path);
         $this->htmlpuriferconfig->set('Core.Encoding', 'UTF-8');
         $this->htmlpuriferconfig->set('Attr.AllowedFrameTargets', ['_blank']); // Allow hyperlinks with target="_blank"
         //$this->htmlpuriferconfig->set('HTML.AllowedElements', 'h1,h2,h3,h4,h5,h6,p,a,strong,em,ol,ul,li,img,param,div,br,form,label,fieldset,input,textarea,select,option');
