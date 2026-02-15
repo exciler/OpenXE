@@ -77,7 +77,6 @@ class ApplicationCore
       'WFM'=>array('class'=>'WFMonitor','app'=>true),
       'Secure'=>array('class'=>'Secure','app'=>true),
       'mail'=>array('class'=>'PHPMailer','app'=>true),
-      'help'=>array('class'=>'Help','app'=>true),
       'stringcleaner'=>array('class'=>'StringCleaner','app'=>true),
       'acl'=>array('class'=>'Acl','app'=>true),
       'ModuleScriptCache'=>array('class'=>'ModuleScriptCache'),

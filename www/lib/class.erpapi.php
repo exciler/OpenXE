@@ -12001,12 +12001,6 @@ function SendPaypalFromAuftrag($auftrag, $test = false)
     $action = $this->app->Secure->GetGET("action");
   }
 
-  /**@deprected**/
-  function PrinterIcon()
-  {
- //       $this->app->Tpl->Add('TABSPRINT',"&nbsp;<a style=\"color:white;font-size:9pt\" href=\"#\" onclick=\"wawisionPrint();\"><img src=\"./themes/new/images/icons_druck.png\" height=\"18\"></a>");
-  }
-
   // @refactor Auftrag Modul
   function SaldoAdresseAuftrag($adresse)
   {
