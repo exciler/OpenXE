@@ -23,20 +23,15 @@ class Session
   public $module;
   public $action;
   /** @var Application $app */
-  public $app;
   public $reason;
 
-  public function __construct()
+  public function __construct(private erpooSystem $app)
   {
 
   }
 
-  /**
-   * @param Application $appObj
-   */
-  public function Check($appObj)
+  public function Check()
   {
-    $this->app = $appObj;
     $this->check = true;
 
     $db = $this->app->Secure->GetPOST('db','nothtml','',true);

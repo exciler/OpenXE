@@ -64,10 +64,12 @@ class erpooSystem extends Application
 
   public function __construct(?Config $config, ?ContainerInterface $serviceContainer = null)
   {
-    $this->uselaendercache = false;
-    parent::__construct($config);
-    $this->SymfonyContainer = $serviceContainer;
+      $this->uselaendercache = false;
+      parent::__construct($config);
+      $this->SymfonyContainer = $serviceContainer;
+  }
 
+  public function Init(){
     if(WithGUI()){
       $module = $this->Secure->GetGET('module');
       $action = $this->Secure->GetGET('action');

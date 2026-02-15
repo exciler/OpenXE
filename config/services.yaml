@@ -1,12 +1,25 @@
 services:
-  OpenXE\:
-    resource: '../src/'
+  _defaults:
     autowire: true
     autoconfigure: true
+
+  OpenXE\:
+    resource: '../src/'
 
   Config:
     class: Config
     factory: ['Xentral\Core\LegacyConfig\ConfigLoader', 'load']
+
+  erpooSystem:
+    class: erpooSystem
+    arguments:
+      $serviceContainer: '@service_container'
+
+  Session:
+    class: Session
+
+  Player:
+    class: Player
 
   twigpublic:
     alias: twig

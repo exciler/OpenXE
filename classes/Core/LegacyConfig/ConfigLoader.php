@@ -10,7 +10,7 @@ final class ConfigLoader
     /**
      * @return Config
      */
-    public static function load()
+    public static function load() : Config
     {
         $defaultConfig = self::loadDefaultConfig();
 
@@ -129,7 +129,7 @@ final class ConfigLoader
     /**
      * @return Config
      */
-    private static function loadDefaultConfig()
+    private static function loadDefaultConfig() : Config
     {
         if (!class_exists('\\Config', true)) {
             $configClassFilePath = dirname(dirname(dirname(__DIR__))) . '/conf/main.conf.php';
