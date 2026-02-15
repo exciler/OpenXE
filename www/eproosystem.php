@@ -27,6 +27,8 @@
  * - usw....
  */
 
+use Doctrine\ORM\EntityManagerInterface;
+use OpenXE\Entity\Base\Country;
 use Psr\Container\ContainerInterface;
 
 date_default_timezone_set('Europe/Berlin');
@@ -62,7 +64,9 @@ class erpooSystem extends Application
    * @var Config $Conf
    */
 
-  public function __construct(?Config $config, ?ContainerInterface $serviceContainer = null)
+  public function __construct(Config $config, ContainerInterface $serviceContainer,
+    private EntityManagerInterface $em,
+  )
   {
       $this->uselaendercache = false;
       parent::__construct($config);
@@ -1631,27 +1635,30 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
 
     if($this->erp->ModulVorhanden('chat') && $this->erp->RechteVorhanden('chat','list')) {
       $userId = $this->User->GetID();
-      $registrierDatum = $this->DB->Select("SELECT u.logdatei FROM `user` AS u WHERE u.id='".$userId."'");
+      $registrierDatum = $this->em->getConnection()->executeQuery("SELECT u.logdatei FROM `user` AS u WHERE u.id=:userid",
+      ['userid' => $userId])->fetchOne();
 
-      $ungelesenOeffentlich = (int)$this->DB->Select(
+      $ungelesenOeffentlich = (int)$this->em->getConnection()->executeQuery(
         "SELECT COUNT(c.id) 
           FROM chat AS c 
-          LEFT JOIN chat_gelesen AS g ON c.id = g.message AND (g.user = '".$userId."' OR g.user = 0)
-          WHERE c.user_to='0' AND c.zeitstempel > '".$registrierDatum."' 
-          AND g.id IS NULL"
-      );
-      $ungelesenPrivat = (int)$this->DB->Select(
+          LEFT JOIN chat_gelesen AS g ON c.id = g.message AND (g.user = :userid OR g.user = 0)
+          WHERE c.user_to='0' AND c.zeitstempel > :registrierDatum 
+          AND g.id IS NULL",
+          ['userid' => $userId, 'registrierDatum' => $registrierDatum]
+      )->fetchOne();
+      $ungelesenPrivat = (int)$this->em->getConnection()->executeQuery(
         "SELECT COUNT(c.id) 
           FROM chat AS c
           INNER JOIN `user` AS u ON c.user_from = u.id 
           LEFT JOIN chat_gelesen AS g ON c.id = g.message  
-          WHERE u.activ = 1 AND c.user_to='".$userId."' 
-          AND g.id IS NULL"
-      );
+          WHERE u.activ = 1 AND c.user_to=:userid 
+          AND g.id IS NULL",
+          ['userid' => $userId]
+      )->fetchOne();
       $anzchat = $ungelesenOeffentlich + $ungelesenPrivat;
       $this->Tpl->Set('CHATNACHRICHTENBOXCOUNTER',$anzchat > 0?$anzchat:'');
 
-      if($this->DB->Select("SELECT chat_popup FROM `user` WHERE id = '".$userId."' LIMIT 1")) {
+      if($this->em->getConnection()->executeQuery("SELECT chat_popup FROM `user` WHERE id = :userid LIMIT 1", ['userid' => $userId])->fetchOne()) {
         $this->Tpl->Set('CHATLINK','href="index.php?module=chat&action=list" target="_blank" ');
       }
       else {
@@ -1716,297 +1723,284 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
    */
   public function GetLandLang($isocode,$sprache='')
   {
-    $flipped = array_flip($this->GetLaender($sprache));
-    if(isset($flipped[$isocode])){
-      return $flipped[$isocode];
-    }
+      $country = $this->em->getRepository(Country::class)->findOneBy(['iso'=>$isocode]);
+      if ($country === null)
+          return '';
 
-    return '';
+      if ($sprache === 'englisch')
+          return $country->getBezeichnungEn();
+
+      return $country->getBezeichnungDe();
   }
 
   public function GetLaender($sprache='deutsch')
   {
-    if($sprache!=='deutsch' && $sprache!=='englisch'){
-      $sprache = 'deutsch';
-    }
-  
-    if($sprache==='deutsch'){
-      if(empty($this->uselaendercache) || empty($this->laendercache['deutsch'])){
-        $tmp = $this->DB->SelectArr('SELECT bezeichnung_de,iso FROM laender ORDER by bezeichnung_de');
-        $this->laendercache['deutsch'] = $tmp;
-      }else{
-        $tmp = $this->laendercache['deutsch'];
+      if ($sprache !== 'deutsch' && $sprache !== 'englisch') {
+          $sprache = 'deutsch';
       }
-    }
-    elseif(empty($this->uselaendercache) || empty($this->laendercache['englisch'])){
-      $tmp = $this->DB->SelectArr('SELECT bezeichnung_en,iso FROM laender ORDER by bezeichnung_en');
-      $this->laendercache['englisch'] = $tmp;
-    }else{
-      $tmp = $this->laendercache['englisch'];
-    }
-    if(!empty($tmp)){
-      $ctmp = count($tmp);
-      $laender = [];
-      for ($i = 0; $i < $ctmp; $i++) {
-        switch ($sprache) {
-          case 'deutsch':
-            $laender[$tmp[$i]['bezeichnung_de']] = $tmp[$i]['iso'];
-            break;
-          case 'englisch':
-            $laender[$tmp[$i]['bezeichnung_en']] = $tmp[$i]['iso'];
-            break;
-          default:
-            $laender[$tmp[$i]['bezeichnung_de']] = $tmp[$i]['iso'];
-        }
+
+      if (empty($this->uselaendercache) || empty($this->laendercache[$sprache])) {
+          $tmp = $this->em->getRepository(Country::class)->findAll();
+          $this->laendercache[$sprache] = $tmp;
+      } else {
+          $tmp = $this->laendercache[$sprache];
       }
+      if (!empty($tmp)) {
+          $laender = [];
+          foreach ($tmp as $item) {
+              $name = $sprache === 'deutsch' ? $item->getBezeichnungDe() : $item->getBezeichnungEn();
+              $laender[$name] = $item->getIso();
+          }
+          ksort($laender);
+
+          return $laender;
+      }
+
+      $laender = [
+          'Afghanistan' => 'AF',
+          '&Auml;gypten' => 'EG',
+          'Albanien' => 'AL',
+          'Algerien' => 'DZ',
+          'Amerikanische Jungferninseln' => 'VI',
+          'Andorra' => 'AD',
+          'Angola' => 'AO',
+          'Anguilla' => 'AI',
+          'Antarktis' => 'AQ',
+          'Antigua und Barbuda' => 'AG',
+          '&Auml;quatorialguinea' => 'GQ',
+          'Argentinien' => 'AR',
+          'Armenien' => 'AM',
+          'Aruba' => 'AW',
+          'Aserbaidschan' => 'AZ',
+          '&Auml;thiopien' => 'ET',
+          'Australien' => 'AU',
+          'Bahamas' => 'BS',
+          'Bahrain' => 'BH',
+          'Bangladesch' => 'BD',
+          'Barbados' => 'BB',
+          'Belgien' => 'BE',
+          'Belize' => 'BZ',
+          'Benin' => 'BJ',
+          'Bermuda' => 'BM',
+          'Bhutan' => 'BT',
+          'Bolivien' => 'BO',
+          'Bosnien und Herzegowina' => 'BA',
+          'Botswana' => 'BW',
+          'Bouvetinsel' => 'BV',
+          'Brasilien' => 'BR',
+          'Britisch-Indischer Ozean' => 'IO',
+          'Britische Jungferninseln' => 'VG',
+          'Brunei Darussalam' => 'BN',
+          'Bulgarien' => 'BG',
+          'Burkina Faso' => 'BF',
+          'Burundi' => 'BI',
+          'Chile' => 'CL',
+          'China' => 'CN',
+          'Cookinseln' => 'CK',
+          'Costa Rica' => 'CR',
+          'D&auml;nemark' => 'DK',
+          'Deutschland' => 'DE',
+          'Dominica' => 'DM',
+          'Dominikanische Republik' => 'DO',
+          'Dschibuti' => 'DJ',
+          'Ecuador' => 'EC',
+          'El Salvador' => 'SV',
+          'Elfenbeink&uuml;ste' => 'CI',
+          'Eritrea' => 'ER',
+          'Estland' => 'EE',
+          'Falklandinseln' => 'FK',
+          'F&auml;r&ouml;er Inseln' => 'FO',
+          'Fidschi' => 'FJ',
+          'Finnland' => 'FI',
+          'Frankreich' => 'FR',
+          'Franz&ouml;sisch-Guayana' => 'GF',
+          'Franz&ouml;sisch-Polynesien' => 'PF',
+          'Franz&ouml;sisches S&uuml;d-Territorium' => 'TF',
+          'Gabun' => 'GA',
+          'Gambia' => 'GM',
+          'Georgien' => 'GE',
+          'Ghana' => 'GH',
+          'Gibraltar' => 'GI',
+          'Grenada' => 'GD',
+          'Griechenland' => 'GR',
+          'Gr&ouml;nland' => 'GL',
+          'Gro&szlig;britannien' => 'GB',
+          'Guadeloupe' => 'GP',
+          'Guam' => 'GU',
+          'Guatemala' => 'GT',
+          'Guinea' => 'GN',
+          'Guinea-Bissau' => 'GW',
+          'Guyana' => 'GY',
+          'Haiti' => 'HT',
+          'Heard und McDonaldinseln' => 'HM',
+          'Honduras' => 'HN',
+          'Hongkong' => 'HK',
+          'Indien' => 'IN',
+          'Indonesien' => 'ID',
+          'Irak' => 'IQ',
+          'Iran' => 'IR',
+          'Irland' => 'IE',
+          'Island' => 'IS',
+          'Israel' => 'IL',
+          'Italien' => 'IT',
+          'Jamaika' => 'JM',
+          'Japan' => 'JP',
+          'Jemen' => 'YE',
+          'Jordanien' => 'JO',
+          'Kaimaninseln' => 'KY',
+          'Kambodscha' => 'KH',
+          'Kamerun' => 'CM',
+          'Kanada' => 'CA',
+          'Kap Verde' => 'CV',
+          'Kasachstan' => 'KZ',
+          'Katar' => 'QA',
+          'Kenia' => 'KE',
+          'Kirgisistan' => 'KG',
+          'Kiribati' => 'KI',
+          'Kokosinseln' => 'CC',
+          'Kolumbien' => 'CO',
+          'Komoren' => 'KM',
+          'Kongo' => 'CG',
+          'Kongo, Demokratische Republik' => 'CD',
+          'Kroatien' => 'HR',
+          'Kuba' => 'CU',
+          'Kuwait' => 'KW',
+          'Laos' => 'LA',
+          'Lesotho' => 'LS',
+          'Lettland' => 'LV',
+          'Libanon' => 'LB',
+          'Liberia' => 'LR',
+          'Libyen' => 'LY',
+          'Liechtenstein' => 'LI',
+          'Litauen' => 'LT',
+          'Luxemburg' => 'LU',
+          'Macau' => 'MO',
+          'Madagaskar' => 'MG',
+          'Malawi' => 'MW',
+          'Malaysia' => 'MY',
+          'Malediven' => 'MV',
+          'Mali' => 'ML',
+          'Malta' => 'MT',
+          'Marianen' => 'MP',
+          'Marokko' => 'MA',
+          'Marshallinseln' => 'MH',
+          'Martinique' => 'MQ',
+          'Mauretanien' => 'MR',
+          'Mauritius' => 'MU',
+          'Mayotte' => 'YT',
+          'Mazedonien' => 'MK',
+          'Mexiko' => 'MX',
+          'Mikronesien' => 'FM',
+          'Moldawien' => 'MD',
+          'Monaco' => 'MC',
+          'Mongolei' => 'MN',
+          'Montenegro' => 'ME',
+          'Montserrat' => 'MS',
+          'Mosambik' => 'MZ',
+          'Myanmar' => 'MM',
+          'Namibia' => 'NA',
+          'Nauru' => 'NR',
+          'Nepal' => 'NP',
+          'Neukaledonien' => 'NC',
+          'Neuseeland' => 'NZ',
+          'Nicaragua' => 'NI',
+          'Niederlande' => 'NL',
+          'Niger' => 'NE',
+          'Nigeria' => 'NG',
+          'Niue' => 'NU',
+          'Nordkorea' => 'KP',
+          'Norfolkinsel' => 'NF',
+          'Norwegen' => 'NO',
+          'Oman' => 'OM',
+          '&Ouml;sterreich' => 'AT',
+          'Pakistan' => 'PK',
+          'Pal&auml;stina' => 'PS',
+          'Palau' => 'PW',
+          'Panama' => 'PA',
+          'Papua-Neuguinea' => 'PG',
+          'Paraguay' => 'PY',
+          'Peru' => 'PE',
+          'Philippinen' => 'PH',
+          'Pitcairninseln' => 'PN',
+          'Polen' => 'PL',
+          'Portugal' => 'PT',
+          'Puerto Rico' => 'PR',
+          'Réunion' => 'RE',
+          'Ruanda' => 'RW',
+          'Rum&auml;nien' => 'RO',
+          'Russland' => 'RU',
+          'Salomonen' => 'SB',
+          'Sambia' => 'ZM',
+          'Samoa, amerikanisch' => 'AS',
+          'Samoa' => 'WS',
+          'San Marino' => 'SM',
+          'São Tomé und Príncipe' => 'ST',
+          'Saudi-Arabien' => 'SA',
+          'Schweden' => 'SE',
+          'Schweiz' => 'CH',
+          'Senegal' => 'SN',
+          'Serbien' => 'RS',
+          'Seychellen' => 'SC',
+          'Sierra Leone' => 'SL',
+          'Simbabwe' => 'ZW',
+          'Singapur' => 'SG',
+          'Slowakei' => 'SK',
+          'Slowenien' => 'SI',
+          'Somalia' => 'SO',
+          'S&uuml;dgeorgien, s&uuml;dliche Sandwichinseln' => 'GS',
+          'Spanien' => 'ES',
+          'Sri Lanka' => 'LK',
+          'St. Helena' => 'SH',
+          'St. Kitts und Nevis' => 'KN',
+          'St. Lucia' => 'LC',
+          'St. Pierre und Miquelon' => 'PM',
+          'St. Vincent und die Grenadinen' => 'VC',
+          'S&uuml;dkorea' => 'KR',
+          'S&uuml;dafrika' => 'ZA',
+          'Sudan' => 'SD',
+          'Suriname' => 'SR',
+          'Svalbard und Jan Mayen' => 'SJ',
+          'Swasiland' => 'SZ',
+          'Syrien' => 'SY',
+          'Tadschikistan' => 'TJ',
+          'Taiwan' => 'TW',
+          'Tansania' => 'TZ',
+          'Thailand' => 'TH',
+          'Togo' => 'TG',
+          'Tokelau' => 'TK',
+          'Tonga' => 'TO',
+          'Trinidad und Tobago' => 'TT',
+          'Tschad' => 'TD',
+          'Tschechien' => 'CZ',
+          'Tunesien' => 'TN',
+          'T&uuml;rkei' => 'TR',
+          'Turkmenistan' => 'TM',
+          'Turks- und Caicosinseln' => 'TC',
+          'Tuvalu' => 'TV',
+          'Uganda' => 'UG',
+          'Ukraine' => 'UA',
+          'Ungarn' => 'HU',
+          'Uruguay' => 'UY',
+          'Usbekistan' => 'UZ',
+          'Vanuatu' => 'VU',
+          'Vatikanstadt' => 'VA',
+          'Venezuela' => 'VE',
+          'Vereinigte Arabische Emirate' => 'AE',
+          'Vereinigtes Königreich' => 'UK',
+          'Vereinigte Staaten von Amerika' => 'US',
+          'Vietnam' => 'VN',
+          'Wallis und Futuna' => 'WF',
+          'Weihnachtsinsel' => 'CX',
+          'Wei&szlig;russland' => 'BY',
+          'Westsahara' => 'EH',
+          'Zentralafrikanische Republik' => 'CF',
+          'Zypern' => 'CY'
+      ];
       return $laender;
-    }
-  
-    $laender = array(
-        'Afghanistan'  => 'AF',
-        '&Auml;gypten'  => 'EG',
-        'Albanien'  => 'AL',
-        'Algerien'  => 'DZ',
-        'Amerikanische Jungferninseln' => 'VI',
-        'Andorra'  => 'AD',
-        'Angola'  => 'AO',
-        'Anguilla'  => 'AI',
-        'Antarktis'  => 'AQ',
-        'Antigua und Barbuda'  => 'AG',
-        '&Auml;quatorialguinea'  => 'GQ',
-        'Argentinien'  => 'AR',
-        'Armenien'  => 'AM',
-        'Aruba'  => 'AW',
-        'Aserbaidschan'  => 'AZ',
-        '&Auml;thiopien'  => 'ET',
-        'Australien'  => 'AU',
-        'Bahamas'  => 'BS',
-        'Bahrain'  => 'BH',
-        'Bangladesch'  => 'BD',
-        'Barbados'  => 'BB',
-        'Belgien'  => 'BE',
-        'Belize'  => 'BZ',
-        'Benin'  => 'BJ',
-        'Bermuda'  => 'BM',
-        'Bhutan'  => 'BT',
-        'Bolivien'  => 'BO',
-        'Bosnien und Herzegowina'  => 'BA',
-        'Botswana'  => 'BW',
-        'Bouvetinsel'  => 'BV',
-        'Brasilien'  => 'BR',
-        'Britisch-Indischer Ozean'  => 'IO',
-        'Britische Jungferninseln' => 'VG',
-        'Brunei Darussalam'  => 'BN',
-        'Bulgarien'  => 'BG',
-        'Burkina Faso'  => 'BF',
-        'Burundi'  => 'BI',
-        'Chile'  => 'CL',
-        'China'  => 'CN',
-        'Cookinseln'  => 'CK',
-        'Costa Rica'  => 'CR',
-        'D&auml;nemark'  => 'DK',
-        'Deutschland'  => 'DE',
-        'Dominica'  => 'DM',
-        'Dominikanische Republik'  => 'DO',
-        'Dschibuti'  => 'DJ',
-        'Ecuador'  => 'EC',
-        'El Salvador'  => 'SV',
-        'Elfenbeink&uuml;ste'  => 'CI',
-        'Eritrea'  => 'ER',
-        'Estland'  => 'EE',
-        'Falklandinseln'  => 'FK',
-        'F&auml;r&ouml;er Inseln'  => 'FO',
-        'Fidschi'  => 'FJ',
-        'Finnland'  => 'FI',
-        'Frankreich'  => 'FR',
-        'Franz&ouml;sisch-Guayana'  => 'GF',
-        'Franz&ouml;sisch-Polynesien'  => 'PF',
-        'Franz&ouml;sisches S&uuml;d-Territorium'  => 'TF',
-        'Gabun'  => 'GA',
-        'Gambia'  => 'GM',
-        'Georgien'  => 'GE',
-        'Ghana'  => 'GH',
-        'Gibraltar'  => 'GI',
-        'Grenada'  => 'GD',
-        'Griechenland'  => 'GR',
-        'Gr&ouml;nland'  => 'GL',
-        'Gro&szlig;britannien'  => 'GB',
-        'Guadeloupe'  => 'GP',
-        'Guam'  => 'GU',
-        'Guatemala'  => 'GT',
-        'Guinea'  => 'GN',
-        'Guinea-Bissau'  => 'GW',
-        'Guyana'  => 'GY',
-        'Haiti'  => 'HT',
-        'Heard und McDonaldinseln'  => 'HM',
-        'Honduras'  => 'HN',
-        'Hongkong'  => 'HK',
-        'Indien'  => 'IN',
-        'Indonesien'  => 'ID',
-        'Irak'  => 'IQ',
-        'Iran'  => 'IR',
-        'Irland'  => 'IE',
-        'Island'  => 'IS',
-        'Israel'  => 'IL',
-        'Italien'  => 'IT',
-        'Jamaika'  => 'JM',
-        'Japan'  => 'JP',
-        'Jemen'  => 'YE',
-        'Jordanien'  => 'JO',
-        'Kaimaninseln'  => 'KY',
-        'Kambodscha'  => 'KH',
-        'Kamerun'  => 'CM',
-        'Kanada'  => 'CA',
-        'Kap Verde'  => 'CV',
-        'Kasachstan'  => 'KZ',
-        'Katar'  => 'QA',
-        'Kenia'  => 'KE',
-        'Kirgisistan'  => 'KG',
-        'Kiribati'  => 'KI',
-        'Kokosinseln'  => 'CC',
-        'Kolumbien'  => 'CO',
-        'Komoren'  => 'KM',
-        'Kongo'  => 'CG',
-        'Kongo, Demokratische Republik'  => 'CD',
-        'Kroatien'  => 'HR',
-        'Kuba'  => 'CU',
-        'Kuwait'  => 'KW',
-        'Laos'  => 'LA',
-        'Lesotho'  => 'LS',
-        'Lettland'  => 'LV',
-        'Libanon'  => 'LB',
-        'Liberia'  => 'LR',
-        'Libyen'  => 'LY',
-        'Liechtenstein'  => 'LI',
-        'Litauen'  => 'LT',
-        'Luxemburg'  => 'LU',
-        'Macau'  => 'MO',
-        'Madagaskar'  => 'MG',
-        'Malawi'  => 'MW',
-        'Malaysia'  => 'MY',
-        'Malediven'  => 'MV',
-        'Mali'  => 'ML',
-        'Malta'  => 'MT',
-        'Marianen'  => 'MP',
-        'Marokko'  => 'MA',
-        'Marshallinseln'  => 'MH',
-        'Martinique'  => 'MQ',
-        'Mauretanien'  => 'MR',
-        'Mauritius'  => 'MU',
-        'Mayotte'  => 'YT',
-        'Mazedonien'  => 'MK',
-        'Mexiko'  => 'MX',
-        'Mikronesien'  => 'FM',
-        'Moldawien'  => 'MD',
-        'Monaco'  => 'MC',
-        'Mongolei'  => 'MN',
-        'Montenegro'  => 'ME',
-        'Montserrat'  => 'MS',
-        'Mosambik'  => 'MZ',
-        'Myanmar' => 'MM',
-        'Namibia'  => 'NA',
-        'Nauru'  => 'NR',
-        'Nepal'  => 'NP',
-        'Neukaledonien'  => 'NC',
-        'Neuseeland'  => 'NZ',
-        'Nicaragua'  => 'NI',
-        'Niederlande'  => 'NL',
-        'Niger'  => 'NE',
-        'Nigeria'  => 'NG',
-        'Niue'  => 'NU',
-        'Nordkorea'  => 'KP',
-        'Norfolkinsel'  => 'NF',
-        'Norwegen'  => 'NO',
-        'Oman'  => 'OM',
-        '&Ouml;sterreich'  => 'AT',
-        'Pakistan'  => 'PK',
-        'Pal&auml;stina'  => 'PS',
-        'Palau'  => 'PW',
-        'Panama'  => 'PA',
-        'Papua-Neuguinea'  => 'PG',
-        'Paraguay'  => 'PY',
-        'Peru'  => 'PE',
-        'Philippinen'  => 'PH',
-        'Pitcairninseln'  => 'PN',
-        'Polen'  => 'PL',
-        'Portugal'  => 'PT',
-        'Puerto Rico'  => 'PR',
-        'Réunion'  => 'RE',
-        'Ruanda'  => 'RW',
-        'Rum&auml;nien'  => 'RO',
-        'Russland'  => 'RU',
-        'Salomonen'  => 'SB',
-        'Sambia'  => 'ZM',
-        'Samoa, amerikanisch'  => 'AS',
-        'Samoa'  => 'WS',
-        'San Marino'  => 'SM',
-        'São Tomé und Príncipe'  => 'ST',
-        'Saudi-Arabien'  => 'SA',
-        'Schweden'  => 'SE',
-        'Schweiz'  => 'CH',
-        'Senegal'  => 'SN',
-        'Serbien'  => 'RS',
-        'Seychellen'  => 'SC',
-        'Sierra Leone'  => 'SL',
-        'Simbabwe' => 'ZW',
-        'Singapur'  => 'SG',
-        'Slowakei'  => 'SK',
-        'Slowenien'  => 'SI',
-        'Somalia'  => 'SO',
-        'S&uuml;dgeorgien, s&uuml;dliche Sandwichinseln'  => 'GS',
-        'Spanien'  => 'ES',
-        'Sri Lanka'  => 'LK',
-        'St. Helena'  => 'SH',
-        'St. Kitts und Nevis'  => 'KN',
-        'St. Lucia'  => 'LC',
-        'St. Pierre und Miquelon'  => 'PM',
-        'St. Vincent und die Grenadinen'  => 'VC',
-        'S&uuml;dkorea'  => 'KR',
-        'S&uuml;dafrika'  => 'ZA',
-        'Sudan'  => 'SD',
-        'Suriname'  => 'SR',
-        'Svalbard und Jan Mayen'  => 'SJ',
-        'Swasiland'  => 'SZ',
-        'Syrien'  => 'SY',
-        'Tadschikistan'  => 'TJ',
-        'Taiwan'  => 'TW',
-        'Tansania'  => 'TZ',
-        'Thailand'  => 'TH',
-        'Togo'  => 'TG',
-        'Tokelau'  => 'TK',
-        'Tonga'  => 'TO',
-        'Trinidad und Tobago'  => 'TT',
-        'Tschad'  => 'TD',
-        'Tschechien'  => 'CZ',
-        'Tunesien'  => 'TN',
-        'T&uuml;rkei'  => 'TR',
-        'Turkmenistan'  => 'TM',
-        'Turks- und Caicosinseln'  => 'TC',
-        'Tuvalu'  => 'TV',
-        'Uganda'  => 'UG',
-        'Ukraine'  => 'UA',
-        'Ungarn'  => 'HU',
-        'Uruguay'  => 'UY',
-        'Usbekistan'  => 'UZ',
-        'Vanuatu'  => 'VU',
-        'Vatikanstadt'  => 'VA',
-        'Venezuela'  => 'VE',
-        'Vereinigte Arabische Emirate'  => 'AE',
-        'Vereinigtes Königreich' => 'UK',
-        'Vereinigte Staaten von Amerika'  => 'US',
-        'Vietnam'  => 'VN',
-        'Wallis und Futuna'  => 'WF',
-        'Weihnachtsinsel' => 'CX',
-        'Wei&szlig;russland'  => 'BY',
-        'Westsahara'  => 'EH',
-        'Zentralafrikanische Republik'  => 'CF',
-        'Zypern'  => 'CY'
-          );
-    return $laender;
   }
 
 
-  public function SelectLaenderliste($selected='')
+    public function SelectLaenderliste($selected='')
   {
     if(empty($selected)) {
       $selected=$this->erp->Firmendaten('land');
