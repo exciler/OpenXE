@@ -494,19 +494,14 @@ class erpooSystem extends Application
       }
 
       // set generated HTML to template
-      /** @var \Twig\Environment $twig */
-      $twig = $this->SymfonyContainer->get('twigpublic');
-      $sidebar = $twig->render('_sidebar.html.twig', [
+      $this->Tpl->RenderTwig('SIDEBAR', '_sidebar.html.twig', [
           'version' => $version_revision ?? null,
           'sidebar_collapsed' => $sidebarCollapsed ?? false,
           'fixedItems' => $fixedItems,
           'navItems' => $navItems,
           'userItems' => $userItems,
-          'svg_logo' => $this->getSVG('themes/new/templates/', 'sidebar_logo'),
-          'svg_icon_logo' => $this->getSVG('themes/new/templates/', 'sidebar_icon_logo'),
       ]);
-      $this->Tpl->Set('SIDEBAR', $sidebar);
-      $this->Tpl->Parse('PROFILE_MENU', 'profile_menu.tpl');
+      $this->Tpl->RenderTwig('PROFILE_MENU', '_profile_menu.html.twig');
   }
 
   /**
