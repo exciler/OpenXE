@@ -128,11 +128,11 @@ class TemplateParser {
 
   /**
    * TemplateParser constructor.
-   *
-   * @param Application $app
    */
-  public function __construct($app){
-		$this->app = $app;
+  public function __construct(
+      private erpooSystem $app,
+      private ?\Twig\Environment $twig = null
+  ){
    	$this->TEMPLATELIST=null;
     $this->VARVARARRAY = null;
 	}
@@ -483,6 +483,10 @@ class TemplateParser {
       }
     }
     return $ret;
+  }
+
+  function RenderTwig(string $_var, string $template, array $context = []) {
+      $this->Set($_var, $this->twig->render($template, $context));
   }
 
   function Parse($_var, $_template,$return=0){

@@ -14,12 +14,17 @@ services:
     class: erpooSystem
     arguments:
       $serviceContainer: '@service_container'
+    properties:
+      Tpl: '@TemplateParser'
 
   Session:
     class: Session
 
   Player:
     class: Player
+
+  TemplateParser:
+    class: TemplateParser
 
   twigpublic:
     alias: twig

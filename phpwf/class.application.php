@@ -77,7 +77,6 @@ if(WithGUI())
   include dirname(__DIR__).'/phpwf/plugins/class.modulescriptcache.php';
 }
 
-include dirname(__DIR__).'/phpwf/plugins/class.templateparser.php';
 //include dirname(__DIR__).'/phpwf/plugins/class.yui.php';
 
 include dirname(__DIR__).'/phpwf/plugins/class.acl.php';
