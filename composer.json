@@ -28,7 +28,9 @@
     "y0lk/oauth1-etsy": "1.1.0",
     "symfony/twig-bundle": "^7.4",
     "symfony/security-bundle": "^7.4",
-    "symfony/orm-pack": "^2.7"
+    "symfony/orm-pack": "^2.7",
+    "symfony/asset-mapper": "^7.4",
+    "symfony/asset": "^7.4"
   },
   "replace": {
     "itbz/fpdf": "*"
