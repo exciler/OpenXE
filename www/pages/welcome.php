@@ -3208,32 +3208,42 @@ class Welcome
         }
         $sprachebevorzugen = $this->app->Secure->GetPOST('sprachebevorzugen');
 
+        $conn = $this->app->EntityManager->getConnection();
+        $userId = (int)$this->app->User->GetID();
+
         // umzug in tabelle user
         if ($this->app->User->GetParameter('welcome_defaultcolor_fuer_kalender') != '') {
             $defaultcolor = $this->app->Secure->GetPOST('defaultcolor');
-            $this->app->DB->Update(
-                "UPDATE `user` SET `defaultcolor` = '{$defaultcolor}' WHERE `id` = '" . $this->app->User->GetID(
-                ) . "' LIMIT 1",
+            $conn->executeStatement(
+                "UPDATE `user` SET `defaultcolor` = :defaultcolor WHERE `id` = :id LIMIT 1",
+                ['defaultcolor' => $defaultcolor, 'id' => $userId],
             );
             $this->app->User->SetParameter('welcome_defaultcolor_fuer_kalender', '');
         }
 
         if ($sprachebevorzugen != '') {
             $sprachebevorzugen = $this->app->Secure->GetPOST('sprachebevorzugen');
-            $this->app->DB->Update(
-                "UPDATE `user` SET `sprachebevorzugen` = '$sprachebevorzugen' WHERE `id` = '" . $this->app->User->GetID(
-                ) . "' LIMIT 1",
+            $conn->executeStatement(
+                "UPDATE `user` SET `sprachebevorzugen` = :sprache WHERE `id` = :id LIMIT 1",
+                ['sprache' => $sprachebevorzugen, 'id' => $userId],
             );
         }
 
         if ($submit_startseite != '') {
-            $this->app->DB->Update(
-                "UPDATE `user` SET 
-        `startseite` = '{$startseite}', 
-        `chat_popup` = '{$chat_popup}', 
-        `callcenter_notification` = '{$callcenter_notification}', 
-        `defaultcolor` = '{$defaultcolor}' 
-        WHERE `id` = '" . $this->app->User->GetID() . "' LIMIT 1",
+            $conn->executeStatement(
+                "UPDATE `user` SET
+                        `startseite` = :startseite,
+                        `chat_popup` = :chat_popup,
+                        `callcenter_notification` = :callcenter_notification,
+                        `defaultcolor` = :defaultcolor
+                     WHERE `id` = :id LIMIT 1",
+                [
+                    'startseite' => $startseite,
+                    'chat_popup' => $chat_popup,
+                    'callcenter_notification' => $callcenter_notification,
+                    'defaultcolor' => $defaultcolor,
+                    'id' => $userId,
+                ],
             );
         }
     }
@@ -3248,10 +3258,10 @@ class Welcome
         $adresse = $this->app->User->GetAdresse();
         $dateien = $this->app->EntityManager->getConnection()->executeQuery(
             "SELECT d.id 
-         FROM datei AS d 
-         INNER JOIN datei_stichwoerter AS ds ON d.id = ds.datei
-         WHERE d.geloescht = 0 AND ds.objekt LIKE 'Adressen' AND ds.parameter = :address AND ds.subjekt LIKE 'Profilbild' 
-         ORDER BY d.id DESC",
+             FROM datei AS d 
+             INNER JOIN datei_stichwoerter AS ds ON d.id = ds.datei
+             WHERE d.geloescht = 0 AND ds.objekt LIKE 'Adressen' AND ds.parameter = :address AND ds.subjekt LIKE 'Profilbild' 
+             ORDER BY d.id DESC",
             ['address' => $adresse],
         )->fetchFirstColumn();
         if (!empty($dateien)) {
@@ -3271,8 +3281,12 @@ class Welcome
     {
         /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $file */
         $file = $this->app->Request->files->get('upload');
-        $fileName = $this->app->DB->real_escape_string($file->getClientOriginalName());
-        $fileTmp = $this->app->DB->real_escape_string($file->getFilename());
+
+        $fileName = (string)$file->getClientOriginalName();
+        $fileName = basename($fileName);
+        $fileName = preg_replace('/[^\w.\- ]/u', '_', $fileName);
+
+        $fileTmp = (string)$file->getFilename();
 
         if (!empty($fileTmp)) {
             $addressId = $this->app->User->GetAdresse();
@@ -3311,23 +3325,23 @@ class Welcome
             $username = $this->app->User->GetUsername() . '_dashboard';
             $password = md5(uniqid('', true));
 
-            $sql = sprintf(
-                "INSERT INTO `api_account` 
-          (`id`, `bezeichnung`, `initkey`, `importwarteschlange_name`, `event_url`, `remotedomain`, `aktiv`, 
-          `importwarteschlange`, `cleanutf8`, `uebertragung_account`, `permissions`)
-              VALUES (NULL, '%s', '%s', '', '', '%s', 1, 0, 1, 0 , '%s')",
-                $this->app->DB->real_escape_string($title),
-                $this->app->DB->real_escape_string($password),
-                $this->app->DB->real_escape_string($username),
-                $this->app->DB->real_escape_string(json_encode(['mobile_app_communication'])),
+            $conn = $this->app->EntityManager->getConnection();
+            $conn->executeStatement(
+                "INSERT INTO `api_account`
+                      (`id`, `bezeichnung`, `initkey`, `importwarteschlange_name`, `event_url`, `remotedomain`, `aktiv`,
+                       `importwarteschlange`, `cleanutf8`, `uebertragung_account`, `permissions`)
+                     VALUES (NULL, :title, :initkey, '', '', :remotedomain, 1, 0, 1, 0, :permissions)",
+                [
+                    'title' => $title,
+                    'initkey' => $password,
+                    'remotedomain' => $username,
+                    'permissions' => json_encode(['mobile_app_communication']),
+                ],
             );
-            $this->app->DB->Insert($sql);
 
-            $apiAccountId = (int)$this->app->DB->Select(
-                sprintf(
-                    "SELECT a.id FROM `api_account` AS `a` WHERE a.remotedomain = '%s' LIMIT 1",
-                    $this->app->DB->real_escape_string($username),
-                ),
+            $apiAccountId = (int)$conn->fetchOne(
+                "SELECT a.id FROM `api_account` AS `a` WHERE a.remotedomain = :remotedomain LIMIT 1",
+                ['remotedomain' => $username],
             );
             $this->app->User->SetParameter('mobile_apps_api_account_id', $apiAccountId);
 
@@ -3339,15 +3353,20 @@ class Welcome
         // API-Account aktivieren
         if (!empty($this->app->Secure->GetPOST('mobile_app_api_activate'))) {
             $apiAccountId = (int)$this->app->User->GetParameter('mobile_apps_api_account_id');
-            $this->app->DB->Update("UPDATE api_account SET aktiv = 1 WHERE id = '{$apiAccountId}' LIMIT 1");
+            $this->app->EntityManager->getConnection()->executeStatement(
+                "UPDATE api_account SET aktiv = 1 WHERE id = :id LIMIT 1",
+                ['id' => $apiAccountId],
+            );
         }
 
         // API-Account deaktivieren
         if (!empty($this->app->Secure->GetPOST('mobile_app_api_deactivate'))) {
             $apiAccountId = (int)$this->app->User->GetParameter('mobile_apps_api_account_id');
-            $this->app->DB->Update("UPDATE api_account SET aktiv = 0 WHERE id = '{$apiAccountId}' LIMIT 1");
-        }
-    }
+            $this->app->EntityManager->getConnection()->executeStatement(
+                "UPDATE api_account SET aktiv = 0 WHERE id = :id LIMIT 1",
+                ['id' => $apiAccountId],
+            );
+        }    }
 
     private function handleTOTPRegenerate(): Response
     {
