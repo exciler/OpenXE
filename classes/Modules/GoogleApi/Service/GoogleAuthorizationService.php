@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Xentral\Modules\GoogleApi\Service;
 
 use Exception;
-use Xentral\Components\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Xentral\Components\Http\Request;
 use Xentral\Components\Http\Session\Session;
 use Xentral\Components\HttpClient\Exception\ClientErrorException;
@@ -128,7 +128,7 @@ final class GoogleAuthorizationService
         ];
         $url = sprintf('%s?%s', self::URL_AUTHORIZATION_CODE, http_build_query($queryParams));
 
-        return RedirectResponse::createFromUrl($url);
+        return new RedirectResponse($url);
     }
 
     /**
@@ -204,7 +204,7 @@ final class GoogleAuthorizationService
             true
         );
 
-        return RedirectResponse::createFromUrl($redirectUri);
+        return new RedirectResponse($redirectUri);
     }
 
     /**

@@ -13,7 +13,7 @@
 */
 ?>
 <?php
-use Xentral\Components\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Xentral\Modules\Report\ReportGateway;
 use Xentral\Modules\Report\ReportLegacyConverterService;
 
@@ -710,7 +710,7 @@ class Berichte extends GenBerichte {
   {
       $berichtId = (int)$this->app->Secure->GetPOST('bericht_id');
       if (!$this->app->Container->has('ReportLegacyConverterService')) {
-          $redirect = RedirectResponse::createFromUrl(
+          $redirect = new RedirectResponse(
               sprintf('index.php?module=berichte&action=edit&id=%s', $berichtId)
           );
           $redirect->send();
@@ -722,11 +722,11 @@ class Berichte extends GenBerichte {
           $converter = $this->app->Container->get('ReportLegacyConverterService');
           $newId = $converter->convertLegacyReport($berichtId);
 
-          $redirect = RedirectResponse::createFromUrl(sprintf('index.php?module=report&action=edit&id=%s', $newId));
+          $redirect = new RedirectResponse(sprintf('index.php?module=report&action=edit&id=%s', $newId));
           $redirect->send();
           $this->app->ExitXentral();
       } catch (Exception $e) {
-          $redirect = RedirectResponse::createFromUrl(
+          $redirect = new RedirectResponse(
               sprintf('index.php?module=berichte&action=edit&id=%s', $berichtId)
           );
           $redirect->send();

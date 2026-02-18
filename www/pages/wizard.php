@@ -14,6 +14,7 @@
 ?>
 <?php
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Xentral\Components\Http\JsonResponse;
 use Xentral\Modules\Wizard\Exception\WizardExceptionInterface;
 use Xentral\Modules\Wizard\WizardService;
@@ -205,7 +206,7 @@ class Wizard
   }
 
   /**
-   * @return JsonResponse|\Xentral\Components\Http\RedirectResponse
+   * @return JsonResponse|RedirectResponse
    */
   public function WizardAjax()
   {
@@ -278,7 +279,7 @@ class Wizard
         $this->service->setMinimizedForUser($userId, false);
         $link = $this->service->getFirstWizardLink($key);
 
-        return \Xentral\Components\Http\RedirectResponse::createFromUrl($link);
+        return new RedirectResponse($link);
         break;
       case 'complete_step':
         $key = $this->app->Secure->GetGET('key');

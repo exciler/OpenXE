@@ -18,7 +18,7 @@ use Xentral\Components\Database\Database;
 use Xentral\Components\Http\File\FileUpload;
 use Xentral\Components\Http\FileResponse;
 use Xentral\Components\Http\JsonResponse;
-use Xentral\Components\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Xentral\Components\Http\Request;
 use Xentral\Components\Http\Response;
 use Xentral\Components\Template\Template;
@@ -3103,7 +3103,7 @@ class Report
      */
     private function redirectTo($url)
     {
-        $redirect = RedirectResponse::createFromUrl($url);
+        $redirect = new RedirectResponse($url);
         $redirect->send();
     }
 

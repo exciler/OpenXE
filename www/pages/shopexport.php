@@ -14,7 +14,7 @@
 ?>
 <?php
 
-use Xentral\Components\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Shopexport
 {
@@ -665,7 +665,7 @@ class Shopexport
     $msg = $this->app->erp->base64_url_encode(
       "<div class=\"success\">Lagerzahlen Cache f&uuml;r ".$anz." Artikel zur&uuml;ckgesetzt.</div>"
     );
-    return RedirectResponse::createFromUrl("index.php?module=shopexport&action=artikeluebertragung&id=$id&msg=$msg");
+    return new RedirectResponse("index.php?module=shopexport&action=artikeluebertragung&id=$id&msg=$msg");
   }
 
   public function ShopexportArtikeluebertragung()
