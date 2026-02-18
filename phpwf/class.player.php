@@ -34,7 +34,7 @@ class Player
 
     public function BuildNavigation()
     {
-        if (!WithGUI() || !method_exists($this->app->Page, 'CreateNavigation') || !method_exists(
+        if (!Application::WithGUI() || !method_exists($this->app->Page, 'CreateNavigation') || !method_exists(
                 'erpAPI',
                 'Navigation',
             )) {
@@ -167,20 +167,24 @@ class Player
                 $constr = strtoupper($module[0]) . substr($module, 1);
                 if (class_exists($constr)) $myApp = new $constr($this->app);
             }
-        } else {
-            if (file_exists(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php")) {
-                include_once(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php");
-                //create dynamical an object
-                $constr = "Gen" . strtoupper($module[0]) . substr($module, 1);
-                $myApp = new $constr($this->app);
-            } else {
-                if (file_exists(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php")) {
-                    include_once(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php");
-                    //create dynamical an object
-                    $constr = "Gen" . strtoupper($module[0]) . substr($module, 1);
-                    $myApp = new $constr($this->app);
-                }
-            }
+        } elseif (file_exists(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php")) {
+            include_once(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php");
+            //create dynamical an object
+            $constr = "Gen" . strtoupper($module[0]) . substr($module, 1);
+            $myApp = new $constr($this->app);
+        } elseif (file_exists(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php")) {
+            include_once(dirname(__DIR__) . "/www/pages/_gen/" . $module . ".php");
+            //create dynamical an object
+            $constr = "Gen" . strtoupper($module[0]) . substr($module, 1);
+            $myApp = new $constr($this->app);
+        }
+        $actionResult = $this->app->GetActionHandlerResult();
+        if($actionResult instanceof Response) {
+            return $actionResult;
+        }
+        if($actionResult instanceof \Xentral\Components\Http\Response) {
+            $actionResult->send();
+            $this->app->ExitXentral();
         }
         $this->app->erp->RunHook('player_run_before_include_js_css');
 

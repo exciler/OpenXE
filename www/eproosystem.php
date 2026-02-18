@@ -39,7 +39,7 @@ ini_set('magic_quotes_runtime', 0);
 
 require_once dirname(__DIR__).'/phpwf/class.application.php';
 
-if( WithGUI(true))
+if(Application::WithGUI(true))
 {
   define('FPDF_FONTPATH',__DIR__.'/lib/pdf/font/');
   if(file_exists(__DIR__."/lib/dokumente/class.briefpapier_custom.php"))
@@ -74,7 +74,10 @@ class erpooSystem extends Application
   }
 
   public function Init(){
-    if(WithGUI()){
+    if(Application::WithGUI()){
+        $this->Tpl->ReadTemplatesFromPath(__DIR__ . '/widgets/templates/');
+        $this->Tpl->Set('LAYOUTFIXMARKERCLASS', 'layoutfix');
+
       $module = $this->Secure->GetGET('module');
       $action = $this->Secure->GetGET('action');
       $this->Tpl->Set('DASHBOARDLINK', 'index.php?module=welcome&action=start');
@@ -153,7 +156,7 @@ class erpooSystem extends Application
         $this->Tpl->Set('BODYSTYLE', 'style=background-color:red');
     }
 
-    if(WithGUI(true)){
+    if(Application::WithGUI(true)){
 
       $benutzername = $this->erp->Firmendaten('benutzername');
       $passwort = $this->erp->Firmendaten('passwort');
@@ -170,7 +173,7 @@ class erpooSystem extends Application
       // templates
     }
 
-    if(WithGUI()){
+    if(Application::WithGUI()){
       $this->createSidebarNavigation();
 
 
@@ -807,6 +810,7 @@ class erpooSystem extends Application
       )
     ) {
       $noTimeoutUserEdit = 1;
+      $id = 0;
     }
 
 
@@ -970,7 +974,7 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
 
   public function calledWhenAuth($type)
   {
-    if(!WithGUI()){
+    if(!Application::WithGUI()){
       return;
     }
     $id = $this->Secure->GetGET('id');

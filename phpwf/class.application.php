@@ -14,80 +14,9 @@
 ?>
 <?php
 
-use Xentral\Components\Http\JsonResponse;
-use Xentral\Components\Http\RedirectResponse;
-
-function WithGUI($first = false)
-{
-  if (defined('API_REQUEST') && (bool)API_REQUEST === true) {
-    return false;
-  }
-  if(isset($_GET['withgui']) && $_GET['withgui']){
-    return true;
-  }
-	$module = isset($_GET['module'])?$_GET['module']:'';
-	$action = isset($_GET['action'])?$_GET['action']:'';
-	if($action === 'editable') {
-	  return false;
-  }
-  if(!$first && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest'))
-  {
-    if($action === 'positionen' || strpos($action,'minidetail') === 0){
-      return true;
-    }
-    if($module === 'adresse'){
-      return true;
-    }
-    if($action === 'verkauf'){
-      return true;
-    }
-    return false;
-  }
-	return !($module==='ajax' || $module==='api'
-    || ($module==='welcome' && $action==='css')
-    || ($module==='report' && $action==='export')
-    || ($module==='welcome' && $action==='cronjob')
-    || ($module==='welcome' && $action==='adapterbox')
-    || ($module==='welcome' && $action==='logo')
-    || ($module==='artikel' && $action==='ajaxwerte')
-    || ($module==='artikel' && $action==='thumbnail')
-    || ($module==='wiki' && $action==='getfile')
-    || ($module==='benutzer' && $action==='chrights')
-    || ($module==='callcenter' && $action==='call')
-    || ($module==='waage' && $action==='gewicht')
-    || ($module==='welcome' && $action==='poll')
-    || ($module==='artikel' && $action==='thumbnail')
-  );
-}
-
-//include ('phpwf/engine/class.engine.php';
-if(WithGUI())
-{
-	include dirname(__DIR__).'/phpwf/plugins/class.formhandler.php';
-	include dirname(__DIR__).'/phpwf/plugins/class.pagebuilder.php';
-	include dirname(__DIR__).'/phpwf/plugins/class.widgetapi.php';
-	include dirname(__DIR__).'/phpwf/widgets/easytable.php';
-	include dirname(__DIR__).'/phpwf/widgets/grouptable.php';
-	include dirname(__DIR__).'/phpwf/widgets/childtable.php';
-	include dirname(__DIR__).'/phpwf/widgets/table.php';
-	include dirname(__DIR__).'/phpwf/plugins/class.picosafelogin.php';
-	include dirname(__DIR__).'/phpwf/plugins/class.wawision_otp.php';
-	include dirname(__DIR__).'/phpwf/htmltags/all.php';
-	include dirname(__DIR__).'/phpwf/types/class.simplelist.php';
-  include dirname(__DIR__).'/phpwf/plugins/class.modulescriptcache.php';
-}
-
-//include dirname(__DIR__).'/phpwf/plugins/class.yui.php';
-
-include dirname(__DIR__).'/phpwf/plugins/class.acl.php';
-include dirname(__DIR__).'/phpwf/plugins/class.user.php';
-include dirname(__DIR__).'/phpwf/plugins/class.page.php';
-include dirname(__DIR__).'/phpwf/plugins/class.phpwfapi.php';
-include dirname(__DIR__).'/phpwf/plugins/class.secure.php';
-//if(is_file(__DIR__.'/www/lib/class.location.php'))@include (dirname(__DIR__).'/www/lib/class.location.php';
-include dirname(__DIR__).'/phpwf/plugins/class.wfmonitor.php';
-include dirname(__DIR__).'/phpwf/plugins/class.string.php';
-include dirname(__DIR__).'/phpwf/plugins/class.objectapi.php';
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * @property Config $Conf
@@ -113,6 +42,7 @@ class Application extends ApplicationCore
 
     public $ActionHandlerList;
     public $ActionHandlerDefault;
+    private $ActionHandlerResult;
     public $http;
     public $caller;
     public $BuildNavigation;
@@ -122,17 +52,6 @@ class Application extends ApplicationCore
     public function __construct(?Config $config)
     {
       parent::__construct($config);
-
-      /*if(!isset($_GET['module']) || $_GET['module'] != 'api') {
-        if(!(isset($_GET['module']) && isset($_GET['action']) && isset($_GET['cmd']) && $_GET['module'] == 'welcome' && (($_GET['action'] == 'login' && $_GET['cmd'] == 'checkrfid') || $_GET['action'] == 'cronjob' || $_GET['action'] == 'adapterbox'))) {
-         // @session_cache_limiter('private');
-          //@session_start();
-        }
-      }*/
-
-      $this->Conf= $config;
-
-      //include dirname(__DIR__).'/phpwf/plugins/class.mysql.php';
 
       if(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']==='on'){
         $this->http = 'https';
@@ -145,8 +64,7 @@ class Application extends ApplicationCore
                                                 // have to need the secure layer always
 
 
-			if(WithGUI()){
-        $this->Tpl               = new TemplateParser($this);
+			if(self::WithGUI()){
       	$this->FormHandler       = new FormHandler($this);
       	$this->Table	           = new Table($this);
       	$this->Widget	           = new WidgetAPI($this);
@@ -168,10 +86,6 @@ class Application extends ApplicationCore
           
       //$this->DB             = new DB($this->Conf->WFdbhost,$this->Conf->WFdbname,$this->Conf->WFdbuser,$this->Conf->WFdbpass,$this);
 
-			if(WithGUI()){
-        $this->Tpl->ReadTemplatesFromPath(__DIR__ . '/widgets/templates/');
-        $this->Tpl->Set('LAYOUTFIXMARKERCLASS', 'layoutfix');
-      }
     }
 
     public function __destruct()
@@ -230,26 +144,64 @@ class Application extends ApplicationCore
         if($callhooks){
           $app->erp->RunHook($module . '_' . $action . '_before');
         }
-        $response = @$this->caller->$fkt();
+        $this->ActionHandlerResult = @$this->caller->$fkt();
         if($callhooks){
           $app->erp->RunHook($module . '_' . $action . '_after');
-        }
-
-        if($response instanceof JsonResponse) {
-          $response->send();
-          $this->ExitXentral();
-        }
-        if($response instanceof RedirectResponse) {
-          $response->send();
-          $this->ExitXentral();
         }
       }
     }
 
+    public function GetActionHandlerResult()
+    {
+        return $this->ActionHandlerResult;
+    }
+
     public function DisableLayoutFix()
     {
-      if(WithGUI()){
+      if(self::WithGUI()){
         $this->Tpl->Set('LAYOUTFIXMARKERCLASS', '');
       }
+    }
+
+    public static function WithGUI($first = false)
+    {
+        if (defined('API_REQUEST') && (bool)API_REQUEST === true) {
+            return false;
+        }
+        if (isset($_GET['withgui']) && $_GET['withgui']) {
+            return true;
+        }
+        $module = isset($_GET['module']) ? $_GET['module'] : '';
+        $action = isset($_GET['action']) ? $_GET['action'] : '';
+        if ($action === 'editable') {
+            return false;
+        }
+        if (!$first && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest')) {
+            if ($action === 'positionen' || strpos($action, 'minidetail') === 0) {
+                return true;
+            }
+            if ($module === 'adresse') {
+                return true;
+            }
+            if ($action === 'verkauf') {
+                return true;
+            }
+            return false;
+        }
+        return !($module === 'ajax' || $module === 'api'
+            || ($module === 'welcome' && $action === 'css')
+            || ($module === 'report' && $action === 'export')
+            || ($module === 'welcome' && $action === 'cronjob')
+            || ($module === 'welcome' && $action === 'adapterbox')
+            || ($module === 'welcome' && $action === 'logo')
+            || ($module === 'artikel' && $action === 'ajaxwerte')
+            || ($module === 'artikel' && $action === 'thumbnail')
+            || ($module === 'wiki' && $action === 'getfile')
+            || ($module === 'benutzer' && $action === 'chrights')
+            || ($module === 'callcenter' && $action === 'call')
+            || ($module === 'waage' && $action === 'gewicht')
+            || ($module === 'welcome' && $action === 'poll')
+            || ($module === 'artikel' && $action === 'thumbnail')
+        );
     }
 }
