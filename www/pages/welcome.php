@@ -315,7 +315,7 @@ class Welcome
               ['userid' => $u, 'value' => '1', 'name' => 'welcome_links_eigen']);
         }
         $existingId = $this->app->EntityManager->getConnection()->executeQuery(
-            "SELECT id FROM `userkonfiguration` WHERE `user` = :userid AND `name` LIKE 'welcome\_linklink\_%' LIMIT 1",
+            "SELECT id FROM `userkonfiguration` WHERE `user` = :userid AND `name` LIKE 'welcome_linklink_%' LIMIT 1",
             ['userid' => $u]
         )->fetchOne();
 
@@ -330,28 +330,37 @@ class Welcome
           ]
         );
           $this->app->EntityManager->getConnection()->executeStatement(
-  "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
-  [
-    'userid' => $u,
-    'value'  => 'Eigene Einstellungen',
-    'name'   => 'welcome_linkname1',
-  ]
-);
+            "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
+            [
+              'userid' => $u,
+              'value'  => 'Eigene Einstellungen',
+              'name'   => 'welcome_linkname1',
+            ]
+          );
         }
       }
       if($index <= 8) {
         if($check2) {
           $this->app->EntityManager->getConnection()->executeStatement(
-  "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
-  ['value' => $url, 'id' => $check2]
-);
+            "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
+            ['value' => $url, 'id' => $check2]
+          );
         } else {
-          $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', '".$this->app->DB->real_escape_string($url)."', 'welcome_linklink".$index."')");
+          $this->app->EntityManager->getConnection()->executeStatement(
+            "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
+            ['userid' => $u, 'value' => $url, 'name' => 'welcome_linklink'.$index]
+          );
         }
         if($check3) {
-          $this->app->DB->Update("UPDATE `userkonfiguration` SET `value` = '".$this->app->DB->real_escape_string($bezeichnung)."' WHERE id = '$check3' LIMIT 1");
+          $this->app->EntityManager->getConnection()->executeStatement(
+            "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
+            ['value' => $bezeichnung, 'id' => $check3]
+          );
         } else{
-          $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', '".$this->app->DB->real_escape_string($bezeichnung)."', 'welcome_linkname".$index."')");
+          $this->app->EntityManager->getConnection()->executeStatement(
+            "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
+            ['userid' => $u, 'value' => $bezeichnung, 'name' => 'welcome_linkname'.$index]
+          );
         }
       }
     }
@@ -2677,105 +2686,116 @@ class Welcome
   /**
    * @return JsonResponse
    */
-  protected function HandleInviteTeamClickByClick()
-  {
-    $userNames = [];
-    $members = [];
-    for($i = 0; $i < 5; $i++) {
-      $userName = $this->app->Secure->GetPOST('teamMemberName'.($i > 0?(string)$i:''));
-      if(empty($userName)) {
-        continue;
-      }
-      if(in_array($userName, $userNames)) {
-        return new JsonResponse(['error'=>'Usernamen sind identisch'], Response::HTTP_BAD_REQUEST);
-      }
-      $userNames[] = $userName;
-      $userEmail = $this->app->Secure->GetPOST('teamMemberEmail'.($i > 0?(string)$i:''));
-      if(empty($userEmail)) {
-        return new JsonResponse(['error'=>'Bitte füllen Sie die Email-Adresse aus'], Response::HTTP_BAD_REQUEST);
-      }
-      $userRole = $this->app->Secure->GetPOST('teamMemberRole'.($i > 0?(string)$i:''));
-      if(
-        $this->app->DB->Select(sprintf("SELECT COUNT(`id`) FROM `user` WHERE `username` = '%s'", $userName)) > 0
-        || $this->app->DB->Select(sprintf("SELECT COUNT(`id`) FROM `adresse` WHERE `name` = '%s'", $userName)) > 0
-      ) {
-        return new JsonResponse(
-          ['error'=>sprintf('Usernamen %s existiert bereits', $userName)],
-          Response::HTTP_BAD_REQUEST
-        );
-      }
-      $members[] = ['username' => $userName, 'email' => $userEmail, 'role' => $userRole];
-    }
-    if(empty($members)) {
-      return new JsonResponse(['success'=>true]);
-    }
-    $projectId = $this->app->DB->Select(
-      'SELECT `id` FROM `projekt` WHERE `geloescht` = 0 ORDER BY `oeffentlich` DESC LIMIT 1'
-    );
-    foreach($members as $member) {
-      $password = $member['username'];
-      $this->app->DB->Insert(
-        sprintf(
-          "INSERT INTO `adresse` (`name`, `email`, `projekt`)
-            VALUES ('%s', '%s', %d)",
-          $member['username'], $member['email'], $projectId
-        )
-      );
-      $addressId = (int)$this->app->DB->GetInsertID();
-      $this->app->erp->AddRolleZuAdresse($addressId, 'Mitarbeiter', 'von', 'Projekt', $projectId);
-      $vorlage =
-        $this->app->DB->real_escape_string(
-          $this->app->DB->Select(
-            sprintf(
-              "SELECT `bezeichnung` FROM `uservorlage` WHERE `bezeichnung` = '%s'",
-              $member['role']
-            )
-          )
-        );
-      $this->app->DB->Insert(
-        sprintf(
-          "INSERT INTO `user`
-            (`username`, `passwordmd5`, `hwtoken`, `type`, `repassword`, `externlogin`,`firma`,`fehllogins`, 
-             `adresse`,`standarddrucker`,`settings`, `activ`,`vorlage`,`role`) 
-            VALUES ('%s', '%s', 0, 'benutzer', 0, 1,1,0,
-                    %d,0,'',1,'%s','%s')",
-          $member['username'], md5($password),
-          $addressId, $vorlage, $member['role']
-        )
-      );
-      $newUserId = (int)$this->app->DB->GetInsertID();
-      $this->app->erp->insertDefaultUserRights($newUserId);
-      if($vorlage !== '') {
-        $this->app->erp->AbgleichBenutzerVorlagen($newUserId);
-      }
-      $link = $this->app->Location->getServer();
-      $this->app->erp->MailSend(
-        $this->app->erp->Firmendaten('email'),
-        $this->app->erp->Firmendaten('absendername'),
-        $member['email'],
-        $member['username'],
-        'Einladung',
-        sprintf(
-          'Hallo %s,<br />
-          <br />
-          Willkommen auf Xentral.<br />
-          <br />
-          Du kannst dich mit den folgenden Zugangsdaten einloggen<br /><br />
-          Username: %s<br />
-          Passwort: %s<br />
-          <a href="%s" style="margin-top:24px;display:inline-block;padding:10px 23px;color:#fff;background:#2DCA73;border-radius:4px;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer">Hier gehts los</a>',
-          $member['username'],
-          $member['username'],
-          $password,
-          $link
-        ),
-        '',0,true,'','',
-        true
-      );
-    }
+    protected function HandleInviteTeamClickByClick()
+    {
+        $userNames = [];
+        $members = [];
+        for($i = 0; $i < 5; $i++) {
+            $userName = $this->app->Secure->GetPOST('teamMemberName'.($i > 0?(string)$i:''));
+            if(empty($userName)) {
+                continue;
+            }
+            if(in_array($userName, $userNames)) {
+                return new JsonResponse(['error'=>'Usernamen sind identisch'], Response::HTTP_BAD_REQUEST);
+            }
+            $userNames[] = $userName;
+            $userEmail = $this->app->Secure->GetPOST('teamMemberEmail'.($i > 0?(string)$i:''));
+            if(empty($userEmail)) {
+                return new JsonResponse(['error'=>'Bitte füllen Sie die Email-Adresse aus'], Response::HTTP_BAD_REQUEST);
+            }
+            $userRole = $this->app->Secure->GetPOST('teamMemberRole'.($i > 0?(string)$i:''));
 
-    return new JsonResponse(['success'=>true]);
-  }
+            $conn = $this->app->EntityManager->getConnection();
+            $userCount = (int)$conn->fetchOne(
+                "SELECT COUNT(`id`) FROM `user` WHERE `username` = :username",
+                ['username' => $userName]
+            );
+            $addressCount = (int)$conn->fetchOne(
+                "SELECT COUNT(`id`) FROM `adresse` WHERE `name` = :name",
+                ['name' => $userName]
+            );
+
+            if($userCount > 0 || $addressCount > 0) {
+                return new JsonResponse(
+                    ['error'=>sprintf('Usernamen %s existiert bereits', $userName)],
+                    Response::HTTP_BAD_REQUEST
+                );
+            }
+            $members[] = ['username' => $userName, 'email' => $userEmail, 'role' => $userRole];
+        }
+        if(empty($members)) {
+            return new JsonResponse(['success'=>true]);
+        }
+
+        $conn = $this->app->EntityManager->getConnection();
+        $projectId = (int)$conn->fetchOne(
+            'SELECT `id` FROM `projekt` WHERE `geloescht` = 0 ORDER BY `oeffentlich` DESC LIMIT 1'
+        );
+
+        foreach($members as $member) {
+            $password = $member['username'];
+
+            $conn->executeStatement(
+                "INSERT INTO `adresse` (`name`, `email`, `projekt`) VALUES (:name, :email, :projekt)",
+                ['name' => $member['username'], 'email' => $member['email'], 'projekt' => $projectId]
+            );
+            $addressId = (int)$conn->lastInsertId();
+
+            $this->app->erp->AddRolleZuAdresse($addressId, 'Mitarbeiter', 'von', 'Projekt', $projectId);
+
+            $vorlage = (string)$conn->fetchOne(
+                "SELECT `bezeichnung` FROM `uservorlage` WHERE `bezeichnung` = :role LIMIT 1",
+                ['role' => $member['role']]
+            );
+
+            $conn->executeStatement(
+                "INSERT INTO `user`
+              (`username`, `passwordmd5`, `hwtoken`, `type`, `repassword`, `externlogin`,`firma`,`fehllogins`, 
+               `adresse`,`standarddrucker`,`settings`, `activ`,`vorlage`,`role`) 
+             VALUES (:username, :passwordmd5, 0, 'benutzer', 0, 1, 1, 0,
+                     :adresse, 0, '', 1, :vorlage, :role)",
+                [
+                    'username'    => $member['username'],
+                    'passwordmd5' => md5($password),
+                    'adresse'     => $addressId,
+                    'vorlage'     => $vorlage,
+                    'role'        => $member['role'],
+                ]
+            );
+            $newUserId = (int)$conn->lastInsertId();
+
+            $this->app->erp->insertDefaultUserRights($newUserId);
+            if($vorlage !== '') {
+                $this->app->erp->AbgleichBenutzerVorlagen($newUserId);
+            }
+            $link = $this->app->Location->getServer();
+            $this->app->erp->MailSend(
+                $this->app->erp->Firmendaten('email'),
+                $this->app->erp->Firmendaten('absendername'),
+                $member['email'],
+                $member['username'],
+                'Einladung',
+                sprintf(
+                    'Hallo %s,<br />
+              <br />
+              Willkommen auf Xentral.<br />
+              <br />
+              Du kannst dich mit den folgenden Zugangsdaten einloggen<br /><br />
+              Username: %s<br />
+              Passwort: %s<br />
+              <a href="%s" style="margin-top:24px;display:inline-block;padding:10px 23px;color:#fff;background:#2DCA73;border-radius:4px;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer">Hier gehts los</a>',
+                    $member['username'],
+                    $member['username'],
+                    $password,
+                    $link
+                ),
+                '',0,true,'','',
+                true
+            );
+        }
+
+        return new JsonResponse(['success'=>true]);
+    }
 
   /**
    * @return JsonResponse
