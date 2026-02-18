@@ -2990,12 +2990,10 @@ class Welcome
                 Response::HTTP_BAD_REQUEST,
             );
         }
-        $this->app->DB->Update(
-            sprintf(
-                "UPDATE `user` SET `role` = '%s' WHERE `id` = %d",
-                $role,
-                $this->app->User->GetID(),
-            ),
+
+        $this->app->EntityManager->getConnection()->executeStatement(
+            "UPDATE `user` SET `role` = :role WHERE `id` = :id",
+            ['role' => $role, 'id' => $this->app->User->GetID()],
         );
 
         return new JsonResponse(['success' => true]);
@@ -3014,12 +3012,13 @@ class Welcome
         if ($otherRole !== '' && ($role === '' || $role === 'Sonstiges')) {
             $role = $otherRole;
         }
-        if (!$hasUserRole && $role === ''
-            && (string)$this->app->DB->Select(
-                sprintf(
-                    'SELECT `role` FROM `user` WHERE `id` = %d',
-                    $this->app->User->GetID(),
-                ),
+
+        if (
+            !$hasUserRole
+            && $role === ''
+            && (string)$this->app->EntityManager->getConnection()->fetchOne(
+                'SELECT `role` FROM `user` WHERE `id` = :id',
+                ['id' => $this->app->User->GetID()],
             )
         ) {
             return new JsonResponse(
@@ -3027,6 +3026,7 @@ class Welcome
                 Response::HTTP_BAD_REQUEST,
             );
         }
+
         $passwordunescaped = $this->app->Secure->GetPOST('setPassword', '', '', 'noescape');
         if (empty($password)) {
             return new JsonResponse(
@@ -3057,13 +3057,11 @@ class Welcome
         }
 
         $this->changeUserPassword($password, $passwordunescaped);
+
         if (!empty($role)) {
-            $this->app->DB->Update(
-                sprintf(
-                    "UPDATE `user` SET `role` = '%s' WHERE `id` = %d",
-                    $role,
-                    $this->app->User->GetID(),
-                ),
+            $this->app->EntityManager->getConnection()->executeStatement(
+                "UPDATE `user` SET `role` = :role WHERE `id` = :id",
+                ['role' => $role, 'id' => $this->app->User->GetID()],
             );
         }
 
@@ -3079,61 +3077,78 @@ class Welcome
     protected function changeUserPassword($password, $passwordunescaped)
     {
         if (!empty($password) && $password !== $this->app->User->GetUsername()) {
-            $this->app->DB->Select(
-                "SELECT u.passwordhash FROM `user` AS u WHERE u.id = '" . $this->app->User->GetID() . "' LIMIT 1",
-            );
-            if (!$this->app->DB->error()) {
+            $conn = $this->app->EntityManager->getConnection();
+            $userId = (int)$this->app->User->GetID();
+
+            $hasPasswordHashColumn = false;
+            try {
+                $conn->fetchOne(
+                    "SELECT u.passwordhash FROM `user` AS u WHERE u.id = :id LIMIT 1",
+                    ['id' => $userId],
+                );
+                $hasPasswordHashColumn = true;
+            } catch (\Throwable $e) {
+                $hasPasswordHashColumn = false;
+            }
+
+            if ($hasPasswordHashColumn) {
                 $options = [
                     'cost' => 12,
                 ];
                 $passwordhash = @password_hash($passwordunescaped, PASSWORD_BCRYPT, $options);
                 if (!empty($passwordhash)) {
-                    $this->app->DB->Update(
-                        "UPDATE `user` SET 
-            `passwordhash` = '" . $this->app->DB->real_escape_string($passwordhash) . "',
-            `password` = '', 
-            `passwordmd5` = '', 
-            `passwordsha512` = '', 
-            `salt` = '' 
-            WHERE `id` = '" . $this->app->User->GetID() . "' LIMIT 1",
+                    $conn->executeStatement(
+                        "UPDATE `user` SET
+                                `passwordhash` = :passwordhash,
+                                `password` = '',
+                                `passwordmd5` = '',
+                                `passwordsha512` = '',
+                                `salt` = ''
+                             WHERE `id` = :id LIMIT 1",
+                        ['passwordhash' => $passwordhash, 'id' => $userId],
                     );
 
                     return '<div class="warning">{|Passwort wurde erfolgreich ge&auml;ndert!|}</div>';
                 }
             } else {
-                $salt = $this->app->DB->Select(
-                    "SELECT u.salt FROM `user` AS u WHERE u.id = '" . $this->app->User->GetID() . "' LIMIT 1",
-                );
-                if (!$this->app->DB->error()) {
-                    if (empty($salt)) {
-                        $salt = hash('sha512', microtime(true));
-                    }
-                    $passwordsha512 = hash('sha512', $password . $salt);
-                    if (!empty($salt) && !empty($passwordsha512)) {
-                        $this->app->DB->Update(
-                            "UPDATE `user` SET 
-               `password` = '', 
-               `passwordmd5` = '', 
-               `salt` = '{$salt}', 
-               `passwordsha512` = '{$passwordsha512}' 
-               WHERE `id` = '" . $this->app->User->GetID() . "' LIMIT 1",
-                        );
-                    } else {
-                        $this->app->DB->Update(
-                            "UPDATE `user` SET 
-               `password` = '', 
-               `passwordmd5` = MD5('{$password}'), 
-               `salt` = '{$salt}', 
-               `passwordsha512` = '{$passwordsha512}' 
-               WHERE `id` = '" . $this->app->User->GetID() . "' LIMIT 1",
-                        );
-                    }
+                $salt = null;
+                try {
+                    $salt = $conn->fetchOne(
+                        "SELECT u.salt FROM `user` AS u WHERE u.id = :id LIMIT 1",
+                        ['id' => $userId],
+                    );
+                } catch (\Throwable $e) {
+                    $salt = null;
+                }
+
+                if (!empty($salt) || $salt === '0') {
+                    // keep value
                 } else {
-                    $this->app->DB->Update(
-                        "UPDATE `user` SET 
-             `password` = '',
-             `passwordmd5` = MD5('{$password}') 
-             WHERE `id`='" . $this->app->User->GetID() . "' LIMIT 1",
+                    $salt = hash('sha512', microtime(true));
+                }
+
+                $passwordsha512 = hash('sha512', $password . $salt);
+
+                if (!empty($salt) && !empty($passwordsha512)) {
+                    $conn->executeStatement(
+                        "UPDATE `user` SET
+                                `password` = '',
+                                `passwordmd5` = '',
+                                `salt` = :salt,
+                                `passwordsha512` = :passwordsha512
+                             WHERE `id` = :id LIMIT 1",
+                        ['salt' => $salt, 'passwordsha512' => $passwordsha512, 'id' => $userId],
+                    );
+                } else {
+                    $conn->executeStatement(
+                        "UPDATE `user` SET
+                                `password` = '',
+                                `passwordmd5` = MD5(:password),
+                             WHERE `id` = :id LIMIT 1",
+                        [
+                            'password' => $password,
+                            'id' => $userId,
+                        ],
                     );
                 }
             }
