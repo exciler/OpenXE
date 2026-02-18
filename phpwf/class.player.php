@@ -44,7 +44,7 @@ class Player
         $this->app->Page->CreateNavigation($this->app->erp->Navigation());
     }
 
-    public function Run(): Response
+    public function Run(): Response|array|string
     {
         // play application only when layer 2 said that its ok
         if (!$this->session->GetCheck()) {
@@ -255,12 +255,11 @@ class Player
                     ),
                 );
             }
-            exit;
         }
 
         $this->app->calledWhenAuth($this->app->User->GetType());
-        if ($this->app->BuildNavigation == true)
-            $this->BuildNavigation();
+//        if ($this->app->BuildNavigation == true)
+//            $this->BuildNavigation();
 
         $this->app->endtime = microtime();
 
@@ -278,8 +277,6 @@ class Player
         $this->app->calledBeforeFinish();
 
         $this->app->Tpl->Set('JQUERYMIGRATESRC', './js/jquery/jquery-migrate-3.2.0.min.js');
-
-        $this->app->Tpl->Set('TESTLIZENZABLAUF', '');
         if ($this->app->BuildNavigation == true) {
             if ($right == 1)
                 return new Response($this->app->Tpl->FinalParse('right.tpl'));

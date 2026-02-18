@@ -49,6 +49,9 @@ class Application extends ApplicationCore
     public $PopupJS;
     public $NoHooks;
 
+    public EntityManagerInterface $EntityManager;
+    public Request $Request;
+
     public function __construct(?Config $config)
     {
       parent::__construct($config);
@@ -86,6 +89,11 @@ class Application extends ApplicationCore
           
       //$this->DB             = new DB($this->Conf->WFdbhost,$this->Conf->WFdbname,$this->Conf->WFdbuser,$this->Conf->WFdbpass,$this);
 
+    }
+
+    public function SetRequestStack(RequestStack $requestStack) : void
+    {
+        $this->Request = $requestStack->getCurrentRequest();
     }
 
     public function __destruct()

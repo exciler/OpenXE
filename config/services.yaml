@@ -16,6 +16,9 @@ services:
       $serviceContainer: '@service_container'
     properties:
       Tpl: '@TemplateParser'
+      EntityManager: '@Doctrine\ORM\EntityManagerInterface'
+    calls:
+      - SetRequestStack: ['@request_stack']
 
   Session:
     class: Session
