@@ -269,75 +269,88 @@ class Welcome
     {
       $u = $vu['id'];
       $eigenlinks = $this->app->EntityManager->getConnection()->executeQuery(
-        "SELECT uk.`value` FROM `userkonfiguration` uk WHERE `name` = 'welcome_links_eigen' AND `user` = :userid LIMIT 1",
-        ['userid' => $u])
-      ->fetchOne();
+          "SELECT uk.`value` FROM `userkonfiguration` uk WHERE `name` = 'welcome_links_eigen' AND `user` = :userid LIMIT 1",
+          ['userid' => $u])
+          ->fetchOne();
       $index = 1;
       $check2 = null;
       $check3 = null;
-      if($eigenlinks)
-      {
-        for($i = 1; $i <= 8; $i++)
-        {
+      if($eigenlinks) {
+        for($i = 1; $i <= 8; $i++) {
           $link = $this->app->EntityManager->getConnection()->executeQuery(
               "SELECT uk.`value`, uk.id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
-                ['name' => 'welcome_linklink'.$i, 'userid' => $u])
-          ->fetchAssociative();
+              ['name' => 'welcome_linklink'.$i, 'userid' => $u])
+              ->fetchAssociative();
           if(empty($link)) {
             $link = array('id'=>0, 'link'=>'');
           }
-          if(stripos($link['value'], $url) !== false)
-          {
+          if(stripos($link['value'], $url) !== false) {
             $index = 9;
-            break;
+              break;
+            }
+            if($link['value'] != '') {
+              if($index == $i)$index++;
+            } else{
+              $check2 = $link['id'];
+              $check3 = $this->app->EntityManager->getConnection()->executeQuery(
+                  "SELECT uk.id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
+                  ['name' => 'welcome_linkname'.$i, 'userid' => $u])
+                  ->fetchOne();
+              break;
+            }
           }
-          if($link['value'] != '')
-          {
-            if($index == $i)$index++;
-          }else{
-            $check2 = $link['id'];
-            $check3 = $this->app->EntityManager->getConnection()->executeQuery(
-                "SELECT uk.id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
-                ['name' => 'welcome_linkname'.$i, 'userid' => $u])
-            ->fetchOne();
-            break;
-          }
-        }
-      }else{
+        
+      } else{
         $check = $this->app->EntityManager->getConnection()->executeQuery(
             "SELECT id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
-                ['name' => 'welcome_links_eigen', 'userid' => $u])
-        ->fetchOne();
-        if($check)
-        {
+            ['name' => 'welcome_links_eigen', 'userid' => $u])
+            ->fetchOne();
+        if($check) {
           $this->app->EntityManager->getConnection()->executeStatement(
               "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
-            ['value' => '1', 'id' => $check]);
-        }else{
+              ['value' => '1', 'id' => $check]);
+        } else{
           $this->app->EntityManager->getConnection()->executeStatement(
-            "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid , :value , :name)",
-            ['userid' => $u, 'value' => '1', 'name' => 'welcome_links_eigen']);
+              "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid , :value , :name)",
+              ['userid' => $u, 'value' => '1', 'name' => 'welcome_links_eigen']);
         }
-        if(!$this->app->DB->Select("SELECT id FROM `userkonfiguration` WHERE `user` = '$u' AND `name` LIKE 'welcome\_linklink_%'"))
-        {
+        $existingId = $this->app->EntityManager->getConnection()->executeQuery(
+            "SELECT id FROM `userkonfiguration` WHERE `user` = :userid AND `name` LIKE 'welcome\_linklink\_%' LIMIT 1",
+            ['userid' => $u]
+        )->fetchOne();
+
+        if(!$existingId) {
           $index = 2;
-          $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', 'index.php?module=welcome&action=settings', 'welcome_linklink1')");
-          $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', 'Eigene Einstellungen', 'welcome_linkname1')");
+          $this->app->EntityManager->getConnection()->executeStatement(
+          "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
+          [
+            'userid' => $u,
+            'value'  => 'index.php?module=welcome&action=settings',
+            'name'   => 'welcome_linklink1',
+          ]
+        );
+          $this->app->EntityManager->getConnection()->executeStatement(
+  "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid, :value, :name)",
+  [
+    'userid' => $u,
+    'value'  => 'Eigene Einstellungen',
+    'name'   => 'welcome_linkname1',
+  ]
+);
         }
       }
-      if($index <= 8)
-      {
-        if($check2)
-        {
-          $this->app->DB->Update("UPDATE `userkonfiguration` SET `value` = '".$this->app->DB->real_escape_string($url)."' WHERE id = '$check2' LIMIT 1");
-        }else
-        {
+      if($index <= 8) {
+        if($check2) {
+          $this->app->EntityManager->getConnection()->executeStatement(
+  "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
+  ['value' => $url, 'id' => $check2]
+);
+        } else {
           $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', '".$this->app->DB->real_escape_string($url)."', 'welcome_linklink".$index."')");
         }
-        if($check3)
-        {
+        if($check3) {
           $this->app->DB->Update("UPDATE `userkonfiguration` SET `value` = '".$this->app->DB->real_escape_string($bezeichnung)."' WHERE id = '$check3' LIMIT 1");
-        }else{
+        } else{
           $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', '".$this->app->DB->real_escape_string($bezeichnung)."', 'welcome_linkname".$index."')");
         }
       }
@@ -2031,10 +2044,13 @@ class Welcome
       $startseite = '';
       if($code = $this->app->Secure->GetPOST('code'))
       {
-        $result = $this->app->DB->SelectArr("SELECT url, reduziert FROM stechuhrdevice WHERE code = '$code' AND aktiv = 1 LIMIT 1");
+        $result = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT url, reduziert FROM stechuhrdevice WHERE code = :code AND aktiv = 1 LIMIT 1",
+          ['code' => $code]
+        )->fetchAssociative();
 
-        $startseite = $result[0]['url'] ;
-        $isReduziert = $result[0]['reduziert'];
+        $startseite = $result['url'] ?? '';
+        $isReduziert = $result['reduziert'] ?? null;
 
         if($isReduziert){
           $this->app->User->SetParameter('stechuhrdevicereduziert',true);
@@ -2073,10 +2089,12 @@ class Welcome
     }
 
     // sperre entfernen bzw umschreiben
-    if($gui==='angebot' || $gui==='auftrag' || $gui==='rechnung' || $gui==='bestellung' || $gui==='gutschrift' || $gui==='lieferschein' || $gui==='retoure' || $gui==='adresse' || $gui==='artikel' || $gui==='produktion' || $gui==='reisekosten' || $gui==='preisanfrage')
-    {
-      $this->app->DB->Update("UPDATE $gui SET usereditid='".$this->app->User->GetID()."'  WHERE id='$id' LIMIT 1");
-      if(!empty($backlink))
+    if($gui==='angebot' || $gui==='auftrag' || $gui==='rechnung' || $gui==='bestellung' || $gui==='gutschrift' || $gui==='lieferschein' || $gui==='retoure' || $gui==='adresse' || $gui==='artikel' || $gui==='produktion' || $gui==='reisekosten' || $gui==='preisanfrage') {
+      $this->app->EntityManager->getConnection()->executeStatement(
+  "UPDATE `$gui` SET usereditid = :userId WHERE id = :id LIMIT 1",
+  ['userId' => $this->app->User->GetID(), 'id' => $id]
+);
+      if (!empty($backlink))
       {
         header('Location: '.$backlink);
       }else{
