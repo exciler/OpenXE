@@ -13,9 +13,11 @@
 */
 ?>
 <?php
+
+use Symfony\Component\HttpFoundation\Response;
 use Xentral\Components\Barcode\BarcodeFactory;
-use Xentral\Components\Http\JsonResponse;
-use Xentral\Components\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Xentral\Components\Http\Request;
 use Xentral\Components\Http\Session\Session;
 use Xentral\Components\Http\Session\SessionHandler;
@@ -42,9 +44,6 @@ use Xentral\Modules\RoleSurvey\SurveyService;
 
 class Welcome
 {
-  /** @var erpooSystem $app */
-  var $app;
-
   var $_meineapps;
 
   const MODULE_NAME = 'Welcome';
@@ -59,11 +58,10 @@ class Welcome
    * Welcome constructor.
    *
    * @param Application $app
-   * @param bool        $intern
+   * @param bool $intern
    */
-  public function __construct($app, $intern = false)
+  public function __construct(private readonly Application $app, bool $intern = false)
   {
-    $this->app=$app;
     $this->_meineapps = null;
     if($intern){
       return;
@@ -110,7 +108,7 @@ class Welcome
     $this->app->NoHooks = array('poll');
 
     $this->app->DefaultActionHandler("login");
-    $action = $this->app->Secure->GetGET('action');
+    $action = $this->app->Request->query->getAlnum('action');
     if(
       !in_array(
         $action,
@@ -128,7 +126,7 @@ class Welcome
     $this->app->ActionHandlerListen($app);
   }
 
-  public function Install()
+  public function Install(): void
   {
     try {
       /** @var SurveyService $surveyService */
@@ -140,13 +138,10 @@ class Welcome
     }
   }
 
-  /**
-   * @return JsonResponse
-   */
-  public function HandleSaveSurveyDataAjaxAction()
+  public function HandleSaveSurveyDataAjaxAction(): JsonResponse
   {
-    $surveyId = $this->app->Secure->GetPOST('surveyId');
-    $surveyName = $this->app->Secure->GetPOST('surveyName');
+    $surveyId = $this->app->Request->request->getInt('surveyId');
+    $surveyName = $this->app->Request->request->getString('surveyName');
     if(empty($surveyId)){
       /** @var SurveyGateway $surveyGateway */
       $surveyGateway = $this->app->Container->get('SurveyGateway');
@@ -161,24 +156,13 @@ class Welcome
       $surveyUserId = $surveyService->saveUserAnswer(
         $surveyId,
         $this->app->User->GetID(),
-        $this->app->Secure->POST
+        $this->app->Request->request->all()
       );
-/*      try{
-        $surveyService->sendToXentral(
-          $surveyId,
-          "https://{$this->app->Conf->updateHost}/sendsurvey.php",
-          $this->app->erp->Firmendaten('lizenz'),
-          $this->app->erp->Firmendaten('schluessel')
-        );
-      }
-      catch (Exception $e) {
-
-      }*/
     }
     catch(Exception $e) {
       return new JsonResponse(
         ['sucess' => false, 'error' =>$e->getMessage()],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
     $response = ['success' => true, 'surveyUserId' => $surveyUserId];
@@ -187,13 +171,10 @@ class Welcome
     return new JsonResponse($response);
   }
 
-  /**
-   * @return JsonResponse
-   */
-  public function HandleOpenSurveyAjaxAction()
+  public function HandleOpenSurveyAjaxAction(): JsonResponse
   {
-    $surveyId = $this->app->Secure->GetPOST('surveyId');
-    $surveyName = $this->app->Secure->GetPOST('surveyName');
+    $surveyId = $this->app->Request->request->getInt('surveyId');
+    $surveyName = $this->app->Request->request->getString('surveyName');
     /** @var SurveyGateway $surveyGateway */
     $surveyGateway = $this->app->Container->get('SurveyGateway');
     if(empty($surveyId)) {
@@ -208,7 +189,7 @@ class Welcome
     if(empty($survey)) {
       return new JsonResponse(
         ['sucess' => false, 'error' => 'Umfrage nicht gefunden'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
 
@@ -222,7 +203,7 @@ class Welcome
 
   public function WelcomeSurvey()
   {
-    $cmd = $this->app->Secure->GetGET('cmd');
+    $cmd = $this->app->Request->query->getAlnum('cmd');
     if($cmd === 'saveSurveyData') {
       return $this->HandleSaveSurveyDataAjaxAction();
     }
@@ -238,16 +219,11 @@ class Welcome
  
   public function MenuHook()
   {
-/*    if($this->GetMeineApps())
-    {
-      $this->app->erp->InsertMenuAfter('index.php?module=welcome&action=meineapps','Meine Apps','welcome','start');
-    }
-*/
   }
 
   public function StartseiteMenu()
   {
-    $module = $this->app->Secure->GetGET('module');
+    $module = $this->app->Request->query->getAlnum('module');
 
     $this->app->erp->MenuEintrag('index.php?module=welcome&action=start','Startseite');
     $this->app->erp->MenuEintrag('index.php?module=welcome&action=pinwand','Pinnwand');
@@ -263,7 +239,7 @@ class Welcome
     $this->app->erp->MenuEintrag('index.php?module=chat&action=list','Chat');
     $this->app->erp->MenuEintrag('index.php?module=zeiterfassung&action=create','Zeiterfassung buchen');
     $this->app->erp->MenuEintrag('index.php?module=zeiterfassung&action=listuser','Eigene Zeiterfassung &Uuml;bersicht');
-    if($this->app->Secure->GetGET('action') ==='changelog'){
+    if($this->app->Request->query->getAlnum('action') ==='changelog'){
       $this->app->erp->MenuEintrag('index.php?module=welcome&action=changelog', 'Changelog');
     }
     $this->app->erp->RunMenuHook('startseite');
@@ -279,7 +255,12 @@ class Welcome
       return;
     }
     $this->app->erp->SetKonfigurationValue('checkFav'. md5($url),1);
-    $user = $this->app->DB->SelectArr("SELECT u.id FROM `user` u LEFT JOIN `userrights` ur ON u.id = ur.`user` AND ur.module = 'amazon' AND ur.action = 'list' WHERE NOT isnull(ur.id) OR u.type = 'admin'");
+    $user = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT u.id 
+        FROM `user` u 
+        LEFT JOIN `userrights` ur ON u.id = ur.`user` AND ur.module = 'amazon' AND ur.action = 'list'
+        WHERE NOT isnull(ur.id) OR u.type = 'admin'")
+    ->fetchAllAssociative();
     if(empty($user))
     {
       return;
@@ -287,7 +268,10 @@ class Welcome
     foreach($user as $vu)
     {
       $u = $vu['id'];
-      $eigenlinks = $this->app->DB->Select("SELECT uk.`value` FROM `userkonfiguration` uk WHERE `name` = 'welcome_links_eigen' AND `user` = '$u'  LIMIT 1");
+      $eigenlinks = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT uk.`value` FROM `userkonfiguration` uk WHERE `name` = 'welcome_links_eigen' AND `user` = :userid LIMIT 1",
+        ['userid' => $u])
+      ->fetchOne();
       $index = 1;
       $check2 = null;
       $check3 = null;
@@ -295,7 +279,10 @@ class Welcome
       {
         for($i = 1; $i <= 8; $i++)
         {
-          $link = $this->app->DB->SelectRow("SELECT uk.`value`, uk.id FROM `userkonfiguration` uk WHERE `name` = 'welcome_linklink".$i."' AND `user` = '$u'  LIMIT 1");
+          $link = $this->app->EntityManager->getConnection()->executeQuery(
+              "SELECT uk.`value`, uk.id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
+                ['name' => 'welcome_linklink'.$i, 'userid' => $u])
+          ->fetchAssociative();
           if(empty($link)) {
             $link = array('id'=>0, 'link'=>'');
           }
@@ -309,17 +296,27 @@ class Welcome
             if($index == $i)$index++;
           }else{
             $check2 = $link['id'];
-            $check3 = $this->app->DB->Select("SELECT uk.id FROM `userkonfiguration` uk WHERE `name` = 'welcome_linkname".$i."' AND `user` = '$u'  LIMIT 1");
+            $check3 = $this->app->EntityManager->getConnection()->executeQuery(
+                "SELECT uk.id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
+                ['name' => 'welcome_linkname'.$i, 'userid' => $u])
+            ->fetchOne();
             break;
           }
         }
       }else{
-        $check = $this->app->DB->Select("SELECT id FROM `userkonfiguration` uk WHERE `name` = 'welcome_links_eigen' AND `user` = '$u'  LIMIT 1");
+        $check = $this->app->EntityManager->getConnection()->executeQuery(
+            "SELECT id FROM `userkonfiguration` uk WHERE `name` = :name AND `user` = :userid LIMIT 1",
+                ['name' => 'welcome_links_eigen', 'userid' => $u])
+        ->fetchOne();
         if($check)
         {
-          $this->app->DB->Update("UPDATE `userkonfiguration` SET `value` = '1' WHERE id = '$check' LIMIT 1");
+          $this->app->EntityManager->getConnection()->executeStatement(
+              "UPDATE `userkonfiguration` SET `value` = :value WHERE id = :id LIMIT 1",
+            ['value' => '1', 'id' => $check]);
         }else{
-          $this->app->DB->Insert("INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES ('$u', '1', 'welcome_links_eigen')");
+          $this->app->EntityManager->getConnection()->executeStatement(
+            "INSERT INTO `userkonfiguration` (`user`, `value`, `name`) VALUES (:userid , :value , :name)",
+            ['userid' => $u, 'value' => '1', 'name' => 'welcome_links_eigen']);
         }
         if(!$this->app->DB->Select("SELECT id FROM `userkonfiguration` WHERE `user` = '$u' AND `name` LIKE 'welcome\_linklink_%'"))
         {
@@ -355,7 +352,7 @@ class Welcome
     if($this->app->User->GetType()==='admin'){
       return true;
     }
-    $action = $this->app->Secure->GetGET('action');
+    $action = $this->app->Request->query->getAlnum('action');
     if($action !== 'meineapps') {
       return true;
     }
@@ -437,9 +434,6 @@ class Welcome
     $this->app->Tpl->Parse('PAGE','welcome_meineapps.tpl');
   }
 
-  /**
-   * @return JsonResponse
-   */
   public function GetMeineAppsSuchergebnisse(): JsonResponse
   {
     $suchbegriff = $this->app->Secure->GetPOST('val');
@@ -468,44 +462,37 @@ class Welcome
   }
 
   
-  public function WelcomePoll()
+  public function WelcomePoll(): JsonResponse
   {
-    //$saction = $this->app->Secure->GetGET("saction"); //Edit Bruno 14.12.17 wird nicht verwendet
     if(!empty($this->app->User) && method_exists($this->app->User, 'GetID') && !$this->app->User->GetID()) {
-      echo json_encode(array(array('event'=>'logout')));
-      exit;
+        return new JsonResponse([['event'=>'logout']]);
     }
-    $sid = (int)$this->app->Secure->GetGET('sid');
-    $noTimeoutUserEdit = $this->app->Secure->GetGET('nousertimeout');
+    $sid = $this->app->Request->query->getDigits('sid');
+    $noTimeoutUserEdit = $this->app->Request->query->getBoolean('nousertimeout');
 
-    if($sid > 0 && empty($noTimeoutUserEdit)) {
-      $user = $this->app->Secure->GetGET('user'); //Edit Bruno 14.12.17 reingezogen
-      $smodule = $this->app->Secure->GetGET('smodule');
+    if($sid > 0 && !$noTimeoutUserEdit) {
+      $user = $this->app->Request->query->getInt('user'); //Edit Bruno 14.12.17 reingezogen
+      $smodule = $this->app->Request->query->getAlnum('smodule');
       $this->app->erp->TimeoutUseredit($smodule,$sid,$user);
     }
    
-    $inv = false;
-    $invisible = (String)$this->app->Secure->GetPOST('invisible');
-    if($invisible == '1'){
-      $inv = true;
-    }
-    $cmd = $this->app->Secure->GetGET('cmd');
+    $invisible = $this->app->Request->request->getBoolean('invisible');
+    $cmd = $this->app->Request->query->getAlnum('cmd');
     if($cmd==='messages') {
-      $result = $this->app->erp->UserEvent($inv);
+      $result = $this->app->erp->UserEvent($invisible);
       if(!empty($result) && is_array($result)) {
-        echo json_encode($result);
-        $this->app->ExitXentral();
+          return new JsonResponse($result);
       }
-      echo json_encode([]);
+      return new JsonResponse([]);
     }
 
-    $this->app->ExitXentral();
+    return new JsonResponse(null, Response::HTTP_NO_CONTENT);
   }	
 
 
-  function WelcomeDirektzugriff()
+  function WelcomeDirektzugriff(): RedirectResponse
   {
-    $direktzugriff = $this->app->Secure->GetPOST('direktzugriff');
+    $direktzugriff = $this->app->Request->request->getAlnum('direktzugriff');
 
 
     switch($direktzugriff)
@@ -534,16 +521,15 @@ class Welcome
       default: $link="index.php";
     }
 
-    header('Location: '.$link);
-    exit;
+    return new RedirectResponse($link);
   }
 
   function WelcomeAdapterbox()
   {
     $anzahl = null;
-    $ip = $this->app->Secure->GetGET('ip');
-    $serial = $this->app->Secure->GetGET('serial');
-    $device = $this->app->Secure->GetGET('device');
+    $ip = $this->app->Request->query->getString('ip');
+    $serial = $this->app->Request->query->getString('serial');
+    $device = $this->app->Request->query->getString('device');
     if(is_numeric($ip)){
       $ip = long2ip($ip);
     }
@@ -552,20 +538,27 @@ class Welcome
     }
 
     echo 'OK';
-    $this->app->DB->Delete("DELETE FROM `adapterbox_log` WHERE `ip`='$ip' OR `seriennummer`='$serial'");
-    $this->app->DB->Insert("INSERT INTO `adapterbox_log` (`id`,`datum`,`ip`,`meldung`,`seriennummer`,`device`)
-        VALUES ('',NOW(),'$ip','Adapterbox connected ($device)','$serial','device')");
+    $this->app->EntityManager->getConnection()->executeStatement(
+        "DELETE FROM `adapterbox_log` WHERE `ip`=:ip OR `seriennummer`=:serial",
+        ['ip'=>$ip,'serial'=>$serial]);
+    $this->app->EntityManager->getConnection()->executeStatement(
+        "INSERT INTO `adapterbox_log` (`id`,`datum`,`ip`,`meldung`,`seriennummer`,`device`)
+        VALUES ('', NOW(), :ip, :msg, :serial'$serial', 'device')",
+        ['ip'=>$ip,'msg'=>"Adapterbox connected: ($device)",$serial=>$serial]);
 
     // check if there is an adapterbox
 
     if($device==='zebra'
-      && ($this->app->DB->Select("SELECT COUNT(`id`) FROM `drucker` WHERE `art`=2 AND `anbindung`='adapterbox'")
+      && ($this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT COUNT(`id`) FROM `drucker` WHERE `art`=2 AND `anbindung`='adapterbox'")
+            ->fetchOne()
       ) <= 0 ) {
-      $this->app->DB->Insert(
+      $this->app->EntityManager->getConnection()->executeStatement(
         "INSERT INTO `drucker` (`id`,`art`,`anbindung`,`adapterboxseriennummer`,`bezeichnung`,`name`,`aktiv`,`firma`)
-          VALUES ('','2','adapterbox','$serial','Zebra','Etikettendrucker',1,1)"
+          VALUES ('','2','adapterbox',:serial,'Zebra','Etikettendrucker',1,1)",
+          ['serial'=>$serial]
       );
-      $tmpid = $this->app->DB->GetInsertID();
+      $tmpid = $this->app->EntityManager->getConnection()->lastInsertId();
 
       $this->app->erp->FirmendatenSet("standardetikettendrucker",$tmpid);
     }
@@ -574,23 +567,26 @@ class Welcome
       <label>
       <line x="3" y="3" size="4">Step 2 of 2</line>
       <line x="3" y="8" size="4">Connection establish</line>
-      <line x="3" y="13" size="4">Server: '.$_SERVER['SERVER_ADDR'].'</line>
+      <line x="3" y="13" size="4">Server: '.$this->app->Request->server->getString('SERVER_ADDR').'</line>
       </label>
       ';
 
     if($this->app->erp->Firmendaten('deviceenable')=='1')
     {
       $job = base64_encode(json_encode(array('label'=>base64_encode($xml),'amount'=>$anzahl)));//."<amount>".$anzahl."</amount>");
-      $this->app->DB->Insert(
+      $this->app->EntityManager->getConnection()->executeStatement(
         "INSERT INTO `device_jobs` (`id`,`zeitstempel`,`deviceidsource`,`deviceiddest`,`job`,`art`) 
-        VALUES ('',NOW(),'000000000','$serial','$job','labelprinter')"
+        VALUES ('',NOW(),'000000000',:serial,:job,'labelprinter')",
+          ['serial'=>$serial,'job'=>$job]
       );
     }	
 
 
     // update ip
     if($ip!=''){
-      $this->app->DB->Update("UPDATE `drucker` SET `adapterboxip`='$ip' WHERE `adapterboxseriennummer`='$serial' LIMIT 1");
+      $this->app->EntityManager->getConnection()->executeStatement(
+          "UPDATE `drucker` SET `adapterboxip`=:ip WHERE `adapterboxseriennummer`=:serial LIMIT 1",
+      ['ip'=>$ip,'serial'=>$serial]);
     }
 
     $this->app->erp->ExitWawi();
@@ -628,23 +624,22 @@ class Welcome
 
   function WelcomeStartSmartphone()
   {
-    header('Location: index.php?module=mobile&action=list');
-    exit;
+      return new RedirectResponse('index.php?module=mobile&action=list');
   }
 
   public function WelcomeStartDesktop()
   {
     $tpl = '';
-    if($this->app->Secure->GetPOST('addfav')) {
-      $link = $this->app->Secure->GetPOST('link');
-      if(substr($link, -4) === '&id=') {
+    if($this->app->Request->request->getBoolean('addfav')) {
+      $link = $this->app->Request->request->getString('link');
+      if(str_ends_with($link, '&id=')) {
         $link = substr($link, 0, -4);
       }
-      if(strpos($link,'action=delete') !== false) {
+      if(str_contains($link, 'action=delete')) {
         $link = '';
       }
-      $title = $this->app->Secure->GetPOST('title');
-      $newlink = $this->app->Secure->GetPOST('newlink');
+      $title = $this->app->Request->request->getString('title');
+      $newlink = $this->app->Request->request->getString('newlink');
       $success = 0;
       if(!empty($link)) {
         for ($i = 1; $i <= 8; $i++) {
@@ -659,19 +654,17 @@ class Welcome
           }
         }
       }
-      header('Content-Type: application/json');
-      echo json_encode(['success' => $success]);
-      $this->app->ExitXentral();
+      return new JsonResponse(['success' => $success]);
     }
 
-    if($this->app->Secure->GetPOST('savelinks'))
+    if($this->app->Request->request->getBoolean('savelinks'))
     {
       $this->app->User->SetParameter('welcome_links_eigen',1);
       for($i = 1; $i <= 8; $i++)
       {
-        $this->app->User->SetParameter('welcome_linklink'.$i, $this->app->Secure->GetPOST('linklink'.$i));
-        $this->app->User->SetParameter('welcome_linkname'.$i, $this->app->Secure->GetPOST('linkname'.$i));
-        $this->app->User->SetParameter('welcome_linkintern'.$i, $this->app->Secure->GetPOST('linkintern'.$i));
+        $this->app->User->SetParameter('welcome_linklink'.$i, $this->app->Request->request->getString('linklink'.$i));
+        $this->app->User->SetParameter('welcome_linkname'.$i, $this->app->Request->request->getString('linkname'.$i));
+        $this->app->User->SetParameter('welcome_linkintern'.$i, $this->app->Request->request->getString('linkintern'.$i));
       }
     }
     $eigenlinks = $this->app->User->GetParameter('welcome_links_eigen');
@@ -680,7 +673,11 @@ class Welcome
     {
       for($i = 1; $i <= 8; $i++)
       {
-        $links[] = array('name'=>$this->app->User->GetParameter('welcome_linkname'.$i),'link'=>$this->app->User->GetParameter('welcome_linklink'.$i),'intern'=>$this->app->User->GetParameter('welcome_linkintern'.$i));
+        $links[] = [
+            'name'=>$this->app->User->GetParameter('welcome_linkname'.$i),
+            'link'=>$this->app->User->GetParameter('welcome_linklink'.$i),
+            'intern'=>$this->app->User->GetParameter('welcome_linkintern'.$i)
+        ];
       }       
       
     }else{
@@ -695,21 +692,6 @@ class Welcome
         array('name'=>'','link'=>'','intern'=>'')
       );
     }
-    if($links)
-    {
-      foreach($links as $k => $link)
-      {
-        $this->app->Tpl->Set('LINKNAME'.($k+1),$link['name']);
-        $this->app->Tpl->Set('LINKLINK'.($k+1),$link['link']);
-        if(isset($link['intern']) && $link['intern']){
-          $this->app->Tpl->Set('LINKINTERN'.($k+1),' checked="checked" ');
-        }
-        if($link['link'] && $link['name'])
-        {
-          $this->app->Tpl->Add('LINKS','<a href="'.$link['link'].'" '.(isset($link['intern']) && $link['intern']?'':'target="_blank"').' class="button button-primary">'.$link['name'].'</a>&nbsp;');
-        }
-      }
-    }
 
     $this->app->erp->Headlines('Ihre Startseite');
     $this->app->Tpl->Set('KURZUEBERSCHRIFT2','[BENUTZER]');
@@ -717,12 +699,15 @@ class Welcome
 
     $this->app->Tpl->Set('TABTEXT','Ihre Startseite');
 
-    $module = $this->app->Secure->GetGET('module');
+    $module = $this->app->Request->query->getAlnum('module');
 
 
     //fenster rechts offene vorgaenge ***
     $this->app->Tpl->Set('SUBSUBHEADING','Vorg&auml;nge');
-    $arrVorgaenge = $this->app->DB->SelectArr("SELECT * FROM offenevorgaenge WHERE adresse='{$this->app->User->GetAdresse()}' ORDER by id DESC");
+    $arrVorgaenge = $this->app->EntityManager->getConnection()->executeQuery(
+        'SELECT * FROM offenevorgaenge WHERE adresse=:addressid ORDER by id DESC',
+        ['addressid'=>$this->app->User->GetAdresse()])
+    ->fetchAllAssociative();
     $this->app->Tpl->Set('INHALT','');
     $carrVorgaenge = !empty($arrVorgaenge)?count($arrVorgaenge):0;
     for($i=0;$i<$carrVorgaenge;$i++)
@@ -758,14 +743,10 @@ class Welcome
           <br>');
     }
 
-    if($this->app->erp->RechteVorhanden('kalender','list'))
-    {
-      $this->app->Tpl->Set('TERMINE', $this->Termine($this->app->DB->Select('SELECT CURDATE();')));
-      $this->app->Tpl->Set('TERMINEMORGEN', $this->Termine($this->app->DB->Select('SELECT DATE_ADD(CURDATE(), INTERVAL 1 DAY);')));
-    }
-
-    $summestunden = $this->app->DB->Select("SELECT SUM((UNIX_TIMESTAMP(z.bis)-UNIX_TIMESTAMP(z.von))/3600.0) as stunden
-      FROM zeiterfassung z WHERE z.abrechnen='1' AND z.ist_abgerechnet IS NULL OR z.ist_abgerechnet='0' AND z.adresse_abrechnung > 0");
+    $summestunden = $this->app->EntityManager->getConnection()->executeQuery(
+      "SELECT SUM((UNIX_TIMESTAMP(z.bis)-UNIX_TIMESTAMP(z.von))/3600.0) as stunden
+      FROM zeiterfassung z WHERE z.abrechnen='1' AND z.ist_abgerechnet IS NULL OR z.ist_abgerechnet='0' AND z.adresse_abrechnung > 0")
+    ->fetchOne();
 
     if($summestunden > 0)
       $this->app->Tpl->Add('DRINGEND','<li>'.number_format($summestunden,2,',','.').' Stunden nicht abgerechnet (<a href="index.php?module=zeiterfassung&action=abrechnenpdf">PDF</a>)</li>');
@@ -773,102 +754,30 @@ class Welcome
 
     $this->app->Tpl->Set('USERNAME',$this->app->User->GetName());
 
-    $tmp = $this->app->DB->SelectArr("SELECT * FROM aufgabe WHERE (adresse='".$this->app->User->GetAdresse()."' OR (initiator='".$this->app->User->GetAdresse()."' AND adresse<=0)) AND startseite='1' AND (status='offen' or status='') AND ((intervall_tage > 0 AND abgabe_bis <=NOW()) OR intervall_tage <=0) ORDER by prio DESC");
-    //TODOFORUSER
-    $ctmp = !empty($tmp)?count($tmp):0;
-    for($i=0;$i<$ctmp;$i++)
-    {
-      $name = $this->app->DB->Select("SELECT name FROM adresse WHERE id='".$tmp[$i]['initiator']."' LIMIT 1");
-      $high="";
-      if($tmp[$i]['initiator']!=$tmp[$i]['adresse']) {
-        $additional = "<br><font style=\"font-size:8pt\">von ".$name."</font>";
-      } else {
-        $additional='';
-      }
+    $todosUser = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT t.id, t.aufgabe, t.prio, a.name
+         FROM aufgabe t
+         LEFT OUTER JOIN adresse a ON a.id=t.initiator AND a.id != t.adresse
+         WHERE (t.adresse=:addressId OR (t.initiator=:addressId AND t.adresse<=0))
+           AND t.startseite='1'
+           AND (t.status='offen' or t.status='')
+           AND ((t.intervall_tage > 0 AND t.abgabe_bis <=NOW()) OR t.intervall_tage <=0)
+         ORDER by t.prio DESC",
+    ['addressId'=>$this->app->User->GetAdresse()])->fetchAllAssociative();
 
+    $todosEmployees = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT t.aufgabe, t.prio, a.name 
+         FROM aufgabe t
+         JOIN adresse a ON a.id=t.adresse
+         WHERE t.initiator=:addressId
+          AND t.adresse!=:addressId
+          AND t.adresse > 0
+          AND t.startseite='1'
+          AND t.status='offen'
+          AND ((t.intervall_tage > 0 AND t.abgabe_bis <=NOW()) OR t.intervall_tage <=0)
+         ORDER by t.prio DESC",
+    ['addressId'=>$this->app->User->GetAdresse()])->fetchAllAssociative();
 
-      if($tmp[$i]['prio']=='1') {
-        $class='noteit_highprio';
-        $high="&nbsp;(<font color=red><strong>Prio</strong></font>)";
-      }
-      else {
-        $class='noteit';
-      }
-
-
-
-$this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].$additional.$high."</td><td width=\"10%\"><span style=\"cursor:pointer\" onclick=\"if(!confirm('Wirklich ".$tmp[$i]['aufgabe']." bearbeiten?')) return false; else AufgabenEdit(".$tmp[$i]['id'].");\"><img src=\"./themes/new/images/edit.svg\"></span>
-          <span style=\"cursor:pointer\" onclick=\"if(!confirm('Wirklich ".$tmp[$i]['aufgabe']." abschließen?')) return false; else window.location.href='index.php?module=aufgaben&action=abschluss&id=".$tmp[$i]['id']."&referrer=1';\"><img src=\"./themes/new/images/forward.svg\"></span></td></tr>");
-
-    }
-
-    if($i<=0){
-      $this->app->Tpl->Add('TODOFORUSER', '<tr><td><center><i>{|Keine Aufgaben f&uuml;r die Startseite|}</i></center></td></tr>');
-    }
-
-    $tmp = $this->app->DB->SelectArr("SELECT * FROM aufgabe WHERE initiator='".$this->app->User->GetAdresse()."' AND adresse!='".$this->app->User->GetAdresse()."' AND adresse > 0 AND startseite='1' AND status='offen' AND ((intervall_tage > 0 AND abgabe_bis <=NOW()) OR intervall_tage <=0) ORDER by prio DESC");
-    $ctmp = !empty($tmp)?count($tmp):0;
-
-    if($ctmp > 0){
-      $this->app->Tpl->Add('TODOFORMITARBEITER', '<h4>&nbsp;Vergebene Aufgaben:</h4>');
-    }
-
-
-    for($i=0;$i<$ctmp;$i++)
-    {
-      $name = $this->app->DB->Select("SELECT name FROM adresse WHERE id='".$tmp[$i]['adresse']."' LIMIT 1");
-      $high='';
-      if($tmp[$i]['prio']=='1') {
-        $class='noteit_highprio';
-        $high='&nbsp;(Prio)';
-      }
-      else {
-        $class='noteit';
-      }
-
-
-      $this->app->Tpl->Add('TODOFORMITARBEITER','<tr><td>'.$tmp[$i]['aufgabe']."$high<br><font style=\"font-size:8pt\">f&uuml;r&nbsp;".$name.'</font></td></tr>');
-    }
-
-    $this->app->Tpl->Set('ACCORDION', $this->Accordion());
-
-    $ctx = stream_context_create(array(
-    'http' => array(
-        'timeout' => 1
-        )
-    )
-    ); 
-
-/*
-    $result_news = file_get_contents("https://{$this->app->Conf->updateHost}/news.php?version=".$this->app->erp->Version(),0, $ctx);
-
-    if($result_news=='')
-    {
-        $result_news = '
-                    <div class="content">
-                    <span class="headline">Die neue Version 20.3 ist nun verfügbar und gespickt mit dutzenden neuen Features!</span>
-                    <p>Im Xentral Community Forum könnt Ihr euch einen Überblick über die neuen Funktionen verschaffen.</p>
-                    <a href="//community.xentral.com/hc/de/articles/360017815440-Top-Features-ab-Version-20-3" target="_blank" class="to-nues">Neues von Xentral</a>
-                    </div>';
-    }
-    $this->app->Tpl->Set('EXTERNALNEWS', $result_news);
-*/
-
-
-/*
-    $result_handbook =  file_get_contents('https://xentral.biz/handbook.php?version='.$this->app->erp->Version(),0, $ctx);
-    if($result_handbook=='')
-    {
-      $result_handbook='<ul>
-<li><a href="https://xentral.biz/helpdesk/kurzanleitung-einrichtung-faq-leitfaden" target="_blank">Erste Schritte / Einstieg</a></li>
-<li><a style="font-weight:normal" href="https://xentral.biz/helpdesk/kurzanleitung-import-von-stammdaten" target="_blank">Import von Stammdaten</a> <a href="https://xentral.biz/helpdesk/kurzanleitung-import-von-stammdaten" target="_blank">mehr</a></li>
-<li><a style="font-weight:normal" href="https://xentral.biz/helpdesk/kurzanleitung-import-von-stammdaten" target="_blank">Automatisches Backup einrichten</a> <a href="https://xentral.biz/helpdesk/backup" target="_blank">mehr</a></li>
-<li><a href="https://xentral.biz/akademie-home" target="_blank">Link zu Online-Handbuch</a></li>
-<li><a href="https://forum.xentral.biz/" target="_blank">Forum f&uuml;r Open-Source Version</a></li><li><a href="https://xentral.biz/versionen#tab-versionen-tab4" target="_blank">Supportvertr&auml;ge f&uuml;r Xentral</a></li></ul>';
-    }
-
-    $this->app->Tpl->Set('EXTERNALHANDBOOK', $result_handbook);
-*/
 
     // Aufgabe-Bearbeiten-Popup
     $pinnwaende = $this->app->erp->GetPinwandSelect();
@@ -887,7 +796,7 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $this->app->erp->RunHook('welcome_start', 1 , $this);
 
     // Xentral 20 database compatibility
-    if ($this->app->DB->Select("SHOW COLUMNS FROM `user` LIKE 'role'")) {
+    if ($this->app->EntityManager->getConnection()->executeQuery("SHOW COLUMNS FROM `user` LIKE 'role'")->rowCount() > 0) {
 
       if(empty($this->app->User->GetField('role')) || $this->app->acl->IsAdminadmin()) {
         $this->app->ModuleScriptCache->IncludeWidgetNew('ClickByClickAssistant');
@@ -903,48 +812,40 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       }
     }
 
-    if($this->app->User->GetType() === 'admin') {
-      $this->app->Tpl->Set('COLROWTASKS', '6');
-    }
-    else {
-      $this->app->Tpl->Set('COLROWTASKS', '12');
-      $this->app->Tpl->Set('BEFORELEARNINGDASHBOARDTILE', '<!--');
-      $this->app->Tpl->Set('AFTERLEARNINGDASHBOARDTILE', '-->');
-    }
+    $calendarAllowed = $this->app->erp->RechteVorhanden('kalender','list');
 
-    $this->checkFreeSpace();
-
-    $this->app->Tpl->Parse('PAGE','startseite.tpl');
+    $this->app->Tpl->RenderTwig('PAGE','welcome/startseite.html.twig', [
+        'todosEmployees' => $todosEmployees,
+        'todosUser' => $todosUser,
+        'links' => $links,
+        'accordion' => $this->Accordion(),
+        'freeDiskSpace' => $this->checkFreeSpace(),
+        'termineHeute' => $calendarAllowed ? $this->Termine(new DateTime()) : [],
+        'termineMorgen' => $calendarAllowed ? $this->Termine(new DateTime('+1 day')) : [],
+    ]);
   }
 
-  protected function checkFreeSpace(){
-    /** @var SystemHealthService $service */
-    $systemHealthService = $this->app->Container->get('SystemHealthService');
-    try{
-      $freeDiskSpace = $systemHealthService->getDiskFree('');
-
-      if($freeDiskSpace === false){
-        return;
-      }
-
-      $freeDiskSpaceInMegabyte = $freeDiskSpace / (1024 * 1024);
-      if($freeDiskSpaceInMegabyte < 512){
-        $this->app->Tpl->Set('MESSAGE', '<div class="error">{|Weniger als 500 MB Speicherplatz frei.|}</div>');
-      }
-      elseif($freeDiskSpaceInMegabyte < 2048){
-        $this->app->Tpl->Set('MESSAGE', '<div class="warning">{|Weniger als 2 GB Speicherplatz frei.|}</div>');
-      }
-
-    } catch(Exception $e){
-      $this->app->erp->LogFile('can not evaluate disk space: ' . $e->getMessage());
-    }
-  }
-
-
-  public function WelcomeIcons()
+  protected function checkFreeSpace() : int
   {
-    $type = $this->app->Secure->GetGET('type');
-    header('Content-type: image/svg+xml');
+      /** @var SystemHealthService $service */
+      $systemHealthService = $this->app->Container->get('SystemHealthService');
+      try {
+          $freeDiskSpace = $systemHealthService->getDiskFree('');
+
+          if ($freeDiskSpace === false) {
+              return PHP_INT_MAX;
+          }
+
+          return $freeDiskSpace / (1024 * 1024);
+      } catch (Exception $e) {
+          $this->app->erp->LogFile('can not evaluate disk space: ' . $e->getMessage());
+      }
+  }
+
+
+  public function WelcomeIcons(): Response
+  {
+    $type = $this->app->Request->query->getString('type');
 
     switch($type)
     {
@@ -968,25 +869,20 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $xml = str_replace('#a6e0be',$farbe3,$xml);
     $xml = str_replace('#449cbe',$farbe4,$xml);
 
-    echo $xml;
-    $this->app->erp->ExitWawi();
+
+    return new Response($xml, Response::HTTP_OK, ['Content-Type' => 'image/svg+xml']);
   }
 
   public function WelcomeLogo()
   {
     $firmenlogo = $this->app->erp->getSettingsFile('firmenlogo');
-    if($firmenlogo!='')
-    {
-      header('Content-Type: image/png');
-      echo $firmenlogo;
-    }
-    $this->app->erp->ExitWawi();
+    return new Response($firmenlogo, Response::HTTP_OK, ['Content-Type' => 'image/png']);
   }
 
 
   public function WelcomeCss()
   {
-    $file = $this->app->Secure->GetGET('file');
+    $file = $this->app->Request->query->getString('file');
 
     if ($this->app->erp->UserDevice()!=='smartphone') {
       if($file==='style.css'){
@@ -1085,8 +981,8 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $tmp = str_replace('[TPLUNTERNAVIGATIONFARBESCHRIFT]',$unternavigationfarbeschrift,$tmp);
 
 
-    $subaction = $this->app->Secure->GetGET('subaction');
-    $submodule = $this->app->Secure->GetGET('submodule');
+    $subaction = $this->app->Request->query->getAlnum('subaction');
+    $submodule = $this->app->Request->query->getAlnum('submodule');
     if($subaction=='pinwand' || $subaction=='start' || $submodule=='kalender'){
       $tmp = str_replace('[JSDMMZINDEX]', '10000', $tmp);
     }
@@ -1104,9 +1000,7 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       $tmp = str_replace('[CSSMARGIN]','margin-left: auto; margin-right: auto;',$tmp);
     }
 
-    header('Content-type: text/css');
-    echo $tmp;
-    $this->app->erp->ExitWawi();
+    return new Response($tmp, Response::HTTP_OK, ['Content-Type' => 'text/css']);
   }
 
   
@@ -1114,36 +1008,36 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
   {
 
     $user = $this->app->User->GetID();
-    $users = $this->app->DB->SelectArr("SELECT u.id, a.name as description FROM user u LEFT JOIN adresse a ON a.id=u.adresse WHERE u.activ='1' ORDER BY u.username");
-    $user_out = '';
-    $cusers = !empty($users)?count($users):0;
-    for($i=0; $i<$cusers;$i++){
-      $select = $user==$users[$i]['id'] ? 'selected' : '';
-      $user_out .= "<option value=\"{$users[$i]['id']}\" $select>{$users[$i]['description']}</option>";
-    }
-    $this->app->Tpl->Set('PERSONEN', $user_out);
+    $users = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT u.id, a.name as description FROM user u LEFT JOIN adresse a ON a.id=u.adresse WHERE u.activ='1' ORDER BY u.username")
+    ->fetchAllAssociative();
 
-    $name = $this->app->Secure->GetPOST('name');
+    $name = $this->app->Request->request->getString('name');
     if($name!='')
     {
-      $personen = $this->app->Secure->GetPOST('personen');
-      $this->app->DB->Insert("INSERT INTO pinwand (id,name,user) VALUES ('','$name','$user')");
-      $pinwand = $this->app->DB->GetInsertID();
+      $personen = $this->app->Request->request->all('personen');
+      $this->app->EntityManager->getConnection()->executeStatement(
+          "INSERT INTO pinwand (id,name,user) VALUES ('',:name, :user)",
+        ['name'=>$name, 'user'=>$user]);
+      $pinwand = $this->app->EntityManager->getConnection()->lastInsertId();
       $cpersonen = !empty($personen)?count($personen):0;
       for($i=0;$i<=$cpersonen;$i++)
       {
         if($personen[$i] > 0)
         {
-          $this->app->DB->Insert("INSERT INTO pinwand_user (pinwand,user) VALUES ('$pinwand','".$personen[$i]."')");
+          $this->app->EntityManager->getConnection()->executeStatement(
+              "INSERT INTO pinwand_user (pinwand,user) VALUES (:pinwand, :user)",
+          ['pinwand'=>$pinwand, 'user'=>$personen[$i]]);
         }
       }
 
-      $this->app->Tpl->Set('PAGE', "<script>
-          parent.location.href = './index.php?module=welcome&action=pinwand';
-          </script>");
+      return new RedirectResponse('index.php?module=welcome&action=pinwand');
     }
     else {
-      $this->app->Tpl->Parse('PAGE','welcome_pinwand_addpinwand.tpl');
+      $this->app->Tpl->RenderTwig('PAGE','welcome/_addpinwand.html.twig', [
+          'users' => $users,
+          'userId' => $user,
+      ]);
     }
 
     $this->app->BuildNavigation=false;
@@ -1151,21 +1045,27 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
   public function WelcomeAddNote()
   {
-    $aufgabeid = (int)$this->app->Secure->GetGET('aufgabeid');
-    $beschreibung = $this->app->Secure->GetPOST('notebody');
+    $aufgabeid = $this->app->Request->query->getInt('aufgabeid');
+    $beschreibung = $this->app->Request->request->getString('notebody');
     if($beschreibung!='')
     {
-      $color = $this->app->Secure->GetPOST('color');
+      $color = $this->app->Request->request->getString('color');
       $aufgabe = $beschreibung;
-      $pinwand = $this->app->Secure->GetGET('pinwand');
+      $pinwand = $this->app->Request->query->getInt('pinwand');
 
       $aufgabe =  str_replace('\r\n',' ',$aufgabe);
 
-      $max_z = $this->app->DB->Select("SELECT MAX(note_z) FROM aufgabe WHERE adresse='".$this->app->User->GetAdresse()."' ");
+      $max_z = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT MAX(note_z) FROM aufgabe WHERE adresse=:address",
+        ['address'=>$this->app->User->GetAdresse()])
+          ->fetchOne();
       $new = true;
       if($aufgabeid)
       {
-        $cuid = $this->app->DB->Select("SELECT id FROM aufgabe WHERE adresse = '".$this->app->User->GetAdresse()."' AND id = ".$aufgabeid." LIMIT 1");
+        $cuid = $this->app->EntityManager->getConnection()->executeQuery(
+            "SELECT id FROM aufgabe WHERE adresse = :address AND id = :task LIMIT 1",
+            ['address'=>$this->app->User->GetAdresse(), 'task'=>$aufgabeid])
+        ->fetchOne();
         if($cuid)
         {
           $new = false;
@@ -1190,151 +1090,142 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       $xy = $this->getCoordsForNewTask($id);
       $note_x = $xy['note_x'];
       $note_y = $xy['note_y'];
-      $this->app->DB->Update(
+      $this->app->EntityManager->getConnection()->executeStatement(
         "UPDATE aufgabe 
           SET pinwand='1',
-              pinwand_id='$pinwand', 
-              note_color='$color', 
-              note_z='$max_z',
-              note_x='".$note_x."',
-              note_y='".$note_y."',
-              beschreibung='$beschreibung' 
-          WHERE id='$id' LIMIT 1"
+              pinwand_id=:pinwand, 
+              note_color=:color, 
+              note_z=:z,
+              note_x=:x,
+              note_y=:y,
+              beschreibung=:description 
+          WHERE id=:id LIMIT 1",
+          ['pinwand'=>$pinwand, 'color'=>$color, 'z'=>$max_z, 'x'=>$note_x, 'y'=>$note_y, 'description'=>$beschreibung, 'id'=>$id]
       );
 
-      $this->app->Tpl->Set('PAGE', "<script>
-          parent.location.href = './index.php?module=welcome&action=pinwand&pinwand=$pinwand';
-          </script>");
+      return new RedirectResponse('index.php?module=welcome&action=pinwand&pinwand='.$pinwand);
     }
     else {
       if($aufgabeid)
       {
-        $aufg = $this->app->DB->SelectArr('SELECT * FROM aufgabe WHERE id = '.$aufgabeid.' LIMIT 1');
-        if($aufg)
-        {
-          $aufg = reset($aufg);
-          $this->app->Tpl->Set('PADDNOTE_BODY',$aufg['beschreibung']);
-          $this->app->Tpl->Set('PADDNOTE_JS',"
-          <script type=\"text/javascript\">
-          $(document).ready(function() {
-            $('#paddnotecolor').val('".$aufg['note_color']."');
-          });
-          </script>
-          ");
-          
-        }
+        $aufg = $this->app->EntityManager->getConnection()->executeQuery('SELECT * FROM aufgabe WHERE id = :id LIMIT 1',
+        ['id' => $aufgabeid])->fetchAssociative();
       }
 
-      $this->app->YUI->CkEditor('notebody','belege');//,array("height"=>"450"));
+      $this->app->YUI->CkEditor('notebody','belege');
      
-      $this->app->Tpl->Parse('PAGE','welcome_pinwand_addnote.tpl');
+      $this->app->Tpl->RenderTwig('PAGE','welcome/_pinwand_addnote.html.twig', [
+          'task' => $aufg
+      ]);
     }
 
     $this->app->BuildNavigation=false;
   }
 
-  public function WelcomeDelNote()
+  public function WelcomeDelNote(): RedirectResponse
   {
-    $id = $this->app->Secure->GetGET('id');
-    $pinwand = $this->app->Secure->GetGET('pinwand');
+    $id = $this->app->Request->query->getInt('id');
+    $pinwand = $this->app->Request->query->getInt('pinwand');
     if($id > 0){
-      $this->app->DB->Update("DELETE FROM aufgabe WHERE id='$id' LIMIT 1");
+      $this->app->EntityManager->getConnection()->executeStatement("DELETE FROM aufgabe WHERE id=:id LIMIT 1",
+      ['id' => $id]);
     }
-    header('Location: index.php?module=welcome&action=pinwand&pinwand='.$pinwand);
-    exit;
+    return new RedirectResponse('index.php?module=welcome&action=pinwand&pinwand='.$pinwand);
   }
 
   public function WelcomeOkNote()
   {
-    $id = $this->app->Secure->GetGET('id');
-    $pinwand = $this->app->Secure->GetGET('pinwand');
+    $id = $this->app->Request->query->getInt('id');
+    $pinwand = $this->app->Request->query->getInt('pinwand');
 
     $this->app->erp->AbschlussAufgabe($id);
-    //$this->app->DB->Update("UPDATE aufgabe SET status='abgeschlossen' WHERE id='$id' LIMIT 1");
-    header('Location: index.php?module=welcome&action=pinwand&pinwand='.$pinwand);
-    exit;
+    return new RedirectResponse('index.php?module=welcome&action=pinwand&pinwand='.$pinwand);
   }
 
   public function WelcomeMoveNote()
   {
-    $id = $this->app->Secure->GetGET('id');
+    $id = $this->app->Request->query->getInt('id');
     if($id > 0){
-      $x = $this->app->Secure->GetGET('x');
-      $y = $this->app->Secure->GetGET('y');
-      $z = $this->app->Secure->GetGET('z');
-      $this->app->DB->Update("UPDATE aufgabe SET note_x='$x',note_y='$y',note_z='$z' WHERE id='$id' LIMIT 1");
+      $x = $this->app->Request->query->getInt('x');
+      $y = $this->app->Request->query->getInt('y');
+      $z = $this->app->Request->query->getInt('z');
+      $this->app->EntityManager->getConnection()->executeStatement(
+          "UPDATE aufgabe SET note_x=:x, note_y=:y, note_z=:z WHERE id=:id LIMIT 1",
+      ['x'=>$x, 'y'=>$y, 'z'=>$z, 'id'=>$id]);
     }
-    exit;
+    return new Response();
   }
 
   public function WelcomePinwand()
   {
     $this->app->erp->StartseiteMenu();
 
-    $cmd = $this->app->Secure->GetGET('cmd');
-    $pinwand = $this->app->Secure->GetGET('pinwand');
+    $cmd = $this->app->Request->query->getAlnum('cmd');
+    $pinwand = $this->app->Request->query->getInt('pinwand');
 
     switch($cmd)
     {
       case 'resize':
-        $id = $this->app->Secure->GetGET('id');
+        $id = $this->app->Request->query->getInt('id');
         if($id > 0)
         {
-          $w = $this->app->Secure->GetGET('w');
-          $h = $this->app->Secure->GetGET('h');
-          $this->app->DB->Update("UPDATE aufgabe SET note_w='".$this->app->DB->real_escape_string($w)."',
-          note_h='".$this->app->DB->real_escape_string($h)."' WHERE id='$id' LIMIT 1");
+          $w = $this->app->Request->query->getInt('w');
+          $h = $this->app->Request->query->getInt('h');
+          $this->app->EntityManager->getConnection()->executeStatement(
+              "UPDATE aufgabe SET note_w=:width, note_h=:height WHERE id=:id LIMIT 1",
+            ['width'=>$w, 'height'=>$h, 'id'=>$id]);
           $result['status']=1;
         } else {
           $result['status']=0;
           $result['statusText']='Fehlgeschlagen';
         }
-        echo json_encode($result);
-        exit;
-      break;
+        return new JsonResponse($result);
       case 'get':
-        $id = $this->app->Secure->GetPOST('id');
+        $id = $this->app->Request->request->getInt('id');
+        $aufgabe = $this->app->EntityManager->getConnection()->executeQuery("SELECT beschreibung, note_color FROM aufgabe WHERE id=:id LIMIT 1", ['id'=>$id])->fetchAssociative();
         $result['id']=$id;
-        $result['beschreibung']=$this->app->DB->Select("SELECT beschreibung FROM aufgabe WHERE id='$id' LIMIT 1");
-        $result['note_color']=$this->app->DB->Select("SELECT note_color FROM aufgabe WHERE id='$id' LIMIT 1");
+        $result['beschreibung']=$aufgabe['beschreibung'];
+        $result['note_color']=$aufgabe['note_color'];
         $result['status']=1;
         $result['statusText']='';
-        echo json_encode($result);
-        exit;
-      break;
+        return new JsonResponse($result);
       case 'save':
-        $id = $this->app->Secure->GetPOST('id');
-        $beschreibung = $this->app->Secure->GetPOST('beschreibung');
-        $note_color = $this->app->Secure->GetPOST('note_color');
-        $pinwand = $this->app->Secure->GetPOST('pinwand');
+        $id = $this->app->Request->request->getInt('id');
+        $beschreibung = $this->app->Request->request->getString('beschreibung');
+        $note_color = $this->app->Request->request->getString('note_color');
+        $pinwand = $this->app->Request->request->getInt('pinwand');
         if($pinwand <=0) {
           $pinwand=0;
         }
         if($id > 0)
         {
-          $this->app->DB->Update("UPDATE aufgabe SET beschreibung='".$this->app->DB->real_escape_string($beschreibung)."',
-          note_color='".$this->app->DB->real_escape_string($note_color)."' WHERE id='$id' LIMIT 1");
+          $this->app->EntityManager->getConnection()->executeStatement(
+              "UPDATE aufgabe SET beschreibung=:beschreibung, note_color=:noteColor WHERE id=:id LIMIT 1",
+          ['beschreibung'=>$beschreibung, 'noteColor'=>$note_color, 'id'=>$id]);
           $result['note_color']=$note_color;
           $result['beschreibung']=$beschreibung;
           $result['status']=1;
         } else {
           $aufgabe = strip_tags(str_replace('<', ' <', $beschreibung));
           $aufgabe = trim(str_replace('  ', ' ', $aufgabe));
-          $max_z = $this->app->DB->Select("SELECT MAX(note_z) FROM aufgabe WHERE adresse='".$this->app->User->GetAdresse()."'");
+          $max_z = $this->app->EntityManager->getConnection()->executeQuery(
+              "SELECT MAX(note_z) FROM aufgabe WHERE adresse=:address",
+          ['address'=>$this->app->User->GetAdresse()])->fetchOne();
           $id = $this->app->erp->CreateAufgabe($this->app->User->GetAdresse(),$aufgabe);
           $xy = $this->getCoordsForNewTask($id);
           $note_x = $xy['note_x'];
           $note_y = $xy['note_y'];
-          $this->app->DB->Update(
+          $this->app->EntityManager->getConnection()->executeStatement(
             "UPDATE aufgabe 
-            SET note_color='".$this->app->DB->real_escape_string($note_color)."',
-                beschreibung='".$this->app->DB->real_escape_string($beschreibung)."', 
-                note_z='".$max_z."',
-                note_x='".$note_x."',
-                note_y='".$note_y."',
+            SET note_color=:noteColor,
+                beschreibung=:beschreibung, 
+                note_z=:z,
+                note_x=:x,
+                note_y=:y,
                 pinwand='1',
-                pinwand_id='".$pinwand."' 
-            WHERE id='$id' LIMIT 1"
+                pinwand_id=:pinwandId
+            WHERE id=:id LIMIT 1",
+              ['noteColor'=>$note_color, 'beschreibung'=>$beschreibung, 'z'=>$max_z, 'x'=>$note_x, 'y'=>$note_y, 'pinwandId'=>$pinwand, 'id'=>$id]
           );
 
           $result['note_color']=$note_color;
@@ -1342,30 +1233,36 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
           $result['status']=1;
           $result['statusText']='';
         }
-        echo json_encode($result);
-        exit;
-      break;
-
+        return new JsonResponse($result);
     }
 
     if($pinwand <=0)
     {
-      $tmp = $this->app->DB->SelectArr("SELECT * FROM aufgabe WHERE adresse='".$this->app->User->GetAdresse()."' AND pinwand='1' AND pinwand_id='0' AND status='offen'");
+      $tmp = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT * FROM aufgabe WHERE adresse=:address AND pinwand='1' AND pinwand_id='0' AND status='offen'",
+      ['address'=>$this->app->User->GetAdresse()])->fetchAllAssociative();
     } else {
       $erlaubt = true;
       if($this->app->User->GetType() != 'admin')
       {
-        $check = $this->app->DB->Select("SELECT id FROM pinwand WHERE id = '$pinwand' AND `user` = '".$this->app->User->GetID()."'");
-        if(!$check && !$this->app->DB->Select("SELECT id FROM pinwand_user WHERE pinwand = '$pinwand' AND `user` = '".$this->app->User->GetID()."' LIMIT 1"))
+        $check = $this->app->EntityManager->getConnection()->executeQuery(
+            'SELECT id FROM pinwand WHERE id = :pinwandId AND `user` = :userId',
+        ['pinwandId' => $pinwand, 'userId' => $this->app->User->GetID()])->fetchOne();
+        if(!$check && !$this->app->EntityManager->getConnection()->executeQuery(
+            "SELECT id FROM pinwand_user WHERE pinwand = :pinwandId AND `user` = :userId LIMIT 1",
+            ['pinwandId' => $pinwand, 'userId' => $this->app->User->GetID()])->fetchOne())
         {
           $erlaubt = false;
         }
       }
       if($erlaubt)
       {
-        $tmp = $this->app->DB->SelectArr("SELECT * FROM aufgabe WHERE pinwand='1' AND pinwand_id='$pinwand' AND status='offen'");
+        $tmp = $this->app->EntityManager->getConnection()->executeQuery(
+            "SELECT * FROM aufgabe WHERE pinwand='1' AND pinwand_id=:pinwandId AND status='offen'",
+        ['pinwandId' => $pinwand])->fetchAllAssociative();
       }
-    }  
+    }
+    $notes = [];
     $ctmp = !empty($tmp)?count($tmp):0;
     for($i=0;$i<$ctmp;$i++)
     {
@@ -1381,7 +1278,9 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
         $text = $tmp[$i]['aufgabe'];
       }
       $id = $tmp[$i]['id'];
-      $projekt = $this->app->DB->Select("SELECT abkuerzung FROM projekt WHERE id='".$tmp[$i]['projekt']."' LIMIT 1");
+      $projekt = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT abkuerzung FROM projekt WHERE id=:projectId LIMIT 1",
+      ['projectId' => $tmp[$i]['projekt']])->fetchOne();
 
       $width = $tmp[$i]['note_w']?$tmp[$i]['note_w']:130;
       $height = $tmp[$i]['note_h']?$tmp[$i]['note_h']:130;
@@ -1390,7 +1289,8 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
         $pinwand=0;
       }
 
-      $seriennummer = $this->app->DB->Select("SELECT seriennummer FROM adapterbox WHERE verwendenals='bondrucker' LIMIT 1");
+      $seriennummer = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT seriennummer FROM adapterbox WHERE verwendenals='bondrucker' LIMIT 1")->fetchOne();
       if($seriennummer!=''){
         $menu_bon = '<a href="#" onclick=AjaxCall("index.php?module=aufgaben&action=bondrucker&id=' . $id . '");><img src="themes/[THEME]/images/bon_druck.png" border="0"></a>&nbsp;';
       }
@@ -1406,74 +1306,28 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
         case 'coral': $color='#be3978'; break;
       } 
 
-      $result = ' <div class="note" id="note'.$id.'" style="border-left-color:'.$color.';left:'.$left.'px;top:'.$top.'px;  z-index:'.$zindex.'; width:'.$width.'px;height:'.$height.'px;">
-        <div id="notehtml'.$id.'">'.$text.'</div> 
-        <div class="author">'.$projekt.'&nbsp;
-          <a href="#" onclick="PinwandEdit('.$pinwand.','.$id.');">      
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M13.9442 2.05599C13.5429 1.65638 12.9986 1.43371 12.4323 1.43755C11.866 1.44138 11.3247 1.6714 10.9289 2.07641L2.47058 10.5347L1.4375 14.5627L5.46542 13.5296L13.9238 5.07124C14.3288 4.67543 14.5588 4.13416 14.5626 3.56787C14.5664 3.00158 14.3438 2.45725 13.9442 2.05599Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M10.6875 2.31836L13.6823 5.31319" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M9.46484 3.54004L12.4597 6.53487" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M2.46875 10.5347L5.4665 13.5266" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>      
-          </a>&nbsp;
-          <a href="#" onclick="AufgabenEdit('.$id.');return false;" target="_blank" title="Aufgabe bearbeiten" >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6.6875 9.31152L1.4375 14.5615" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14.5625 5.37402V1.43652H10.625" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M1.4375 10.624V14.5615H5.375" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14.5625 1.43652L9.3125 6.68652" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M9.3125 9.31152L14.5625 14.5615" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M1.4375 5.37402V1.43652H5.375" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M14.5625 10.624V14.5615H10.625" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M1.4375 1.43652L6.6875 6.68652" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>&nbsp;
-          '
-        //.$menu_bon
-          .'
-          <a href="index.php?module=welcome&action=oknote&id='.$id.'&pinwand='.$pinwand.'">
-            <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4.0625 12.6855L1.4375 10.0605L4.0625 7.43555" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M1.4375 10.0605H10.1875C12.6037 10.0605 14.5625 8.10179 14.5625 5.68555C14.5625 3.2693 12.6037 1.31055 10.1875 1.31055H6.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>&nbsp;
-          <a href="index.php?module=welcome&action=delnote&id='.$id.'&pinwand='.$pinwand.'">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0.875 2.625H13.125" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M8.3125 0.875H5.6875C5.20425 0.875 4.8125 1.26675 4.8125 1.75V2.625H9.1875V1.75C9.1875 1.26675 8.79575 0.875 8.3125 0.875Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5.6875 10.0625V5.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8.3125 10.0625V5.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M11.0046 12.3223C10.967 12.776 10.5877 13.125 10.1325 13.125H3.86808C3.41285 13.125 3.03363 12.776 2.996 12.3223L2.1875 2.625H11.8125L11.0046 12.3223Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-        </div>
-        <span class="data">'.$id.'</span>
-        </div>';
-
-      $this->app->Tpl->Add('NOTES',$result);
+      $notes[] = [
+          'id'=>$id,
+          'color'=>$color,
+          'text'=>$text,
+          'left'=>$left,
+          'top'=>$top,
+          'zindex'=>$zindex,
+          'width'=>$width,
+          'height'=>$height,
+          'projekt'=>$projekt,
+      ];
     }
 
-    $this->app->Tpl->Set('POPUPWIDTH','700');
-    $this->app->Tpl->Set('POPUPHEIGHT','600');
-
-    $tmp = $this->app->DB->SelectArr("SELECT DISTINCT p.id,p.name FROM pinwand p 
-      LEFT JOIN pinwand_user pu ON pu.pinwand=p.id WHERE (pu.user='".$this->app->User->GetID()."' OR p.user='".$this->app->User->GetID()."') ORDER by p.name");
-    $ctmp = !empty($tmp)?count($tmp):0;
-    for($i=0;$i<$ctmp;$i++)
-    {
-      if($pinwand==$tmp[$i]['id']) {
-        $selected='selected';
-      } else {
-        $selected='';
-      }
-      $this->app->Tpl->Add('PINWAENDE','<option value="'.$tmp[$i]['id']."\" $selected>".$tmp[$i]['name'].'</option>');
-    }
+    $pinnwaende = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT DISTINCT p.id,p.name FROM pinwand p 
+        LEFT JOIN pinwand_user pu ON pu.pinwand=p.id 
+        WHERE (pu.user=:userId OR p.user=:userId) ORDER by p.name",
+    ['userId' => $this->app->User->GetID()])->fetchAllAssociative();
 
     // Aufgabe-Bearbeiten-Popup
-    $pinnwaende = $this->app->erp->GetPinwandSelect();
     $pinnwand = "";
-    foreach($pinnwaende as $key=>$value){
+    foreach($this->app->erp->GetPinwandSelect() as $key=>$value){
       $pinnwand .= "<option value='$key'>".$value."</option>";
     }
     $this->app->Tpl->Set("PINNWAND", $pinnwand);
@@ -1486,23 +1340,25 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $this->app->YUI->DatePicker("e_datum");
     $this->app->YUI->TimePicker("e_zeit");
     $this->app->Tpl->Parse('AUFGABENPOPUP','aufgaben_popup.tpl');
-    $this->app->Tpl->Parse('PAGE','welcome_pinwand.tpl');
+    $this->app->Tpl->RenderTwig('PAGE','welcome/pinwand.html.twig', [
+        'pinwand' => $pinwand,
+        'pinwaende' => $pinnwaende,
+        'notes' => $notes,
+    ]);
   }
 
   private function getCoordsForNewTask($taskId){
 
     $coords = ['note_x'=>0,'note_y'=>0];
 
-    $oldCoords = $this->app->DB->Select(
-      sprintf(
-        'SELECT MAX(a.note_x) 
+    $oldCoords = $this->app->EntityManager->getConnection()->executeQuery(
+      'SELECT MAX(a.note_x) 
         FROM `aufgabe` AS `a` 
-        WHERE a.id != %d 
+        WHERE a.id != :id 
         AND (a.note_x = a.note_y OR (a.note_x IS NULL AND a.note_y IS NULL))
         ORDER BY a.note_x',
-        $taskId
-      )
-    );
+        ['id'=>(int)$taskId]
+      )->fetchOne();
 
     if(!empty($oldCoords) || $oldCoords==0){
 
@@ -1522,7 +1378,8 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
       //$this->app->DB->Insert("INSERT INTO accordion (name,target,position) VALUES ('Startseite','StartseiteWiki','1')");
       $this->app->DB->DisableHTMLClearing(true);
-      $check_startseite = $this->app->DB->Select("SELECT `name` FROM wiki WHERE name='StartseiteWiki' LIMIT 1");
+      $check_startseite = $this->app->EntityManager->getConnection()->executeQuery("SELECT `name` FROM wiki WHERE name='StartseiteWiki' LIMIT 1")
+      ->fetchOne();
       if($check_startseite == '')
       {
         $wikifirstpage='
@@ -1541,84 +1398,46 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 <li> <a href="index.php?module=wiki&amp;action=list" target="_blank"> Wiki</a></li>
 </ul>';
 
-        $this->app->DB->Insert("INSERT INTO wiki (name,content) VALUES ('StartseiteWiki','".$wikifirstpage."')");
+        $this->app->EntityManager->getConnection()->executeStatement(
+            "INSERT INTO wiki (name,content) VALUES ('StartseiteWiki',:content)",
+        ['content'=>$wikifirstpage]);
       }
-      $data = $this->app->DB->SelectArr("SELECT * FROM accordion ORDER BY position");
+      $data = $this->app->EntityManager->getConnection()->executeQuery("SELECT * FROM accordion ORDER BY position")
+      ->fetchAllAssociative();
 
 
     $out = '';
     $entry = '';
 
-    $edit = "<a class=\"edit\" href=\"index.php?module=wiki&action=edit&cmd=StartseiteWiki\"><img src=./themes/[THEME]/images/edit.svg></a>";
-
-    $wikipage_exists = $this->app->DB->Select("SELECT '1' FROM wiki WHERE name='StartseiteWiki' LIMIT 1");
+    $wikipage_exists = $this->app->EntityManager->getConnection()->executeQuery("SELECT '1' FROM wiki WHERE name='StartseiteWiki' LIMIT 1")
+    ->fetchOne();
     if($wikipage_exists!='1'){
-      $this->app->DB->Insert("INSERT INTO wiki (name) VALUES ('StartseiteWiki')");
+      $this->app->EntityManager->getConnection()->executeStatement("INSERT INTO wiki (name) VALUES ('StartseiteWiki')");
     }
-    $wikipage_content = $this->app->DB->Select("SELECT content FROM wiki WHERE name='StartseiteWiki' LIMIT 1");
+    $wikipage_content = $this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT content FROM wiki WHERE name='StartseiteWiki' LIMIT 1")->fetchOne();
     $this->app->DB->DisableHTMLClearing(false);
     $wikipage_content = $this->app->erp->ReadyForPDF($wikipage_content);
     $wikiparser = new WikiParser();
     $content = $wikiparser->parse($wikipage_content);
-
-
-    $this->app->Tpl->Set("ACCORDIONEDIT",$edit);
-
-    $this->app->Tpl->Set('ACCORDIONENTRY0', $content);
-    $entry = '[ACCORDIONENTRY0]';
-
-    $out .= "<!--<h3><a href=\"#\">Startseite</a></h3>-->
-      <div><div class=\"wiki\"><!--$edit<br/>-->$entry<br><br></div></div>";
-    
-    return $out;
+    return $content;
   }
 
-  public function Termine($date)
+  public function Termine(DateTime $date) : array
   {
-    $userid = $this->app->User->GetID();
+      $userid = $this->app->User->GetID();
 
-    if(is_numeric($userid)) {
-      $termine = $this->app->DB->SelectArr("SELECT DISTINCT color,von,bis,bezeichnung,allDay,ke.id FROM kalender_user AS ka
-          RIGHT JOIN kalender_event AS ke ON ka.event=ke.id
-          WHERE (ka.userid='$userid' OR ke.public='1') AND DATE(von)='$date'
-          ORDER BY von");
-      $out = '';
-      if($termine)
-      {
-        foreach($termine AS $t) {
-          $von = date('G:i', strtotime($t['von']));
-          $bis = date('G:i', strtotime($t['bis']));
+      if (!is_numeric($userid))
+          return [];
 
-          if($t['allDay']=='1') {
-            $von = 'Ganztags';
-            $bis = '';
-          }else {
-            if($von==$bis){
-              $bis = '';
-            }
-            else{
-              $bis = '- ' . $bis;
-            }
-          }
-
-          $color = (($t['color']!='') ? "style='background-color: {$t['color']};border-color: {$t['color']};'" : '');
-
-          $out .= "<li $color onclick=\"openeventdialog(".$t['id'].",'".$von."','".$bis."','".$t['allDay']."','".htmlspecialchars($t['bezeichnung'])."')\"><span class=\"description\">{$t['bezeichnung']}<br>$von $bis&nbsp;&nbsp;</span></li>";
-        }
-        $out .= '		<script>		
-        function openeventdialog(id, start, end, allday, task)
-        {
-        if($("#TerminDialog").SetFormData(id, start, end, allday,task))
-					$("#TerminDialog").dialog("open");
-        }</script>';
-      }
-
-      if(!$termine || (!empty($termine)?count($termine):0)==0) {
-        $out = '<center><i>{|Keine Termine vorhanden|}</i></center>';
-      }
-
-      return $out;
-    }
+      $termine = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT DISTINCT color,von,bis,bezeichnung,allDay,ke.id FROM kalender_user AS ka
+      RIGHT JOIN kalender_event AS ke ON ka.event=ke.id
+      WHERE (ka.userid=:userId OR ke.public='1') AND DATE(von)=DATE(:date)
+      ORDER BY von",
+          ['userId' => $userid, 'date' => $date->format(DATE_ATOM)]
+      )->fetchAllAssociative();
+      return $termine;
   }
 
 
@@ -1643,20 +1462,16 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
   public function WelcomeSettings()
   {
-    $cmd = $this->app->Secure->GetGET('cmd');
+    $cmd = $this->app->Request->query->getAlnum('cmd');
     switch ($cmd) {
       case 'inviteteamclickbyclick':
         return $this->HandleInviteTeamClickByClick();
-        break;
       case 'startclickbyclick':
         return $this->HandleStartClickByClick();
-        break;
       case 'changeroleclickbyclick':
         return $this->HandleChangeRoleClickByClick();
-        break;
       case 'changepasswordclickbyclick':
         return $this->HandlePasswordChangeClickByClick();
-        break;
       // Passwort ändern
       case 'password-change':
         $this->HandlePasswordChange();
@@ -1665,70 +1480,50 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       // Einstellungen speichern
       case 'settings-save':
         $this->HandleProfileSettingsSave();
-        break;
 
       // Profilbild löschen
       case 'picture-delete':
-        $this->HandleProfilePictureDeletion();
-        break;
+        return $this->HandleProfilePictureDeletion();
 
       // Profilbild hochladen
       case 'picture-upload':
-        $this->HandleProfilePictureUpload();
-        break;
+        return $this->HandleProfilePictureUpload();
 
       case 'mobile-apps-account':
         $this->HandleMobileAppsAccount();
         break;
 
       case 'googlecalendar-save':
-         $this->HandleGoogleCalendarSave();
-         break;
+         return $this->HandleGoogleCalendarSave();
 
       case 'gmail-save':
-          $this->HandleGoogleMailAuth();
-          break;
+          return $this->HandleGoogleMailAuth();
 
       case 'gmail-test':
-          $this->HandleGoogleMailTest();
-          break;
+          return $this->HandleGoogleMailTest();
 
       case 'totp_toggle':
-          $this->HandleTOTPToggle();
-          break;
+          return $this->HandleTOTPToggle();
 
       case 'totp_regenerate':
-        $this->HandleTOTPRegenerate();
-        break;
+        return $this->handleTOTPRegenerate();
     }
 
     // Einstellungen laden
-    $settings = $this->app->DB->SelectRow(
+    $settings = $this->app->EntityManager->getConnection()->executeQuery(
       "SELECT u.startseite, u.chat_popup, u.callcenter_notification, u.defaultcolor, u.sprachebevorzugen 
-       FROM `user` AS u WHERE u.id = '" . $this->app->User->GetID() . "' LIMIT 1"
-    );
-
-    $this->app->Tpl->Set('STARTSEITE', $settings['startseite']);
-    $this->app->Tpl->Set('DEFAULTCOLOR', $settings['defaultcolor']);
-    $this->app->Tpl->Set('SPRACHEBEVORZUGEN', $this->languageSelectOptions($settings['sprachebevorzugen']));
-
-    if($settings['chat_popup']){
-      $this->app->Tpl->Set('CHAT_POPUP', ' checked="checked" ');
-    }
-    if($settings['callcenter_notification']){
-      $this->app->Tpl->Set('CALLCENTER_NOTIFICATION', ' checked="checked" ');
-    }
+       FROM `user` AS u WHERE u.id = :id LIMIT 1", ['id' => $this->app->User->GetID()])->fetchAssociative();
+    $settings['sprachebevorzugen'] = $this->getCurrentDefaultLanguage($settings['sprachebevorzugen']);
 
     // Profilbild laden
     $adresse = $this->app->User->GetAdresse();
-    $dateiversion = (int)$this->app->DB->Select("SELECT dv.id FROM datei_stichwoerter ds INNER JOIN datei d ON ds.datei = d.id INNER JOIN datei_version dv ON dv.datei = d.id WHERE d.geloescht = 0 AND objekt like 'Adressen' AND parameter = '" . $adresse . "' AND subjekt like 'Profilbild' ORDER by d.id DESC, dv.id DESC LIMIT 1");
-    if($dateiversion){
-      $this->app->Tpl->Add('DATEI', "<span id=\"profilbild\" style=\"padding:0;margin:0;height:100px;width:100px;display:inline-block;position:relative;background-repeat:no-repeat; background-image: url('index.php?module=ajax&action=profilbild&id=" . $this->app->User->GetID() . "'); \"></span>");
-    }else{
-      $this->app->Tpl->Set('VORPROFILBILDLOESCHEN', '<!--');
-      $this->app->Tpl->Set('NACHPROFILBILDLOESCHEN', '-->');
-      $this->app->Tpl->Add('DATEI', "<span id=\"profilbild\" style=\"padding:0;margin:0;height:100px;width:100px;display:inline-block;position:relative;background-repeat:no-repeat; background-image: url('./themes/new/images/keinbild_dunkel.png'); \"></span>");
-    }
+    $dateiversion = (int)$this->app->EntityManager->getConnection()->executeQuery(
+        "SELECT dv.id FROM datei_stichwoerter ds
+        INNER JOIN datei d ON ds.datei = d.id
+        INNER JOIN datei_version dv ON dv.datei = d.id
+        WHERE d.geloescht = 0 AND objekt like 'Adressen'
+        AND parameter = :address AND subjekt like 'Profilbild' ORDER by d.id DESC, dv.id DESC LIMIT 1",
+    ['address'=>$adresse])->fetchOne();
 
     // Mobile Apps Einstellungen laden
     $apiAccountActive = false;
@@ -1736,13 +1531,13 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $hasMobileAppsPermission = (bool)$this->app->erp->RechteVorhanden('welcome','mobileapps');
     if ($hasMobileAppsPermission){
       $apiAccountId = (int)$this->app->User->GetParameter('mobile_apps_api_account_id');
-      $apiAccountData = $this->app->DB->SelectRow("SELECT a.remotedomain, a.initkey, a.aktiv FROM api_account AS a WHERE a.id = '{$apiAccountId}'");
+      $apiAccountData = $this->app->EntityManager->getConnection()->executeQuery(
+          "SELECT a.remotedomain, a.initkey, a.aktiv FROM api_account AS a WHERE a.id = :id",
+      ['id' => $apiAccountId])->fetchAssociative();
       $apiAccountActive = isset($apiAccountData['aktiv']) && (int)$apiAccountData['aktiv'] === 1;
       $apiAccountExisting = isset($apiAccountData['remotedomain']) && !empty($apiAccountData['remotedomain']);
 
-      /** @var Request $request */
-      $request = $this->app->Container->get('Request');
-      $serverUrl = $request->getBaseUrl() . '/'; // Url muss aufs www-Verzeichnis zeigen; App hängt 'api/v1/mobileapi/dashboard' an
+      $serverUrl = $this->app->Request->getBaseUrl() . '/'; // Url muss aufs www-Verzeichnis zeigen; App hängt 'api/v1/mobileapi/dashboard' an
       $qrCodeArray = [
         'server_url' => $serverUrl,
         'username' => $apiAccountData['remotedomain'],
@@ -1751,33 +1546,21 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       $qrCodeData = json_encode($qrCodeArray);
     }
 
-    if ($hasMobileAppsPermission && $apiAccountExisting && $apiAccountActive) {
-      /** @var BarcodeFactory $barcodeFactory */
-      $barcodeFactory = $this->app->Container->get('BarcodeFactory');
-      $barcodeObject = $barcodeFactory->createQrCode($qrCodeData);
-      $qrCodeHtml = $barcodeObject->toHtml(3, 3);
-      $this->app->Tpl->Set('MOBILE_APP_QRCODE', $qrCodeHtml);
-      $this->app->Tpl->Set('MOBILE_APP_DESCRIPTION', 'Bitte scannen Sie den hier angezeigten QR-Code mit Ihrem Handy in der Xentral App unter &quot;Registrieren&quot;.');
-      $this->app->Tpl->Set('MOBILE_APP_BUTTON', '<input type="submit" name="mobile_app_api_deactivate" value="{|Zugang deaktivieren|}">');
+    $mobileAppStatus = 'unavailable';
+    if ($hasMobileAppsPermission) {
+        if ($apiAccountExisting) {
+            if ($apiAccountActive) {
+                /** @var BarcodeFactory $barcodeFactory */
+                $barcodeFactory = $this->app->Container->get('BarcodeFactory');
+                $barcodeObject = $barcodeFactory->createQrCode($qrCodeData);
+                $qrCodeHtml = $barcodeObject->toHtml(3, 3);
+                $mobileAppStatus = 'active';
+                $mobileAppQrCode = $qrCodeHtml;
+            }
+        } else {
+            $mobileAppStatus = 'available';
+        }
     }
-    if ($hasMobileAppsPermission && $apiAccountExisting && !$apiAccountActive){
-      $this->app->Tpl->Set('MOBILE_APP_QRCODE', '');
-      $this->app->Tpl->Set('MOBILE_APP_DESCRIPTION', 'API-Zugang ist deaktiviert. Aktivieren Sie den Zugang um die Mobile App nutzen zu können.');
-      $this->app->Tpl->Set('MOBILE_APP_BUTTON', '<input type="submit" name="mobile_app_api_activate" value="{|Zugang aktivieren|}">');
-    }
-    if ($hasMobileAppsPermission && !$apiAccountExisting){
-      $this->app->Tpl->Set('MOBILE_APP_QRCODE', '');
-      $this->app->Tpl->Set('MOBILE_APP_DESCRIPTION', '');
-      $this->app->Tpl->Set('MOBILE_APP_BUTTON', '<input type="submit" name="mobile_app_api_create" value="{|Zugang anlegen|}"> (Legt API-Account an)');
-    }
-    if (!$hasMobileAppsPermission){
-      $this->app->Tpl->Set('MOBILE_APP_QRCODE', '');
-      $this->app->Tpl->Set('MOBILE_APP_DESCRIPTION', 'Sie haben kein Rechte eine Mobile App zu registrieren. Bitte wenden Sie sich an Ihren Administrator.');
-      $this->app->Tpl->Set('MOBILE_APP_BUTTON', '');
-    }
-
-    $this->renderGoogleCalendarSettings();
-    $this->renderGoogleMailSettings();
 
     $this->app->erp->Headlines('Mein Bereich', 'Pers&ouml;nliche Einstellungen');
     $this->app->erp->MenuEintrag('index.php?module=welcome&action=settings','&Uuml;bersicht');
@@ -1786,8 +1569,17 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     $this->app->YUI->ColorPicker('defaultcolor');
     $this->app->YUI->PasswordCheck('password', 'repassword', '', 'submit_password');
 
-    $this->renderTOTP();
-    $this->app->Tpl->Parse('PAGE','welcome_settings.tpl');
+    $this->app->Tpl->RenderTwig('PAGE','welcome/settings.html.twig', [
+        'userId' => $this->app->User->GetID(),
+        'hasProfilePicture' => $dateiversion !== null,
+        'settings' => $settings,
+        'languages' => $this->getLanguages(),
+        'mobileAppStatus' => $mobileAppStatus,
+        'mobileAppQrCode' => $mobileAppQrCode ?? '',
+        'totp' => $this->renderTOTP(),
+        'googleCalendar' => $this->renderGoogleCalendarSettings(),
+        'googleMail' => $this->renderGoogleMailSettings(),
+    ]);
   }
 
   private function renderTOTP(){
@@ -1798,23 +1590,18 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
     $totpEnabled = $totpLoginManager->isTOTPEnabled($userID);
 
-    $this->app->Tpl->Set('TOTP_TOGGLE_VALUE', $totpEnabled ? 'TOTP ausschalten' : 'TOTP einschalten');
-    $this->app->Tpl->Set('TOTP_TOGGLE_ID', $totpEnabled ? 'totp_disable' : 'totp_enable');
-    if(!$totpEnabled) {
-      $this->app->Tpl->Set('TOTP_REGENERATE_VISIBILITY', 'style="display: none"');
-      return;
+    if ($totpEnabled) {
+        $label = 'Xentral' . ' | ' . $this->app->erp->GetFirmaName();
+        $qrCode = $totpLoginManager->generatePairingQrCode($userID, $label);
+        $secret = $totpLoginManager->getTOTPSecret($userID);
+        $qrHtml = $qrCode->toHtml(3, 3);
     }
 
-    $label = 'Xentral' . ' | ' . $this->app->erp->GetFirmaName();
-    $qrCode = $totpLoginManager->generatePairingQrCode($userID, $label);
-
-    $secret = $totpLoginManager->getTOTPSecret($userID);
-
-    $this->app->Tpl->Set('TOTP_KEY_HTML', "Schlüssel: {$secret}");
-
-    $qrHtml = $qrCode->toHtml(3, 3);
-
-    $this->app->Tpl->Set('TOTP_QR_HTML', $qrHtml);
+    return [
+        'enabled' => $totpEnabled,
+        'qrCode' => $qrHtml ?? null,
+        'secret' => $secret ?? null
+    ];
   }
   public function WelcomeRedirect()
   {
@@ -1917,17 +1704,17 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
   public function WelcomeSpooler()
   {
-    $cmd = $this->app->Secure->GetGET('cmd');
-    $fileId = (int)$this->app->Secure->GetGET('file');
-    $printerId = (int)$this->app->Secure->GetGET('id');
+    $cmd = $this->app->Request->query->getAlnum('cmd');
+    $fileId = $this->app->Request->query->getInt('file');
+    $printerId = $this->app->Request->query->getInt('id');
     if ($printerId === 0) {
       $printerId = null;
     }
 
     // Zip erstellen
-    if (!empty($this->app->Secure->GetPOST('makezip'))) {
+    if (!empty($this->app->Request->request->getString('makezip'))) {
       try {
-        $selection = $this->app->Secure->GetPOST('selection');
+        $selection = $this->app->Request->request->all('selection');
         $this->DownloadSpoolerZipCompilation($selection, $printerId);
         $this->app->erp->ExitWawi();
       } catch (DownloadSpoolerExceptionInterface $e) {
@@ -1940,9 +1727,9 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     }
 
     // Sammel-PDF erstellen
-    if (!empty($this->app->Secure->GetPOST('makepdf'))) {
+    if (!empty($this->app->Request->request->getString('makepdf'))) {
       try {
-        $selection = $this->app->Secure->GetPOST('selection');
+        $selection = $this->app->Request->request->all('selection');
         $this->DownloadSpoolerPdfCompilation($selection, $printerId);
         $this->app->erp->ExitWawi();
       } catch (DownloadSpoolerExceptionInterface $e) {
@@ -2202,64 +1989,9 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
   public function WelcomeInfo()
   {
-    if($this->app->Secure->GetPOST('restoreoss') && is_dir(dirname(dirname(__DIR__)).'/www_oss') &&
-      is_dir(dirname(dirname(__DIR__)) . '/phpwf_oss') && is_dir(dirname(dirname(__DIR__)) . '/phpwf_oss/types') &&
-      $this->app->User->GetType() === 'admin')
-    {
-      chdir('..');
-      $dir = getcwd();
-      if(@rename($dir.'/www', $dir.'/www_old') && @rename($dir.'/phpwf', $dir.'/phpwf_old'))
-      {
-        sleep(1);
-        if(@rename($dir.'/www_oss', $dir.'/www') && @rename($dir.'/phpwf_oss', $dir.'/phpwf'))
-        {
-          if(is_file($dir.'/version_oss.php'))
-          {
-            @rename($dir.'/version.php',$dir.'/version_old.php');
-            if(@rename($dir.'/version_oss.php',$dir.'/version.php'))@unlink($dir.'/version_old.php');
-          }
-          if(is_dir($dir.'/www_old') && is_dir($dir.'/www')){
-            $this->DelFolder($dir . '/www_old');
-          }
-          if(is_dir($dir.'/phpwf_old') && is_dir($dir.'/phpwf')){
-            $this->DelFolder($dir . '/phpwf_old');
-          }
-          header('Location: index.php?module=welcome&action=info&msg='.$this->app->erp->base64_url_encode('<div class="info">Die Open Source-Version wurde wiederhergestellt</div>'));
-          exit;
-        }
-      }
-      header('Location: index.php?module=welcome&action=info&msg='.$this->app->erp->base64_url_encode('<div class="error">Die Open Source-Version konnte nicht wiederhergestellt werden. Bitte pr&uuml;fen Sie die Dateirechte!</div>'));
-      exit;
-    }
-
     $this->app->erp->Headlines('Informationen zur Software');
 
-    $this->app->Tpl->Set('TABTEXT','Informationen zur Software');
-    $this->app->Tpl->Set('TAB1','<fieldset><legend>Lizenzinformationen</legend><table><tr><td>');
-    if($this->app->erp->Version()!=='OSS')
-    {
-      $this->app->Tpl->Add('TAB1',"Sie benutzen die kommerzielle Version von Xentral. Alle Rechte vorbehalten. Beachten Sie die Nutzungsbedinungen.<br><br>&copy; Copyright by Xentral ERP Software GmbH Augsburg");
-    }
-    else {
-      $this->app->Tpl->Add('TAB1','OpenXE is free open source software under AGPL/EGPL license, based on <a href="https://xentral.com" target="_blank">Xentral®</a> by Xentral&nbsp;ERP&nbsp;Software&nbsp;GmbH.<br><br><div class="info"><img src="themes/new/images/Xentral_ERP_Logo-200.png"><br>Das Logo und der Link zur Homepage <a href="https://xentral.biz" target=\_blank\>https://xentral.biz</a> d&uuml;rfen nicht entfernt werden.</div><br>&copy; Copyright by OpenXE project & Xentral ERP Software GmbH Augsburg');
-    }
-
-    $tmp = file_get_contents('../LICENSE');
-
-    $phpmailer = file_get_contents('../www/plugins/phpmailer/LICENSE');
-    $this->app->Tpl->Add('PHPMAILER',nl2br($phpmailer));
-  
-    $this->app->Tpl->Add('TAB1',nl2br($tmp));
-
-    $this->app->Tpl->Add('TAB1','</td></tr>');
-
-    if(method_exists($this->app->erp, 'VersionsInfos'))
-    {
-      $ver = $this->app->erp->VersionsInfos();
-      $this->app->Tpl->Add('TAB1','<tr><td>'.$ver['Details'].'</td></tr>');
-    }
-    $this->app->Tpl->Add('TAB1','</table></fieldset>');
-    $this->app->Tpl->Parse('PAGE','tabview.tpl');
+    $this->app->Tpl->RenderTwig('PAGE','welcome/info.html.twig');
   }
 
 
@@ -2925,54 +2657,6 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
   }
 
   /**
-   * @param int $addressId
-   *
-   * @return int
-   */
-  protected function ChangeAddressIdIfCollideWithExampleData(int $addressId): int
-  {
-    $lastAddressIdInExampleDataset = 8;
-    if($addressId > $lastAddressIdInExampleDataset) {
-      return $addressId;
-    }
-    $this->app->DB->Update(
-      sprintf(
-        'UPDATE `adresse` SET `id` = %d WHERE `id` = %d',
-        $lastAddressIdInExampleDataset + 1, $addressId
-      )
-    );
-    if($this->app->DB->affected_rows() > 0) {
-      $addressId = $lastAddressIdInExampleDataset + 1;
-    }
-
-    return $addressId;
-  }
-
-  /**
-   * @param int $userId
-   *
-   * @return int
-   */
-  protected function ChangeUserIdIfCollideWithExampleData(int $userId): int
-  {
-    $lastUserIdInExampleDataset = 3;
-    if($userId > $lastUserIdInExampleDataset) {
-      return $userId;
-    }
-    $this->app->DB->Update(
-      sprintf(
-        'UPDATE `user` SET `id` = %d WHERE `id` = %d',
-        $lastUserIdInExampleDataset + 1 , $userId
-      )
-    );
-    if($this->app->DB->affected_rows() > 0) {
-      $userId = $lastUserIdInExampleDataset + 1;
-    }
-
-    return $userId;
-  }
-
-  /**
    * @return JsonResponse
    */
   protected function HandleInviteTeamClickByClick()
@@ -2985,12 +2669,12 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
         continue;
       }
       if(in_array($userName, $userNames)) {
-        return new JsonResponse(['error'=>'Usernamen sind identisch'],JsonResponse::HTTP_BAD_REQUEST);
+        return new JsonResponse(['error'=>'Usernamen sind identisch'], Response::HTTP_BAD_REQUEST);
       }
       $userNames[] = $userName;
       $userEmail = $this->app->Secure->GetPOST('teamMemberEmail'.($i > 0?(string)$i:''));
       if(empty($userEmail)) {
-        return new JsonResponse(['error'=>'Bitte füllen Sie die Email-Adresse aus'],JsonResponse::HTTP_BAD_REQUEST);
+        return new JsonResponse(['error'=>'Bitte füllen Sie die Email-Adresse aus'], Response::HTTP_BAD_REQUEST);
       }
       $userRole = $this->app->Secure->GetPOST('teamMemberRole'.($i > 0?(string)$i:''));
       if(
@@ -2999,7 +2683,7 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       ) {
         return new JsonResponse(
           ['error'=>sprintf('Usernamen %s existiert bereits', $userName)],
-          JsonResponse::HTTP_BAD_REQUEST
+          Response::HTTP_BAD_REQUEST
         );
       }
       $members[] = ['username' => $userName, 'email' => $userEmail, 'role' => $userRole];
@@ -3084,7 +2768,7 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     if(empty($role)) {
       return new JsonResponse(
         ['error'=>'Bitte eine Rolle angeben!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
     $this->app->DB->Update(
@@ -3119,35 +2803,35 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     ) {
       return new JsonResponse(
         ['error'=>'Bitte gebe eine Rolle ein!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
     $passwordunescaped = $this->app->Secure->GetPOST('setPassword', '', '', 'noescape');
     if(empty($password)) {
       return new JsonResponse(
         ['error'=>'Passworteingabe falsch! Bitte geben Sie ein Passwort ein!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
 
     if(strlen($password) < 8) {
       return new JsonResponse(
         ['error'=>'Passworteingabe falsch! Das Passwort muss mindestens 8 Zeichen enthalten!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
 
     if($password !== $repassword){
       return new JsonResponse(
         ['error'=>'Passworteingabe falsch! Bitte zwei mal das gleiche Passwort eingeben!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
 
     if($password === $this->app->User->GetUsername()){
       return new JsonResponse(
         ['error'=>'Das Passwort darf nicht dem Username entsprechen!'],
-        JsonResponse::HTTP_BAD_REQUEST
+        Response::HTTP_BAD_REQUEST
       );
     }
 
@@ -3239,9 +2923,10 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
    */
   protected function HandlePasswordChange()
   {
-    $password = $this->app->Secure->GetPOST('password');
-    $repassword = $this->app->Secure->GetPOST('passwordre');
+    $password = $this->app->Request->request->getString('password');
+    $repassword = $this->app->Request->request->getString('passwordre');
     $passwordunescaped = $this->app->Secure->GetPOST('password', '', '', 'noescape');
+
 
     if(!empty($password) && $password !== $repassword){
       $this->app->Tpl->Set('MESSAGE', '<div class="error">{|Passworteingabe falsch! Bitte zwei mal das gleiche Passwort eingeben!|}</div>');
@@ -3305,21 +2990,21 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
    */
   protected function HandleProfilePictureDeletion()
   {
-    if(!empty($this->app->Secure->GetPOST('delete_datei'))){
       $adresse = $this->app->User->GetAdresse();
-      $dateien = $this->app->DB->SelectArr(
+      $dateien = $this->app->EntityManager->getConnection()->executeQuery(
         "SELECT d.id 
          FROM datei AS d 
          INNER JOIN datei_stichwoerter AS ds ON d.id = ds.datei
-         WHERE d.geloescht = 0 AND ds.objekt LIKE 'Adressen' AND ds.parameter = '" . $adresse . "' AND ds.subjekt LIKE 'Profilbild' 
-         ORDER BY d.id DESC"
-      );
+         WHERE d.geloescht = 0 AND ds.objekt LIKE 'Adressen' AND ds.parameter = :address AND ds.subjekt LIKE 'Profilbild' 
+         ORDER BY d.id DESC",
+          ['address' => $adresse]
+      )->fetchFirstColumn();
       if(!empty($dateien)){
         foreach ($dateien as $datei) {
-          $this->app->erp->DeleteDatei($datei['id']);
+          $this->app->erp->DeleteDatei($datei);
         }
       }
-    }
+      return new RedirectResponse('index.php?module=welcome&action=settings');
   }
 
   /**
@@ -3327,22 +3012,19 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
    *
    * @return void
    */
-  protected function HandleProfilePictureUpload()
+  protected function HandleProfilePictureUpload() : RedirectResponse
   {
-    if(!empty($this->app->Secure->GetPOST('submit_datei'))){
+      /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $file */
+      $file = $this->app->Request->files->get('upload');
+      $fileName = $this->app->DB->real_escape_string($file->getClientOriginalName());
+      $fileTmp = $this->app->DB->real_escape_string($file->getFilename());
 
-      $fileName = $this->app->DB->real_escape_string($_FILES['upload']['name']);
-      $fileTmp = $this->app->DB->real_escape_string($_FILES['upload']['tmp_name']);
-
-      if(empty($fileTmp)){
-        $this->app->Tpl->Set('UPLOADERROR', "<div class=\"error\">Keine Datei ausgew&auml;hlt!</div>");
-        $this->app->erp->EnableTab("tabs-3");
-      }else{
+      if(!empty($fileTmp)) {
         $addressId = $this->app->User->GetAdresse();
         $fileid = $this->app->erp->CreateDatei($fileName, 'Profilbild', '', '', $fileTmp, $this->app->User->GetName());
         $this->app->erp->AddDateiStichwort($fileid, 'Profilbild', 'Adressen', $addressId);
       }
-    }
+      return new RedirectResponse('index.php?module=welcome&action=settings');
   }
 
   /**
@@ -3402,7 +3084,8 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
     }
   }
 
-  private function handleTOTPRegenerate(){
+  private function handleTOTPRegenerate() : Response
+  {
     /** @var TOTPLoginService $totpLoginManager */
     $totpLoginManager = $this->app->Container->get('TOTPLoginService');
 
@@ -3410,13 +3093,11 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
 
     $totpLoginManager->regenerateUserSecret($userID);
 
-    $redirect = RedirectResponse::createFromUrl('index.php?module=welcome&action=settings');
-    $redirect->send();
-
-    $this->app->ExitXentral();
+    return new RedirectResponse('index.php?module=welcome&action=settings');
   }
 
-  private function HandleTOTPToggle(){
+  private function HandleTOTPToggle() : Response
+  {
     /** @var TOTPLoginService $totpLoginManager */
     $totpLoginManager = $this->app->Container->get('TOTPLoginService');
 
@@ -3428,27 +3109,22 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       $totpLoginManager->enableTotp($userId);
     }
 
-    $redirect = RedirectResponse::createFromUrl('index.php?module=welcome&action=settings');
-    $redirect->send();
-
-    $this->app->ExitXentral();
+    return new RedirectResponse('index.php?module=welcome&action=settings');
   }
 
-  protected function HandleGoogleMailAuth()
+  protected function HandleGoogleMailAuth() : Response
   {
       /** @var Request $request */
       $request = $this->app->Container->get('Request');
       $email = $request->post->get('gmail_address');
       $doAuthorize = $request->post->has('submit_authorize_gmail');
       $doTest = $request->post->has('submit_testmail_gmail');
+      $redirect = new RedirectResponse('?module=welcome&action=settings');
 
       if (empty($email)) {
-          $this->app->Tpl->Add(
-              'MSG_NO_GMAILAPI',
-              '<div class="error">Fehler: Google E-Mail ist ein Pflichtfeld.</div>'
-          );
-
-          return;
+          $msg='<div class="error">Fehler: Google E-Mail ist ein Pflichtfeld.</div>';
+          $redirect->setTargetUrl(sprintf('%s&msg=%s', $redirect->getTargetUrl(), base64_encode($msg)));
+          return $redirect;
       }
       /** @var GoogleAccountGateway $gateway */
       $gateway = $this->app->Container->get('GoogleAccountGateway');
@@ -3473,27 +3149,20 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
               'index.php?module=welcome&action=settings'
           );
           SessionHandler::commitSession($session);
-          $redirect->send();
-          $this->app->ExitXentral();
+          return $redirect;
       }
-      if (!$doAuthorize && $doTest) {
-          $this->HandleGoogleMailTest();
-      }
+      if (!$doAuthorize && $doTest)
+          return $this->HandleGoogleMailTest();
 
-      RedirectResponse::createFromUrl('?module=welcome&action=settings')
-          ->send();
-      $this->app->ExitXentral();
+      return $redirect;
   }
 
-  protected function HandleGoogleMailTest()
+  protected function HandleGoogleMailTest() : Response
   {
       /** @var Request $request */
       $request = $this->app->Container->get('Request');
-      if (!$request->post->has('submit_testmail_gmail')) {
-          $redirect = RedirectResponse::createFromUrl('index.php?module=welcome&action=settings');
-          $redirect->send();
-          $this->app->ExitXentral();
-      }
+      if (!$request->post->has('submit_testmail_gmail'))
+          return new RedirectResponse('index.php?module=welcome&action=settings');
 
       /** @var GoogleAccountGateway $gateway */
       $gateway = $this->app->Container->get('GoogleAccountGateway');
@@ -3542,72 +3211,45 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       if (!empty($msg))  {
           $url .= sprintf('%s&msg=%s', $url, base64_encode($msg));
       }
-      $redirect = RedirectResponse::createFromUrl($url);
-      $redirect->send();
-      $this->app->ExitXentral();
+      return new RedirectResponse($url);
   }
 
   /**
    * @return void
    */
-  protected function renderGoogleMailSettings()
+  protected function renderGoogleMailSettings() : array
   {
+      $result = [
+          'active' => false,
+          'auth' => false,
+          'mailAddress' => null
+      ];
       if (!$this->app->Container->has('GoogleCredentialsService')) {
-          return;
+          return $result;
       }
       /** @var GoogleCredentialsService $credService */
       $credService = $this->app->Container->get('GoogleCredentialsService');
-      if (!$credService->existCredentials()) {
-          $this->app->Tpl->Add(
-              'MSG_NO_GMAILAPI',
-              '<div class="info">Die Google Schnittstelle ist im System nicht aktiv.'
-          );
-          $this->app->Tpl->Set('GMAIL_AUTH_DISABLE', 'disabled');
-          $this->app->Tpl->Set('GMAIL_ADDRESS_DISABLE', 'disabled');
-          $this->app->Tpl->Set('GMAIL_TESTMAIL_DISABLE', 'disabled');
-          return;
+      if ($credService->existCredentials()) {
+          $result['active'] = true;
       }
       /** @var GoogleAccountGateway $gateway */
       $gateway = $this->app->Container->get('GoogleAccountGateway');
       try {
           $account = $gateway->getAccountByUser((int)$this->app->User->GetID());
       } catch (GoogleAccountNotFoundException $e) {
-          $this->app->Tpl->Set('GMAIL_AUTH_DISABLE', '');
-          $this->app->Tpl->Set('GMAIL_TESTMAIL_DISABLE', 'disabled');
-          return;
+          return $result;
       }
-      if (!$gateway->hasAccountScope($account->getId(), GoogleScope::MAIL)) {
-          $this->app->Tpl->Set('GMAIL_TESTMAIL_DISABLE', 'disabled');
+      if ($gateway->hasAccountScope($account->getId(), GoogleScope::MAIL)) {
+          $result['auth'] = true;
       }
       $props = $gateway->getAccountProperties($account->getId());
       if ($props->has('gmail_address')) {
-          $this->app->Tpl->Set('GMAIL_ADDRESS', $props->get('gmail_address'));
+          $result['mailAddress'] = $props->get('gmail_address');
       }
-      //try {
-      //    $gmailUser = $googleApiGate->getGmailApiUserByUser($this->app->User->GetID());
-      //    if ($gmailUser === null) {
-      //        /** @var EmailAccountGateway $emailAccountGate */
-      //        $emailAccountGate = $this->app->Container->get('EmailAccountGateway');
-      //        /** @var EmailBackupAccount $emailAccount */
-      //        $emailAccount = $emailAccountGate->findGmailAccountByUser($this->app->User->GetID());
-      //        if ($emailAccount !== null) {
-      //            /** @var GoogleAccountService $googleApiService */
-      //            $googleApiService = $this->app->Container->get('GoogleApiService');
-      //            try {
-      //                $gmailUser = $googleApiService->createAccount(
-      //                    $this->app->User->GetID(),
-      //                    GoogleApiAccount::TYPE_MAIL,
-      //                    $emailAccount->smtpSenderEmail
-      //                );
-      //            }catch (Exception $e) {}
-      //        }
-      //    }
-      //} catch (Exception $e) {
-      //    $gmailUser = null;
-      //}
+      return $result;
   }
 
-  protected function HandleGoogleCalendarSave()
+  protected function HandleGoogleCalendarSave() : Response
   {
       /** @var Request $request */
       $request = $this->app->Container->get('Request');
@@ -3633,27 +3275,20 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
               'index.php?module=welcome&action=settings&selectcalendar=1'
           );
           SessionHandler::commitSession($session);
-          $redirect->send();
-          $this->app->ExitXentral();
+          return $redirect;
       }
-      if (!$doAuthorize && $doImport) {
-          $this->HandleGoogleCalendarImport();
-      }
+      if (!$doAuthorize && $doImport)
+          return $this->HandleGoogleCalendarImport();
 
-      RedirectResponse::createFromUrl('?module=welcome&action=settings')
-          ->send();
-      $this->app->ExitXentral();
+      return new RedirectResponse('?module=welcome&action=settings');
   }
 
-  protected function HandleGoogleCalendarImport()
+  protected function HandleGoogleCalendarImport() : Response
   {
       /** @var Request $request */
       $request = $this->app->Container->get('Request');
-      if (!$request->post->has('import_google_calendar')) {
-          $redirect = RedirectResponse::createFromUrl('index.php?module=welcome&action=settings');
-          $redirect->send();
-          $this->app->ExitXentral();
-      }
+      if (!$request->post->has('import_google_calendar'))
+          return new RedirectResponse('index.php?module=welcome&action=settings');
 
       $msg = '';
       $userId = (int)$this->app->User->GetID();
@@ -3680,26 +3315,23 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
       if (!empty($msg)) {
           $url .= sprintf('&msg=%s', base64_encode($msg));
       }
-      $redirect = RedirectResponse::createFromUrl($url);
-      $redirect->send();
-      $this->app->ExitXentral();
+      return new RedirectResponse($url);
   }
 
-  protected function renderGoogleCalendarSettings()
+  protected function renderGoogleCalendarSettings() : array
   {
+      $result = [
+          'active' => false,
+          'auth' => false,
+          'calendar' => null
+      ];
       if (!$this->app->Container->has('GoogleCredentialsService')) {
-          return;
+          return $result;
       }
       /** @var GoogleCredentialsService $credService */
       $credService = $this->app->Container->get('GoogleCredentialsService');
-      if (!$credService->existCredentials()) {
-          $this->app->Tpl->Add(
-              'MSG_GOOGLE_CALENDAR',
-              '<div class="info">Die Goolge Schnittstelle ist im System nicht aktiv.'
-          );
-          $this->app->Tpl->Set('GOOGLE_AUTH_DISABLE', 'disabled');
-          $this->app->Tpl->Set('GOOGLE_SYNC_DISABLE', 'disabled');
-          return;
+      if ($credService->existCredentials()) {
+          $result['active'] = true;
       }
       /** @var GoogleAccountGateway $gateway */
       $gateway = $this->app->Container->get('GoogleAccountGateway');
@@ -3707,37 +3339,15 @@ $this->app->Tpl->Add('TODOFORUSER',"<tr><td width=\"90%\">".$tmp[$i]['aufgabe'].
           $userId = (int)$this->app->User->GetID();
           $account = $gateway->getAccountByUser($userId);
       } catch (GoogleAccountNotFoundException $e) {
-          $this->app->Tpl->Set('GOOGLE_AUTH_DISABLE', 'disabled');
-          $this->app->Tpl->Set('GOOGLE_SYNC_DISABLE', 'disabled');
-
-          return;
+          return $result;
       }
-      $this->app->Tpl->Set('GOOGLE_AUTH_DISABLE', '');
-      $this->app->Tpl->Set('GOOGLE_SYNC_DISABLE', '');
-      if (!$gateway->hasAccountScope($account->getId(), GoogleScope::CALENDAR)) {
-          $this->app->Tpl->Set('GOOGLE_SYNC_DISABLE', 'disabled');
-          return;
+      if ($gateway->hasAccountScope($account->getId(), GoogleScope::CALENDAR)) {
+          $result['auth'] = true;
       }
       $props = $gateway->getAccountProperties($account->getId());
-      $this->app->Tpl->Set('GOOGLE_CALENDAR', $props->get('selected_calendar'));
+      $result['calendar']= $props->get('selected_calendar');
 
-      /** @var Request $request */
-      $request = $this->app->Container->get('Request');
-      if ($request->get->getInt('selectcalendar') !== 1) {
-          return;
-      }
-      /** @var GoogleCalendarClientFactory $factory */
-      $factory = $this->app->Container->get('GoogleCalendarClientFactory');
-      $client = $factory->createClient($userId);
-      $calendar = $client->getPrimaryCalendar();
-      $this->app->Tpl->Set('GOOGLE_CALENDAR', $calendar->getId());
-      /** @var GoogleAccountService $service */
-      $service = $this->app->Container->get('GoogleAccountService');
-      $props = $props->set('selected_calendar', $calendar->getId());
-      $service->saveAccountProperties($account->getId(), $props);
-      $redirect = RedirectResponse::createFromUrl('index.php?module=welcome&action=settings');
-      $redirect->send();
-      $this->app->ExitXentral();
+      return $result;
   }
 
   /**

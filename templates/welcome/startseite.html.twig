@@ -1,0 +1,199 @@
+<script>
+    $(document).ready(function () {
+        $('#linkspopup').dialog({
+            modal: true,
+            autoOpen: false,
+            minWidth: 700,
+            title: '{|Links Editieren|}',
+            buttons: {
+                '{|SPEICHERN|}': function () {
+                    $(this).find('form').submit();
+                },
+                '{|ABBRECHEN|}': function () {
+                    $(this).dialog('close');
+                }
+            },
+            close: function (event, ui) {}
+        });
+    });
+
+    function editlinks() {
+        $('#linkspopup').dialog('open');
+    }
+
+    function openeventdialog(id, start, end, allday, task)
+    {
+        if($("#TerminDialog").SetFormData(id, start, end, allday,task))
+            $("#TerminDialog").dialog("open");
+    }
+</script>
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1"></a></li>
+	</ul>
+	<div id="tabs-1">
+        {% if freeDiskSpace < 500 %}
+            <div class="error">{|Weniger als 500 MB Speicherplatz frei.|}</div>
+        {% elseif freeDiskSpace < 2048 %}
+            <div class="warning">{|Weniger als 2 GB Speicherplatz frei.|}</div>
+        {% endif %}
+		<div class="row">
+			<div class="col-xs-12 col-md-6">
+				<div class="inside">
+					<fieldset class="home-calendar">
+						<div>[KALENDER]</div>
+					</fieldset>
+				</div>
+			</div>
+			<div class="col-xs-12 col-md-6">
+				<div class="row">
+					<div class="col-xs-12 col-md-12">
+						<div class="inside">
+							<fieldset class="home-bookmarks">
+								<legend>
+									{|Favoriten|}
+									<a href="#" class="edit"><img onclick="editlinks();" src="./themes/[THEME]/images/gear.png"></a>
+								</legend>
+								<div class="tabsbutton">
+                                    {% for link in links|filter(l => l.link is not empty and l.name is not empty) %}
+                                    <a href="{{ link.link }}" {{ link.intern|default(false) ? '' : 'target=_blank' }} class="button button-primary">{{ link.name }}</a>
+                                    {% endfor %}
+                                </div>
+							</fieldset>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="row-height">
+						<div class="col-xs-12 col-md-6 col-md-height">
+							<div class="inside inside-full-height">
+								<fieldset class="home-wiki">
+									<legend>
+                                        {|Intranet|}
+                                        <a class="edit" href="index.php?module=wiki&action=edit&cmd=StartseiteWiki">
+                                            <img src=./themes/[THEME]/images/edit.svg>
+                                        </a>
+                                    </legend>
+									<div>
+                                        <div><div class=\"wiki\">{{ accordion|raw }}<br><br></div></div>
+                                    </div>
+								</fieldset>
+							</div>
+						</div>
+						<div class="col-xs-12 col-md-6 col-md-height">
+							<div class="inside inside-half-height">
+								<fieldset class="home-events">
+									<legend>{|Termine Heute|}</legend>
+									<ul>
+                                        {% with {termine: termineHeute} %}
+                                        {% block termine %}
+                                        {% for item in termine %}
+                                        <li style="background-color: {{ item.color }};border-color: {{ item.color }};"
+                                            onclick="openeventdialog({{ item.id }},'{{ item.von }}','{{ item.bis }}','{{ item.allDay }}','{{ item.bezeichnung|escape('js') }}')">
+                                        <span class="description">{{ item.bezeichnung }}<br>{{ item.von }} {{ item.bis }}</span>
+                                        </li>
+                                        {% else %}
+                                            <center><i>{|Keine Termine vorhanden|}</i></center>
+                                        {% endfor %}
+                                        {% endblock %}
+                                        {% endwith %}
+                                    </ul>
+								</fieldset>
+							</div>
+							<div class="inside inside-half-height">
+								<fieldset class="home-events">
+									<legend>{|Termine Morgen|}</legend>
+									<ul>
+                                        {% with {termine: termineMorgen} %}
+                                        {{ block('termine') }}
+                                        {% endwith %}
+                                    </ul>
+								</fieldset>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="row-height">
+						<div class="col-xs-12 col-md-12 col-md-height">
+							<div class="inside inside-full-height">
+								<fieldset class="home-tasks">
+									<legend>{|Aufgaben|}</legend>
+									<div>
+										<table width="100%" border="0">
+                                            {% for todo in todosUser %}
+                                            <tr>
+                                                <td width="90%">
+                                                    {{ todo.aufgabe }}
+                                                    {% if todo.prio %}
+                                                        (<font color=red><strong>Prio</strong></font>)
+                                                    {% endif %}
+                                                    {% if todo.name is not empty %}
+                                                    <br><font style="font-size:8pt">von {{ todo.name }}</font>
+                                                    {% endif %}
+                                                </td>
+                                                <td width="10%">
+                                                    <span style="cursor:pointer" onclick="if(!confirm('Wirklich {{ todo.aufgabe }} bearbeiten?')) return false; else AufgabenEdit({{ todo.id }});"><img src="./themes/new/images/edit.svg"></span>
+                                                    <span style="cursor:pointer" onclick="if(!confirm('Wirklich {{ todo.aufgabe }} abschließen?')) return false; else window.location.href='index.php?module=aufgaben&action=abschluss&id={{ todo.id }}&referrer=1';"><img src="./themes/new/images/forward.svg"></span>
+                                                </td>
+                                            </tr>
+                                            {% else %}
+                                                <tr><td><center><i>{|Keine Aufgaben für die Startseite|}</i></center></td></tr>
+                                            {% endfor %}
+										</table>
+										<table width="100%" border="0">
+                                            {% if todosEmployees is not empty %}
+                                            <h4>&nbsp;Vergebene Aufgaben:</h4>
+                                            {% for todo in todosEmployees %}
+                                            <tr>
+                                                <td>
+                                                    {{ todo.aufgabe }} {{ todo.prio ? '(Prio)' : '' }}
+                                                    <br>
+                                                    <font style="font-size:8pt">für {{ todo.name }}</font>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% endif %}
+										</table>
+									</div>
+									<a href="index.php?module=aufgaben&action=list" class="button button-secondary">{|Alle Aufgaben|}</a>
+								</fieldset>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="row-height">
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<div id="linkspopup">
+	<form method="POST">
+		<table>
+			<tr>
+				<td><b>{|Name|}</b></td>
+				<td><b>{|Link|}</b></td>
+				<td><b>{|nicht in neuem Tab|}</b></td>
+			</tr>
+            {% for link in links %}
+                <tr>
+                    <td><input type="text" name="linkname{{ loop.index }}" value="{{ link.name }}"/></td>
+                    <td><input type="text" size="50" name="linklink{{ loop.index }}" value="{{ link.link }}"/></td>
+                    <td><input type="checkbox" value="1" name="linkintern{{ loop.index }}" {{ link.intern|default(false) ? 'checked' : '' }}/></td>
+                </tr>
+            {% endfor %}
+		</table>
+		<input type="hidden" name="savelinks" value="1"/>
+	</form>
+</div>
+
+[AUFGABENPOPUP]

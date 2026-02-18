@@ -7,10 +7,12 @@
 				<td><input type="text" size="40" name="name"></td>
 			</tr>
 			<tr>
-				<td>{|Freigeben f&uuml;r|}:</td>
+				<td>{|Freigeben für|}:</td>
 				<td>
 					<select name="personen[]" size="10" style="width:250px" multiple="">
-						[PERSONEN]
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {{ user.id == userId ? 'selected' : '' }}>{{ user.description }}</option>
+                        {% endfor %}
 					</select>
 					<br><br>
 					<span style="font-size: 10px; color: #A0A0A0">

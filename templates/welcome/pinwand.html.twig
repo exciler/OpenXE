@@ -1,3 +1,6 @@
+{% set popupWidth = 700 %}
+{% set popupHeight = 600 %}
+
 <style type="text/css">
 	.note {
 		height: 125px;
@@ -150,11 +153,11 @@
             $('<iframe id="externalSite" class="externalSite" src="' + this.href + '" />').dialog({
                 title: ($this.attr('title')) ? $this.attr('title') : 'External Site',
                 autoOpen: true,
-                width: [POPUPWIDTH],
-                height: [POPUPHEIGHT],
+                width: {{ popupWidth }},
+                height: {{ popupHeight }},
                 modal: true,
                 resizable: true
-            }).width([POPUPWIDTH] - horizontalPadding).height([POPUPHEIGHT] - verticalPadding);
+            }).width({{ popupWidth }} - horizontalPadding).height({{ popupHeight }} - verticalPadding);
         });
 
 
@@ -395,7 +398,9 @@
 				<td align="right">
 					<select name="pinwand" id="pinwand" onchange="window.location.href='index.php?module=welcome&action=pinwand&pinwand='+$('#pinwand').val()">
 						<option value="0">{|Eigene Pinnwand|}</option>
-						[PINWAENDE]
+                        {% for item in pinwaende %}
+                        <option value="{{ item.id }}" {{ item.id == pinwand ? 'selected' : '' }}>{{ item.name }}</option>
+                        {% endfor %}
 					</select>
 					<a id="" class="popup" href="index.php?module=welcome&action=addpinwand" title="{|Neue Pinnwand anlegen|}"><img src="./themes/new/images/add.png"></a>
 					&nbsp; <a class="popup" href="index.php?module=pinwand&action=list" title="{|Pinnwand bearbeiten|}"><img src="./themes/new/images/edit.svg"></a>
@@ -403,7 +408,55 @@
 			</tr>
 		</table>
 		<div id="notemain" class="notemain">
-			[NOTES]
+			{% for note in notes %}
+                <div class="note" id="note{{ note.id }}" style="
+                        border-left-color:{{ note.color }};
+                        left:{{ note.left }}px;
+                        top:{{ note.top }}px;
+                        z-index:{{ note.zindex }};
+                        width:{{ note.width }}px;
+                        height:{{ note.height }}px;">
+                <div id="notehtml{{ note.id }}">{{ note.text }}</div>
+                <div class="author">{{ note.projekt }}
+                    <a href="#" onclick="PinwandEdit({{ pinwand }},{{ note.id }});">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M13.9442 2.05599C13.5429 1.65638 12.9986 1.43371 12.4323 1.43755C11.866 1.44138 11.3247 1.6714 10.9289 2.07641L2.47058 10.5347L1.4375 14.5627L5.46542 13.5296L13.9238 5.07124C14.3288 4.67543 14.5588 4.13416 14.5626 3.56787C14.5664 3.00158 14.3438 2.45725 13.9442 2.05599Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6875 2.31836L13.6823 5.31319" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.46484 3.54004L12.4597 6.53487" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2.46875 10.5347L5.4665 13.5266" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="#" onclick="AufgabenEdit({{ note.id }});return false;" target="_blank" title="Aufgabe bearbeiten" >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.6875 9.31152L1.4375 14.5615" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14.5625 5.37402V1.43652H10.625" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1.4375 10.624V14.5615H5.375" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14.5625 1.43652L9.3125 6.68652" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.3125 9.31152L14.5625 14.5615" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1.4375 5.37402V1.43652H5.375" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14.5625 10.624V14.5615H10.625" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1.4375 1.43652L6.6875 6.68652" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a href="index.php?module=welcome&action=oknote&id={{ note.id }}&pinwand={{ pinwand }}">
+                        <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.0625 12.6855L1.4375 10.0605L4.0625 7.43555" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1.4375 10.0605H10.1875C12.6037 10.0605 14.5625 8.10179 14.5625 5.68555C14.5625 3.2693 12.6037 1.31055 10.1875 1.31055H6.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>&nbsp;
+                    <a href="index.php?module=welcome&action=delnote&id={{ note.id }}&pinwand={{ pinwand }}">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0.875 2.625H13.125" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.3125 0.875H5.6875C5.20425 0.875 4.8125 1.26675 4.8125 1.75V2.625H9.1875V1.75C9.1875 1.26675 8.79575 0.875 8.3125 0.875Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.6875 10.0625V5.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8.3125 10.0625V5.6875" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M11.0046 12.3223C10.967 12.776 10.5877 13.125 10.1325 13.125H3.86808C3.41285 13.125 3.03363 12.776 2.996 12.3223L2.1875 2.625H11.8125L11.0046 12.3223Z" stroke="#929292" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+                <span class="data">{{ note.id }}</span>
+            </div>
+            {% endfor %}
 		</div>
 	</div>
 

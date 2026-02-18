@@ -873,15 +873,15 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
               (typeof document.msHidden !== 'undefined'?
               (document.msHidden?1:0):(typeof document.webkitHidden != 'undefined'?(document.webkitHidden?1:0):2))
             },
+            dataType: 'json',
             success: function(data) {
               if (data === '') {
                 showLockScreen('Polling result is empty.');
                 return;
               }
-              
               // do something with the return value here if you like
               try {
-                var meinelist = JSON.parse(data);
+                var meinelist = data;
               } catch (err) {
                 showLockScreen('JSON parse error (' + err + ')');
                 return;
