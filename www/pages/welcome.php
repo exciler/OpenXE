@@ -19,7 +19,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Xentral\Components\Barcode\BarcodeFactory;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Xentral\Components\Http\Request;
 use Xentral\Components\Http\Session\Session;
 use Xentral\Components\Http\Session\SessionHandler;
 use Xentral\Components\Mailer\Data\EmailRecipient;
@@ -450,7 +449,7 @@ class Welcome
         $this->app->Location->execute('index.php?module=appstore&action=list');
 
         // Suchebegriff wurde eingegeben
-        if ($this->app->Secure->GetGET('cmd') === 'suche') {
+        if ($this->app->Request->query->getAlnum('cmd') === 'suche') {
             return $this->GetMeineAppsSuchergebnisse();
         }
 
@@ -485,7 +484,7 @@ class Welcome
 
     public function GetMeineAppsSuchergebnisse(): JsonResponse
     {
-        $suchbegriff = $this->app->Secure->GetPOST('val');
+        $suchbegriff = $this->app->Request->request->getString('val');
         $modulliste = $this->_meineapps;
 
         $anzeigen = [];
@@ -1547,16 +1546,14 @@ class Welcome
             );
         }
         $data = $this->app->EntityManager
-            ->getConnection()->executeQuery("SELECT * FROM accordion ORDER BY position")
-            ->fetchAllAssociative();
+            ->getConnection()->fetchAllAssociative("SELECT * FROM accordion ORDER BY position");
 
 
         $out = '';
         $entry = '';
 
         $wikipage_exists = $this->app->EntityManager
-            ->getConnection()->executeQuery("SELECT '1' FROM wiki WHERE name='StartseiteWiki' LIMIT 1")
-            ->fetchOne();
+            ->getConnection()->fetchOne("SELECT '1' FROM wiki WHERE name='StartseiteWiki' LIMIT 1");
         if ($wikipage_exists != '1') {
             $this->app->EntityManager->getConnection()->executeStatement(
                 "INSERT INTO wiki (name) VALUES ('StartseiteWiki')",
@@ -1754,7 +1751,7 @@ class Welcome
 
     public function WelcomeRedirect()
     {
-        $url = $this->app->Secure->GetGET('url');
+        $url = $this->app->Request->query->getString('url');
         if (empty($url)) {
             $this->app->Tpl->Set(
                 'MESSAGE',
@@ -1799,7 +1796,7 @@ class Welcome
         $result = [];
         switch ($name) {
             case 'welcome_spooler':
-                $id = (int)$this->app->Secure->GetGET('id');
+                $id = $this->app->Request->query->getInt('id');
 
                 $aligncenter = [1];
                 $heading = ['', 'Zeit', 'Dateiname', 'Bearbeiter', 'Gedruckt', 'Men&uuml;'];
@@ -1994,12 +1991,12 @@ class Welcome
      */
     protected function DownloadSpoolerDataTableResult($printerId)
     {
-        $columns = (array)$this->app->Secure->GetGET('columns');
-        $search = (array)$this->app->Secure->GetGET('search');
-        $order = (array)$this->app->Secure->GetGET('order');
-        $offset = (int)$this->app->Secure->GetGET('start');
-        $limit = (int)$this->app->Secure->GetGET('length');
-        $draw = (int)$this->app->Secure->GetGET('draw');
+        $columns = $this->app->Request->query->all('columns');
+        $search = $this->app->Request->query->all('search');
+        $order = $this->app->Request->query->all('order');
+        $offset = $this->app->Request->query->getInt('start');
+        $limit = $this->app->Request->query->getInt('length');
+        $draw = $this->app->Request->query->getInt('draw');
 
         if ((int)$printerId === 0) {
             throw new RuntimeException('Printer-ID darf nicht leer sein');
@@ -2200,7 +2197,7 @@ class Welcome
             // Setzen des Verfalls-Zeitpunktes auf 1 Stunde in der Vergangenheit
             $this->app->erp->ClearCookies();
             $startseite = '';
-            if ($code = $this->app->Secure->GetPOST('code')) {
+            if ($code = $this->app->Request->request->getString('code')) {
                 $result = $this->app->EntityManager->getConnection()->executeQuery(
                     "SELECT url, reduziert FROM stechuhrdevice WHERE code = :code AND aktiv = 1 LIMIT 1",
                     ['code' => $code],
@@ -2234,9 +2231,9 @@ class Welcome
 
     public function WelcomeUnlock()
     {
-        $gui = $this->app->Secure->GetGET('gui');
-        $id = $this->app->Secure->GetGET('id');
-        $backlink = $this->app->Secure->GetGET('backlink');
+        $gui = $this->app->Request->query->getAlnum('gui');
+        $id = $this->app->Request->query->getInt('id');
+        $backlink = $this->app->Request->query->getString('backlink');
 
         // Prüfen ob Backlink mit index.php? beginnt; ansonsten ist Open Redirect möglich
         if (!empty($backlink) && strpos($backlink, 'index.php?') !== 0) {
@@ -2262,7 +2259,7 @@ class Welcome
     public function VorgangAnlegen()
     {
         //print_r($_SERVER['HTTP_REFERER']);
-        $titel = $this->app->Secure->GetGET('titel');
+        $titel = $this->app->Request->query->getString('titel');
 
         $url = parse_url($_SERVER['HTTP_REFERER']);
         //$url = parse_url("http://dev.eproo.de/~sauterbe/eprooSystem-2009-11-21/webroot/index.php?module=ticket&action=edit&id=1");
@@ -2590,8 +2587,8 @@ class Welcome
 
     public function VorgangEdit()
     {
-        $vorgang = $this->app->Secure->GetGET('vorgang');
-        $titel = $this->app->Secure->GetGET('titel');
+        $vorgang = $this->app->Request->query->getInt('vorgang');
+        $titel = $this->app->Request->query->getString('titel');
         $this->app->erp->RenameOffenenVorgangID($vorgang, $titel);
         header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
@@ -2599,7 +2596,7 @@ class Welcome
 
     public function VorgangEntfernen()
     {
-        $vorgang = $this->app->Secure->GetGET('vorgang');
+        $vorgang = $this->app->Request->query->getInt('vorgang');
         $this->app->erp->RemoveOffenenVorgangID($vorgang);
         header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
@@ -2867,7 +2864,7 @@ class Welcome
         $userNames = [];
         $members = [];
         for ($i = 0; $i < 5; $i++) {
-            $userName = $this->app->Secure->GetPOST('teamMemberName' . ($i > 0 ? (string)$i : ''));
+            $userName = $this->app->Request->request->getString('teamMemberName' . ($i > 0 ? (string)$i : ''));
             if (empty($userName)) {
                 continue;
             }
@@ -2875,12 +2872,12 @@ class Welcome
                 return new JsonResponse(['error' => 'Usernamen sind identisch'], Response::HTTP_BAD_REQUEST);
             }
             $userNames[] = $userName;
-            $userEmail = $this->app->Secure->GetPOST('teamMemberEmail' . ($i > 0 ? (string)$i : ''));
+            $userEmail = $this->app->Request->request->getString('teamMemberEmail' . ($i > 0 ? (string)$i : ''));
             if (empty($userEmail)) {
                 return new JsonResponse(['error' => 'Bitte füllen Sie die Email-Adresse aus'],
                     Response::HTTP_BAD_REQUEST);
             }
-            $userRole = $this->app->Secure->GetPOST('teamMemberRole' . ($i > 0 ? (string)$i : ''));
+            $userRole = $this->app->Request->request->getString('teamMemberRole' . ($i > 0 ? (string)$i : ''));
 
             $conn = $this->app->EntityManager->getConnection();
             $userCount = (int)$conn->fetchOne(
@@ -2983,7 +2980,7 @@ class Welcome
      */
     protected function HandleChangeRoleClickByClick()
     {
-        $role = $this->app->Secure->GetPOST('teamMemberRole');
+        $role = $this->app->Request->request->getString('teamMemberRole');
         if (empty($role)) {
             return new JsonResponse(
                 ['error' => 'Bitte eine Rolle angeben!'],
@@ -3004,10 +3001,10 @@ class Welcome
      */
     protected function HandlePasswordChangeClickByClick()
     {
-        $password = $this->app->Secure->GetPOST('setPassword');
-        $repassword = $this->app->Secure->GetPOST('repeatPassword');
-        $role = (string)$this->app->Secure->GetPOST('teamMemberRole');
-        $otherRole = (string)$this->app->Secure->GetPOST('teamMemberOtherRole');
+        $password = $this->app->Request->request->getString('setPassword');
+        $repassword = $this->app->Request->request->getString('repeatPassword');
+        $role = $this->app->Request->request->getString('teamMemberRole');
+        $otherRole = $this->app->Request->request->getString('teamMemberOtherRole');
         $hasUserRole = !empty($this->app->User->GetField('role'));
         if ($otherRole !== '' && ($role === '' || $role === 'Sonstiges')) {
             $role = $otherRole;
@@ -3027,7 +3024,7 @@ class Welcome
             );
         }
 
-        $passwordunescaped = $this->app->Secure->GetPOST('setPassword', '', '', 'noescape');
+        $passwordunescaped = $this->app->Request->request->getString('setPassword');
         if (empty($password)) {
             return new JsonResponse(
                 ['error' => 'Passworteingabe falsch! Bitte geben Sie ein Passwort ein!'],
@@ -3166,7 +3163,7 @@ class Welcome
     {
         $password = $this->app->Request->request->getString('password');
         $repassword = $this->app->Request->request->getString('passwordre');
-        $passwordunescaped = $this->app->Secure->GetPOST('password', '', '', 'noescape');
+        $passwordunescaped = $this->app->Request->request->getString('password');
 
 
         if (!empty($password) && $password !== $repassword) {
@@ -3198,22 +3195,22 @@ class Welcome
      */
     protected function HandleProfileSettingsSave()
     {
-        $submit_startseite = $this->app->Secure->GetPOST('submit_startseite');
-        $startseite = $this->app->Secure->GetPOST('startseite');
-        $chat_popup = (int)$this->app->Secure->GetPOST('chat_popup');
-        $callcenter_notification = (int)$this->app->Secure->GetPOST('callcenter_notification');
-        $defaultcolor = $this->app->Secure->GetPOST('defaultcolor');
+        $submit_startseite = $this->app->Request->request->getString('submit_startseite');
+        $startseite = $this->app->Request->request->getString('startseite');
+        $chat_popup = $this->app->Request->request->getInt('chat_popup');
+        $callcenter_notification = $this->app->Request->request->getInt('callcenter_notification');
+        $defaultcolor = $this->app->Request->request->getString('defaultcolor');
         if ($defaultcolor === 'transparent') {
             $defaultcolor = '';
         }
-        $sprachebevorzugen = $this->app->Secure->GetPOST('sprachebevorzugen');
+        $sprachebevorzugen = $this->app->Request->request->getString('sprachebevorzugen');
 
         $conn = $this->app->EntityManager->getConnection();
         $userId = (int)$this->app->User->GetID();
 
         // umzug in tabelle user
         if ($this->app->User->GetParameter('welcome_defaultcolor_fuer_kalender') != '') {
-            $defaultcolor = $this->app->Secure->GetPOST('defaultcolor');
+            $defaultcolor = $this->app->Request->request->getString('defaultcolor');
             $conn->executeStatement(
                 "UPDATE `user` SET `defaultcolor` = :defaultcolor WHERE `id` = :id LIMIT 1",
                 ['defaultcolor' => $defaultcolor, 'id' => $userId],
@@ -3222,7 +3219,6 @@ class Welcome
         }
 
         if ($sprachebevorzugen != '') {
-            $sprachebevorzugen = $this->app->Secure->GetPOST('sprachebevorzugen');
             $conn->executeStatement(
                 "UPDATE `user` SET `sprachebevorzugen` = :sprache WHERE `id` = :id LIMIT 1",
                 ['sprache' => $sprachebevorzugen, 'id' => $userId],
@@ -3320,7 +3316,7 @@ class Welcome
         }
 
         // API-Account anlegen und aktivieren
-        if (!empty($this->app->Secure->GetPOST('mobile_app_api_create'))) {
+        if (!empty($this->app->Request->request->getString('mobile_app_api_create'))) {
             $title = $this->app->User->GetName() . ' / Mobile-Dashboard';
             $username = $this->app->User->GetUsername() . '_dashboard';
             $password = md5(uniqid('', true));
@@ -3351,7 +3347,7 @@ class Welcome
         }
 
         // API-Account aktivieren
-        if (!empty($this->app->Secure->GetPOST('mobile_app_api_activate'))) {
+        if (!empty($this->app->Request->request->getString('mobile_app_api_activate'))) {
             $apiAccountId = (int)$this->app->User->GetParameter('mobile_apps_api_account_id');
             $this->app->EntityManager->getConnection()->executeStatement(
                 "UPDATE api_account SET aktiv = 1 WHERE id = :id LIMIT 1",
@@ -3360,7 +3356,7 @@ class Welcome
         }
 
         // API-Account deaktivieren
-        if (!empty($this->app->Secure->GetPOST('mobile_app_api_deactivate'))) {
+        if (!empty($this->app->Request->request->getString('mobile_app_api_deactivate'))) {
             $apiAccountId = (int)$this->app->User->GetParameter('mobile_apps_api_account_id');
             $this->app->EntityManager->getConnection()->executeStatement(
                 "UPDATE api_account SET aktiv = 0 WHERE id = :id LIMIT 1",
@@ -3398,11 +3394,10 @@ class Welcome
 
     protected function HandleGoogleMailAuth(): Response
     {
-        /** @var Request $request */
-        $request = $this->app->Container->get('Request');
-        $email = $request->post->get('gmail_address');
-        $doAuthorize = $request->post->has('submit_authorize_gmail');
-        $doTest = $request->post->has('submit_testmail_gmail');
+        $request = $this->app->Request;
+        $email = $request->request->getString('gmail_address');
+        $doAuthorize = $request->request->getBoolean('submit_authorize_gmail');
+        $doTest = $request->request->getBoolean('submit_testmail_gmail');
         $redirect = new RedirectResponse('?module=welcome&action=settings');
 
         if (empty($email)) {
@@ -3444,9 +3439,8 @@ class Welcome
 
     protected function HandleGoogleMailTest(): Response
     {
-        /** @var Request $request */
-        $request = $this->app->Container->get('Request');
-        if (!$request->post->has('submit_testmail_gmail')) {
+        $request = $this->app->Request;
+        if (!$request->request->getBoolean('submit_testmail_gmail')) {
             return new RedirectResponse('index.php?module=welcome&action=settings');
         }
 
@@ -3537,10 +3531,9 @@ class Welcome
 
     protected function HandleGoogleCalendarSave(): Response
     {
-        /** @var Request $request */
-        $request = $this->app->Container->get('Request');
-        $doAuthorize = $request->post->has('authorize_google_calendar');
-        $doImport = $request->post->has('import_google_calendar');
+        $request = $this->app->Request;
+        $doAuthorize = $request->request->getBoolean('authorize_google_calendar');
+        $doImport = $request->request->getBoolean('import_google_calendar');
         /** @var GoogleAccountGateway $gateway */
         $gateway = $this->app->Container->get('GoogleAccountGateway');
         /** @var GoogleAccountService $service */
@@ -3572,9 +3565,8 @@ class Welcome
 
     protected function HandleGoogleCalendarImport(): Response
     {
-        /** @var Request $request */
-        $request = $this->app->Container->get('Request');
-        if (!$request->post->has('import_google_calendar')) {
+        $request = $this->app->Request;
+        if (!$request->request->getBoolean('import_google_calendar')) {
             return new RedirectResponse('index.php?module=welcome&action=settings');
         }
 
