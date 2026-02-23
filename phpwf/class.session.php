@@ -25,7 +25,10 @@ class Session
   /** @var Application $app */
   public $reason;
 
-  public function __construct(private erpooSystem $app)
+  public function __construct(
+      private readonly erpooSystem $app,
+      private readonly Acl $acl,
+  )
   {
 
   }
@@ -104,7 +107,7 @@ class Session
       }
     }
 
-    if (!$this->app->acl->CheckTimeOut()
+    if (!$this->acl->CheckTimeOut()
       && $this->module !== 'api'
       && !($this->module === 'kalender' && $this->action === 'ics')
       && !($this->module === 'welcome' && $this->action === 'cronjob')
@@ -166,7 +169,7 @@ class Session
       return;
     }
     if (
-      $this->app->acl->Check(//benutzer ist schon mal erfolgreich angemeldet
+      $this->acl->Check(//benutzer ist schon mal erfolgreich angemeldet
         $this->app->User->GetType(),
         $this->module, $this->action,
         $this->app->User->GetID()

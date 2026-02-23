@@ -122,7 +122,7 @@ class ThemeTemplate {
 /// Main Parser for building the html skin (gui) 
 class TemplateParser { 
   var $TEMPLATELIST;
-  var $VARARRAY;
+  var $VARARRAY = [];
   var $VARVARARRAY;
 
 
@@ -349,7 +349,7 @@ class TemplateParser {
   function ParseVariables($text){
     foreach($this->VARARRAY as $key=>$value)
     {
-      if($key=!"")
+      if($key!="")
         $text = str_replace('['.$key.']',$value,$text);
     }
     // fill empty vars

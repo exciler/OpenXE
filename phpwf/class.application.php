@@ -26,7 +26,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * @property Table $Table
  * @property WidgetAPI $Widget
  * @property PageBuilder $PageBuilder
- * @property Page $Page
  * @property ObjectAPI $ObjAPI
  * @property WFMonitor $WFM
  * @property ModuleScriptCache $ModuleScriptCache
@@ -50,7 +49,7 @@ class Application extends ApplicationCore
     public $NoHooks;
 
     public EntityManagerInterface $EntityManager;
-    public Request $Request;
+    public ?Request $Request;
 
     public function __construct(?Config $config)
     {
@@ -72,7 +71,6 @@ class Application extends ApplicationCore
       	$this->Table	           = new Table($this);
       	$this->Widget	           = new WidgetAPI($this);
       	$this->PageBuilder       = new PageBuilder($this);
-      	$this->Page              = new Page($this);
       	$this->ObjAPI	           = new ObjectAPI($this);
       	$this->WFM               = new WFMonitor($this);
         $this->ModuleScriptCache = new ModuleScriptCache();

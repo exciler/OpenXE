@@ -60,12 +60,7 @@ class erpooSystem extends Application
   protected $laendercache;
   protected $uselaendercache;
 
-  /** @var erpAPI $erp
-   * @var Config $Conf
-   */
-
   public function __construct(Config $config, ContainerInterface $serviceContainer,
-    private EntityManagerInterface $em,
   )
   {
       $this->uselaendercache = false;
@@ -1634,18 +1629,18 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
 
     if($this->erp->ModulVorhanden('chat') && $this->erp->RechteVorhanden('chat','list')) {
       $userId = $this->User->GetID();
-      $registrierDatum = $this->em->getConnection()->executeQuery("SELECT u.logdatei FROM `user` AS u WHERE u.id=:userid",
-      ['userid' => $userId])->fetchOne();
+      $registrierDatum = $this->EntityManager->getConnection()->fetchOne("SELECT u.logdatei FROM `user` AS u WHERE u.id=:userid",
+      ['userid' => $userId]);
 
-      $ungelesenOeffentlich = (int)$this->em->getConnection()->executeQuery(
+      $ungelesenOeffentlich = (int)$this->EntityManager->getConnection()->fetchOne(
         "SELECT COUNT(c.id) 
           FROM chat AS c 
           LEFT JOIN chat_gelesen AS g ON c.id = g.message AND (g.user = :userid OR g.user = 0)
           WHERE c.user_to='0' AND c.zeitstempel > :registrierDatum 
           AND g.id IS NULL",
           ['userid' => $userId, 'registrierDatum' => $registrierDatum]
-      )->fetchOne();
-      $ungelesenPrivat = (int)$this->em->getConnection()->executeQuery(
+      );
+      $ungelesenPrivat = (int)$this->EntityManager->getConnection()->fetchOne(
         "SELECT COUNT(c.id) 
           FROM chat AS c
           INNER JOIN `user` AS u ON c.user_from = u.id 
@@ -1653,11 +1648,11 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
           WHERE u.activ = 1 AND c.user_to=:userid 
           AND g.id IS NULL",
           ['userid' => $userId]
-      )->fetchOne();
+      );
       $anzchat = $ungelesenOeffentlich + $ungelesenPrivat;
       $this->Tpl->Set('CHATNACHRICHTENBOXCOUNTER',$anzchat > 0?$anzchat:'');
 
-      if($this->em->getConnection()->executeQuery("SELECT chat_popup FROM `user` WHERE id = :userid LIMIT 1", ['userid' => $userId])->fetchOne()) {
+      if($this->EntityManager->getConnection()->fetchOne("SELECT chat_popup FROM `user` WHERE id = :userid LIMIT 1", ['userid' => $userId])) {
         $this->Tpl->Set('CHATLINK','href="index.php?module=chat&action=list" target="_blank" ');
       }
       else {
@@ -1722,7 +1717,7 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
    */
   public function GetLandLang($isocode,$sprache='')
   {
-      $country = $this->em->getRepository(Country::class)->findOneBy(['iso'=>$isocode]);
+      $country = $this->EntityManager->getRepository(Country::class)->findOneBy(['iso'=>$isocode]);
       if ($country === null)
           return '';
 
@@ -1739,7 +1734,7 @@ if (typeof document.hidden !== \"undefined\") { // Opera 12.10 and Firefox 18 an
       }
 
       if (empty($this->uselaendercache) || empty($this->laendercache[$sprache])) {
-          $tmp = $this->em->getRepository(Country::class)->findAll();
+          $tmp = $this->EntityManager->getRepository(Country::class)->findAll();
           $this->laendercache[$sprache] = $tmp;
       } else {
           $tmp = $this->laendercache[$sprache];

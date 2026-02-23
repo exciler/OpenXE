@@ -21,7 +21,7 @@ final class LegacyController extends AbstractController
 
 
     #[Route('/index.php')]
-    public function index(Request $request): Response
+    public function index(Request $request, \TemplateParser $tpl): Response
     {
         @session_start();
 

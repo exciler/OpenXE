@@ -6,6 +6,14 @@ services:
   OpenXE\:
     resource: '../src/'
 
+  Acl:
+    class: Acl
+
+  Application:
+    alias: erpooSystem
+  ApplicationCore:
+    alias: Application
+
   Config:
     class: Config
     factory: ['Xentral\Core\LegacyConfig\ConfigLoader', 'load']
@@ -20,14 +28,20 @@ services:
     calls:
       - SetRequestStack: ['@request_stack']
 
-  Session:
-    class: Session
+  Page:
+    class: Page
 
   Player:
     class: Player
 
+  Session:
+    class: Session
+
   TemplateParser:
     class: TemplateParser
+
+  User:
+    class: User
 
   twigpublic:
     alias: twig

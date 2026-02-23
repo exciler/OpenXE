@@ -17,24 +17,13 @@
 /// central config board for the engine
 class Page 
 {
-  var $engine;
-  /** @var Application $app */
-
-  /**
-   * Page constructor.
-   *
-   * @param Application $app
-   */
-  function __construct($app)
+  function __construct(private Application $app)
   {
-    $this->app = $app;
-    //$this->engine = &$engine;
   }
 
   /// load a themeset set
   function LoadTheme($theme)
   {
-    //$this->app->Tpl->ReadTemplatesFromPath("themes/$theme/templates/");
     $this->app->Tpl->ReadTemplatesFromPath(__DIR__."/../../www/themes/$theme/templates/");
   }
 

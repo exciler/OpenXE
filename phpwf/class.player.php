@@ -30,18 +30,22 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Player
 {
-    public function __construct(private readonly erpooSystem $app, private readonly Session $session) {}
+    public function __construct(
+        private readonly erpooSystem $app,
+        private readonly Session $session,
+        private readonly Page $page,
+    ) {}
 
     public function BuildNavigation()
     {
-        if (!Application::WithGUI() || !method_exists($this->app->Page, 'CreateNavigation') || !method_exists(
+        if (!Application::WithGUI() || !method_exists($this->page, 'CreateNavigation') || !method_exists(
                 'erpAPI',
                 'Navigation',
             )) {
             return;
         }
 
-        $this->app->Page->CreateNavigation($this->app->erp->Navigation());
+        $this->page->CreateNavigation($this->app->erp->Navigation());
     }
 
     public function Run(): Response|array|string
@@ -258,12 +262,8 @@ class Player
         }
 
         $this->app->calledWhenAuth($this->app->User->GetType());
-//        if ($this->app->BuildNavigation == true)
-//            $this->BuildNavigation();
 
         $this->app->endtime = microtime();
-
-        $right = $this->app->Secure->GetGET("right");
 
         $tmpfirmendatenfkt = 'Firmendaten';
         if (method_exists($this->app->erp, 'TplFirmendaten')) $tmpfirmendatenfkt = 'TplFirmendaten';
@@ -278,18 +278,17 @@ class Player
 
         $this->app->Tpl->Set('JQUERYMIGRATESRC', './js/jquery/jquery-migrate-3.2.0.min.js');
         if ($this->app->BuildNavigation == true) {
-            if ($right == 1)
-                return new Response($this->app->Tpl->FinalParse('right.tpl'));
-            else {
                 if ($module === 'welcome' && $action === 'login') {
                     $this->app->erp->RunHook('loginpage');
                     return [
                         '_template' => 'legacy/loginpage.html.twig',
                         'tpl' => $this->app->Tpl->VARARRAY
                     ];
-                    return new Response($this->app->Tpl->FinalParse('loginpage.tpl'));
                 } elseif ($module === 'welcome' && $action === 'passwortvergessen') {
-                    return new Response($this->app->Tpl->FinalParse('passwortvergessenpage.tpl'));
+                    return [
+                        '_template' => 'legacy/passwortvergessenpage.html.twig',
+                        'tpl' => $this->app->Tpl->VARARRAY
+                    ];
                 } else {
                     $this->app->erp->addFav();
 
@@ -306,15 +305,12 @@ class Player
                     }
 
                     $this->app->HeaderBoxen();
-                    if ($this->app->erp->UserDevice() === 'smartphone') {
-                        return new Response($this->app->Tpl->FinalParse('page_smartphone.tpl'));
-                    } else {
-                        $this->app->Tpl->Set('VUEJS', 'vue.min.js');
-                        $this->app->erp->RunHook('before_final_parse_page');
-                        return new Response($this->app->Tpl->FinalParse('page.tpl'));
-                    }
+                    $this->app->erp->RunHook('before_final_parse_page');
+                    return [
+                        '_template' => 'legacy/page.html.twig',
+                        'tpl' => $this->app->Tpl->VARARRAY,
+                    ];
                 }
-            }
         } else {
             if ($this->app->PopupJS) {
                 return new Response($this->app->Tpl->FinalParse('popup_js.tpl'));

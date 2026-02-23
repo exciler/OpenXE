@@ -29,7 +29,6 @@ use Xentral\Core\LegacyConfig\ConfigLoader;
  * @property WFMonitor $WFM
  * @property Secure $Secure
  * @property PHPMailer $mail
- * @property Help $help
  * @property StringCleaner $stringcleaner
  * @property Acl $acl
  * @property ModuleScriptCache $ModuleScriptCache

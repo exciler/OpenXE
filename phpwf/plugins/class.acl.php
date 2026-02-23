@@ -20,10 +20,8 @@ use Xentral\Components\EnvironmentConfig\EnvironmentConfig;
 class Acl
 {
   protected $session_id;
-  /** @var Application $app */
-  public function __construct($app)
+  public function __construct(private \Application $app)
   {
-    $this->app = $app;
   }
 
 

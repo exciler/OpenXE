@@ -19,14 +19,8 @@ class User
   /** @var array */
   var $cache;
 
-  /**
-   * User constructor.
-   *
-   * @param ApplicationCore $app
-   */
-  public function __construct($app)
+  public function __construct(private ApplicationCore $app)
   {
-    $this->app = $app;
   }
 
   /**
