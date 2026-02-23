@@ -126,14 +126,6 @@ class erpooSystem extends Application
         $this->Tpl->ReadTemplatesFromPath(__DIR__ . '/lib/versandarten/content/');
       }
 
-      if(method_exists($this->erp, 'VersionsInfos')){
-        $ver = $this->erp->VersionsInfos();
-        if(stripos($ver['Info'], 'Beta') !== false
-          || stripos($ver['Info'], 'Alpha') !== false
-          || stripos($ver['Info'], 'DEV') !== false
-        ) $this->Tpl->Set('VERSIONINFO', strtoupper($ver['Info']));
-      }
-
       $this->Tpl->Set('ID', $this->Secure->GetGET('id'));
       $this->Tpl->Set('POPUPWIDTH', '1200');
       $this->Tpl->Set('POPUPHEIGHT', '800');
@@ -174,23 +166,6 @@ class erpooSystem extends Application
 
       $layout_iconbar = $this->erp->Firmendaten('layout_iconbar');
 
-      if($this->erp->Version() === 'stock'){
-        $this->Tpl->Set('STOCKOPEN', '<!--');
-        $this->Tpl->Set('STOCKCLOSE', '-->');
-      }
-
-      //nur wenn leiste nicht deaktiviert ist
-      if($layout_iconbar != 1){
-        if($this->erp->Firmendaten('iconset_dunkel') == '1'){
-          $this->Tpl->Parse('ICONBAR', 'iconbar_dunkel.tpl');
-        }
-        else{
-          $this->Tpl->Parse('ICONBAR', 'iconbar.tpl');
-        }
-      }else{
-        $this->Tpl->Parse('ICONBAR', 'iconbar_empty.tpl');
-      }
-
       if($module !== 'kalender' && ($module !== 'welcome' && $action !== 'start')){
         $this->Tpl->Add('YUICSS', '.ui-widget-content {}');
       }
@@ -222,7 +197,6 @@ class erpooSystem extends Application
       $this->Tpl->Set('THEME', $this->Conf->WFconf['defaulttheme']);
       $doc_root = preg_replace("!{$_SERVER['SCRIPT_NAME']}$!", '', $_SERVER['SCRIPT_FILENAME']); # ex: /var/www
       $path = preg_replace("!^{$doc_root}!", '', __DIR__);
-      $this->Tpl->Set('WEBPATH', $path);
 
         if(isset($backlink) && strpos($backlink,"index.php?module=") !== false && strpos($backlink, "&action=") !== false){
             $this->Tpl->Set('TABSBACK', $backlink);
@@ -270,23 +244,6 @@ class erpooSystem extends Application
       $this->Tpl->Set('BRANCH', $this->erp->Branch());
 
       $this->Tpl->Set('LIZENZHINWEIS', '| <a href="https://www.xentral.biz/lizenzhinweis" target="_blank">Lizenzhinweis</a>');
-
-      if($this->erp->Version() === 'OSS'){
-        $this->Tpl->Set('WAWIVERSION', 'Open-Source Lizenz AGPLv3.0');
-      }
-      else if($this->erp->Version() === 'ENT'){
-        $this->Tpl->Set('WAWIVERSION', 'Enterprise Version');
-      }
-      else if($this->erp->Version() === 'PRO'){
-        $this->Tpl->Set('WAWIVERSION', 'Professional Version');
-      }
-      else if($this->erp->Version() === 'PRE'){
-        $this->Tpl->Set('WAWIVERSION', 'Premium Version');
-      }
-      else{
-        $this->Tpl->Set('WAWIVERSION', 'Nutzungsbedingungen');
-      }
-
 
       $this->Tpl->Set('TIMESTAMP', time());
 
