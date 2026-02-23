@@ -30,7 +30,10 @@
     "symfony/security-bundle": "^7.4",
     "symfony/orm-pack": "^2.7",
     "symfony/asset-mapper": "^7.4",
-    "symfony/asset": "^7.4"
+    "symfony/asset": "^7.4",
+    "symfony/form": "^7.4",
+    "symfony/ldap": "^7.4",
+    "symfony/validator": "^7.4"
   },
   "replace": {
     "itbz/fpdf": "*"
@@ -73,7 +76,8 @@
   "config": {
     "platform": {
       "php": "8.2.0",
-      "ext-gd": "8.2.0"
+      "ext-gd": "8.2.0",
+      "ext-ldap": "8.2.0"
     }
   },
   "require-dev": {

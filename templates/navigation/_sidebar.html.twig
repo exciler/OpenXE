@@ -18,7 +18,7 @@
     <div class="sidebar-list small-items separator-bottom">
         {% for item in userItems %}
         <a href="{{ item.link }}" class="list-item {{ item.active ? 'current-module' : '' }}">
-            {{ item.svg|raw }}
+            {{ source('@assets/images/sidebar/'~item.title|replace({' ':''})|lower~'.svg') }}
             <div class="title">{{ item.title }}</div>
             {% if item.counter > 0 %}
                 <div class="item-counter">{{ item.counter }}</div>
@@ -30,12 +30,12 @@
     <div class="sidebar-list">
         {% for item in navItems %}
             <div class="list-item {{ item.active ? 'current-module' : '' }}">
-            {{ item.svg|raw }}
+                {{ source('@assets/images/sidebar/'~item.title|replace({' ':''})|lower~'.svg') }}
             <div class="title">{{ item.title }}</div>
-            {% if item.children %}
+            {% if item.sec %}
                 <div class="sidebar-submenu">
                     <div>
-                        {% for sub in item.children %}
+                        {% for sub in item.sec %}
                             <a href="{{ sub.link }}">{{ sub.title }}</a>
                         {% endfor %}
                     </div>
@@ -49,12 +49,12 @@
         {% for item in fixedItems %}
             {% if item.isAnchor %}
                 <a href="{{ item.href }}" class="list-item {{ item.active ? 'current-module' : '' }}">
-                    {{ item.svg|raw }}
+                    {{ source('@assets/images/sidebar/'~item.title|replace({' ':''})|lower~'.svg') }}
                     <div class="title">{{ item.title }}</div>
                 </a>
             {% else %}
                 <div {{ item.id }} class="list-item">
-                    {{ item.svg|raw }}
+                    {{ source('@assets/images/sidebar/'~item.title|replace({' ':''})|lower~'.svg') }}
                     <div class="title">{{ item.title }}</div>
                 </div>
             {% endif %}

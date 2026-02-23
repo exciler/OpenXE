@@ -10,13 +10,13 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' [ADDITIONALCSPHEADER];">
-    <title>[HTMLTITLE]</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' {{ tpl.ADDITIONALCSPHEADER|default }};">
+    <title>{{ tpl.HTMLTITLE }}</title>
     <link rel="stylesheet" href="./themes/new/css/normalize.min.css?v=6">
     <link rel="stylesheet" href="./themes/new/css/color3.css?v=7">
     <style>
         :root {
-            [COLORCSS]
+            {{ tpl.COLORCSS|default|raw }}
         }
     </style>
 
@@ -65,7 +65,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 
     <script src="./js/ckeditor/ckeditor.js"></script>
     <script src="./js/ckeditor/adapters/jquery.js"></script>
-    [CKEDITORJS]
+    {{ tpl.CKEDITORJS|default|raw }}
 
     <script type="text/javascript" language="javascript" src="./js/keynavigation.js?v=1.3"></script>
 
@@ -74,7 +74,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     <script type="text/javascript" src="./js/jquery-ui-timepicker-addon.js"></script>
     <script type="text/javascript" src="./js/jquery.colorPicker.js"></script>
 
-    [SCRIPTJAVASCRIPT]
+    {{ tpl.SCRIPTJAVASCRIPT|default|raw }}
     <script type="application/json" id="popupattributes">{"popupwidth":1200,"popupheight":800}</script>
     <script type="application/json" id="calendarattributes">{"dayNames":["Sonntag", "Montag", "Dienstag", "Mittwoch",
             "Donnerstag", "Freitag", "Samstag"],"monthNames":["Januar", "Februar", "März", "April", "Mai",
@@ -86,35 +86,35 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
         var lastFocusedType; // [input|textarea|ckeditor]
         // ENDE Textvorlagen
       
-      [JAVASCRIPT]
+      {{ tpl.JAVASCRIPT|default|raw }}
       
       $(document).ready(function() {
       
-        [AUTOCOMPLETE]
-        [DATATABLES]
-        [SPERRMELDUNG]
-        [JQUERY]
-        [JQUERYREADY]
+        {{ tpl.AUTOCOMPLETE|default|raw }}
+        {{ tpl.DATATABLES|default|raw }}
+        {{ tpl.SPERRMELDUNG|default|raw }}
+        {{ tpl.JQUERY|default|raw }}
+        {{ tpl.JQUERYREADY|default|raw }}
       
       });
 
     </script>
     <script src="./themes/new/js/scripts.js?v=4"></script>
-    [ADDITIONALJAVASCRIPT]
+    {{ tpl.ADDITIONALJAVASCRIPT|default|raw }}
     <style>
-        [YUICSS]
+        {{ tpl.YUICSS|default|raw }}
     </style>
-    [FINALCSSLINKS]
-    [MODULEJAVASCRIPTHEAD]
-    [JAVASCRIPTMODULES]
-    [MODULESTYLESHEET]
+    {{ tpl.FINALCSSLINKS|default|raw }}
+    {{ tpl.MODULEJAVASCRIPTHEAD|default|raw }}
+    {{ tpl.JAVASCRIPTMODULES|default|raw }}
+    {{ tpl.MODULESTYLESHEET|default|raw }}
 </head>
-<body class="layoutfix" data-module="[MODULE]" data-action="[ACTION]" data-version="[REVISION]">
-[SIDEBAR]
+<body class="layoutfix" data-module="{{ app.request.query.get('module') }}" data-action="{{ app.request.query.get('action') }}" data-version="{{ tpl.REVISION }}">
+{{ render(controller('OpenXE\\Controller\\NavigationController::sidebar')) }}
 
 <div id="main">
 
-    [SPERRMELDUNGNACHRICHT]
+    {{ tpl.SPERRMELDUNGNACHRICHT|default|raw }}
 
     <div id="header" class="clearfix">
 
@@ -134,11 +134,11 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
         </div>
 
         <ul id="topmenu">
-            [ICONBOXESHOOK1]
+            {{ tpl.ICONBOXESHOOK1|default|raw }}
             <li class="mobile-counter">
                 <a href="index.php?module=aufgaben&action=list">					
 						<span class="icon-box">
-							<span class="counter">[ANZAHLAUFGABEN]</span>
+							<span class="counter">{{ tpl.ANZAHLAUFGABEN|default|raw }}</span>
 							<span class="icon">
 								<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 									<path d="M16.6641 12.667C16.6641 14.8761 14.8732 16.667 12.6641 16.667C10.4549 16.667 8.66406 14.8761 8.66406 12.667C8.66406 10.4579 10.4549 8.66699 12.6641 8.66699" stroke="var(--header-icon-color, #76899F)" stroke-linecap="round" stroke-linejoin="round"/>
@@ -151,11 +151,11 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
                 </a>
             </li>
 
-            [TELEFONVOR]
+            {{ tpl.TELEFONVOR|default|raw }}
             <li>
                 <a title="{|R&uuml;ckruf|}" href="index.php?module=telefonrueckruf&action=list">
 						<span class="icon-box">
-							<span class="counter">[ANZAHLTELEFON]</span>					
+							<span class="counter">{{ tpl.ANZAHLTELEFON|default|raw }}</span>
 							<span class="icon">
 								<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path fill-rule="evenodd" clip-rule="evenodd" d="M9.89041 14.457L9.89787 14.4614C11.2591 15.328 13.0397 15.1327 14.1808 13.9916L14.6623 13.5101C15.1101 13.0617 15.1101 12.3353 14.6623 11.8869L12.6335 9.85933C12.1851 9.4115 11.4587 9.4115 11.0103 9.85933V9.85933C10.7952 10.0747 10.5033 10.1957 10.199 10.1957C9.89464 10.1957 9.60278 10.0747 9.38771 9.85933L6.14133 6.61233C5.6935 6.16393 5.6935 5.43754 6.14133 4.98914V4.98914C6.35667 4.77407 6.47767 4.4822 6.47767 4.17786C6.47767 3.87351 6.35667 3.58165 6.14133 3.36657L4.11312 1.33588C3.66473 0.888042 2.93833 0.888042 2.48993 1.33588L2.00839 1.81742C0.867543 2.95853 0.672035 4.73879 1.53804 6.1003L1.54302 6.10777C3.76622 9.39883 6.59984 12.2331 9.89041 14.457V14.457Z" stroke="#94979E" stroke-linecap="round" stroke-linejoin="round"/>
@@ -165,13 +165,13 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 						</span>
                 </a>
             </li>
-            [TELEFONNACH]
+            {{ tpl.TELEFONNACH|default|raw }}
 
-            [VORCHATNACHRICHTENBOX]
+            {{ tpl.VORCHATNACHRICHTENBOX|default|raw }}
             <li>
                 <a title="{|Chat|}" [CHATLINK] >
 						<span class="icon-box">
-							<span class="counter chatbox">[CHATNACHRICHTENBOXCOUNTER]</span>
+							<span class="counter chatbox">{{ tpl.CHATNACHRICHTENBOXCOUNTER|default|raw }}</span>
 							<span class="icon">
 								<svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 									<path fill-rule="evenodd" clip-rule="evenodd" d="M16.6654 11.333C16.6654 11.7012 16.3669 11.9997 15.9987 11.9997H8.66536L5.9987 14.6663V11.9997H1.9987C1.63051 11.9997 1.33203 11.7012 1.33203 11.333V1.99967C1.33203 1.63148 1.63051 1.33301 1.9987 1.33301H15.9987C16.3669 1.33301 16.6654 1.63148 16.6654 1.99967V11.333Z" stroke="var(--header-icon-color, #76899F)" stroke-linecap="round" stroke-linejoin="round"/>
@@ -182,11 +182,11 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 						</span>
                 </a>
             </li>
-            [NACHCHATNACHRICHTENBOX]
+            {{ tpl.NACHCHATNACHRICHTENBOX|default|raw }}
 
             <li id="profile-info-wrapper">
                 <div id="profile-info-name">
-                    [USERNAME_SHORTENED]
+                    {{ tpl.USERNAME_SHORTENED }}
                     <svg width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M10 5L5 -4.37114e-07L0 5L10 5Z" fill="#D9D9D9"/>
                     </svg>
@@ -195,42 +195,42 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
             <li id="profile-picture-wrapper">
                 <div id="profile-picture">
                     <div>
-                        [PROFILEPICTURE]
+                        {{ tpl.PROFILEPICTURE }}
                     </div>
                 </div>
             </li>
-            [ICONBOXESHOOK]
+            {{ tpl.ICONBOXESHOOK|default|raw }}
         </ul>
-        [PROFILE_MENU]
+        {{ include('legacy/_profile_menu.html.twig') }}
     </div>
 
 
     <div class="menu-wrapper">
         <div class="close-mobile"><span class="close-icon" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 118 118"><path d="M76 60.88l40.41 40.41a5.84 5.84 0 0 1 1.61 3.79 5.77 5.77 0 0 1-1.61 3.76l-7.55 7.55a5.77 5.77 0 0 1-3.76 1.61 5.84 5.84 0 0 1-3.79-1.61L60.88 76a2.6 2.6 0 0 0-3.77 0L16.7 116.39a5.79 5.79 0 0 1-3.76 1.61 5.88 5.88 0 0 1-3.79-1.61l-7.55-7.55a5.81 5.81 0 0 1-1.6-3.76 5.88 5.88 0 0 1 1.6-3.79L42 60.88a2.6 2.6 0 0 0 0-3.77L1.6 16.7A5.82 5.82 0 0 1 0 13a5.92 5.92 0 0 1 1.6-3.8l7.55-7.6A5.92 5.92 0 0 1 12.94 0a5.83 5.83 0 0 1 3.76 1.6L57.11 42a2.6 2.6 0 0 0 3.77 0l40.41-40.4a4.93 4.93 0 0 1 3.79-1.6 5.81 5.81 0 0 1 3.76 1.6l7.55 7.55A5.88 5.88 0 0 1 118 13a5.79 5.79 0 0 1-1.61 3.75L76 57.11a2.6 2.6 0 0 0 0 3.77z" fill="#fff"/></svg></span></div>
         <ul id="mainmenu" class="clearfix menu">
-            [NAV]
+            {{ tpl.NAV|default|raw }}
         </ul>
 
         <div class="clear"></div>
 
-        [BACKTOOVERVIEW]
+        {{ tpl.BACKTOOVERVIEW|default|raw }}
 
         <div id="current">
-            <span class="headline-1">{|[KURZUEBERSCHRIFT]|}</span>
-            <span class="headline-2">{|[KURZUEBERSCHRIFT1]|}</span>
-            <span class="headline-3">{|[KURZUEBERSCHRIFT2]|}</span>
+            <span class="headline-1">{{ tpl.KURZUEBERSCHRIFT|default|raw }}</span>
+            <span class="headline-2">{{ tpl.KURZUEBERSCHRIFT1|default|raw }}</span>
+            <span class="headline-3">{{ tpl.KURZUEBERSCHRIFT2|default|raw }}</span>
         </div>
 
         <div class="clear"></div>
 
         <div id="submenu-wrapper" class="clearfix">
-            <div class="back"><a href="[TABSBACK]"><svg xmlns="http://www.w3.org/2000/svg" width="7px" height="12px" viewBox="0 0 131.99 218.57"><path fill="none" stroke="var(--text-color, #929292)" stroke-miterlimit="10" stroke-width="24" d="M120.26 11.65l-97 97.21 97 98.11"/></svg></a></div>
-            <div class="new">[TABSADD]</div>
-            [CURRENTHEADLINES]
+            <div class="back"><a href="{{ tpl.TABSBACK|default }}"><svg xmlns="http://www.w3.org/2000/svg" width="7px" height="12px" viewBox="0 0 131.99 218.57"><path fill="none" stroke="var(--text-color, #929292)" stroke-miterlimit="10" stroke-width="24" d="M120.26 11.65l-97 97.21 97 98.11"/></svg></a></div>
+            <div class="new">{{ tpl.TABSADD|default|raw }}</div>
+            {{ tpl.CURRENTHEADLINES|default|raw }}
 
             <ul id="submenu" class="clearfix menu">
-                [TABS]
-                [TABSFREIGABE]
+                {{ tpl.TABS|default|raw }}
+                {{ tpl.TABSFREIGABE|default|raw }}
             </ul>
 
             <div class="buttons">
@@ -258,7 +258,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 							</svg>
 						</span>
                 </label>
-                <input type="button" value="addfav" id="addfav" data-link="index.php?module=[MODULE]&action=[ACTION]&id=[ID]" data-name="[FAVMODULENAME]" />
+                <input type="button" value="addfav" id="addfav" data-link="index.php?module={{ tpl.MODULE }}&action={{ tpl.ACTION }}&id={{ tpl.ID }}" data-name="{{ tpl.FAVMODULENAME|default }}" />
                 <label for="addfav">
 						<span class="icon">
 							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -266,19 +266,19 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 							</svg>
 						</span>
                 </label>
-                [TABSPRINT]
+                {{ tpl.TABSPRINT|default|raw }}
             </div>
         </div>
     </div>
 
     <div class="clear"></div>
 
-    <div id="page_container" class="[MODULE][ACTION]">
-        [PAGE]
+    <div id="page_container" class="{{ tpl.MODULE~tpl.ACTION }}">
+        {{ tpl.PAGE|default|raw }}
     </div>
 </div>
 
-[JSSCRIPTS]
+{{ tpl.JSSCRIPTS|default|raw }}
 <script type="text/javascript">
 
 </script>
@@ -286,8 +286,8 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     <div id="chatpopupcontent">
     </div>
 </div>
-[BODYENDE]
-[MODULEJAVASCRIPTBODY]
+{{ tpl.BODYENDE|default|raw }}
+{{ tpl.MODULEJAVASCRIPTBODY|default|raw }}
 <script type="text/javascript" src="./js/datatables/datatables-helper.js"></script>
 <script type="text/javascript" src="./js/download-spooler.js"></script>
 <script type="text/javascript" src="./js/stickybutton.js"></script>

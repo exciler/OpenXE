@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval';">
     <title>{% block title %}OpenXE{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link id="shortcuticon" rel="shortcut icon" href="{{ asset('images/favicon/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" id="favicon" type="image/x-icon" href="{{ asset('images/favicon/favicon.ico') }}" >
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon/favicon-16x16.png') }}" sizes="16x16">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon/favicon-32x32.png') }}" sizes="32x32">
     {% block stylesheets %}
-        <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
     {% endblock %}
     {% block javascripts %}
-        {{ importmap() }}
     {% endblock %}
 </head>
 <body>

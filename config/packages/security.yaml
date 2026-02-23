@@ -1,5 +1,7 @@
 security:
   access_denied_url: /index.php
+  password_hashers:
+    OpenXE\Entity\Users\User: 'auto'
   providers:
     db_user_provider:
       entity:

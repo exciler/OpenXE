@@ -1,0 +1,4 @@
+framework:
+  fragments:
+    path: /_fragment
+  session:

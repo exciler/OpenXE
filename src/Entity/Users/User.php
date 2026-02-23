@@ -5,13 +5,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use OpenXE\Entity\Master\Address;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use OpenXE\Repository\Users\UserRepository;
 
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'user')]
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -135,6 +137,10 @@ class User implements UserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $role = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn('adresse', nullable: false)]
+    private ?Address $adresse = null;
 
     public function __construct()
     {
@@ -629,6 +635,18 @@ class User implements UserInterface
     public function setRole(?string $role): static
     {
         $this->role = $role;
+
+        return $this;
+    }
+
+    public function getAdresse(): ?Address
+    {
+        return $this->adresse;
+    }
+
+    public function setAdresse(?Address $adresse): static
+    {
+        $this->adresse = $adresse;
 
         return $this;
     }

@@ -6872,8 +6872,12 @@ title: 'Abschicken',
     $type = $this->app->User->GetType();
     //if($type=="admin") return $navarray['menu']['admin'];
 
-    $permissions_module = $this->app->DB->SelectArr("SELECT module,action FROM userrights WHERE user='".$this->app->User->GetID()."' AND permission='1'");
-    $navigation_alternative = $this->app->DB->SelectArr("SELECT * FROM navigation_alternative WHERE aktiv = 1 AND first != '' AND module != '' AND action != '' AND sec != '' ORDER BY first, sec, prio");
+    $permissions_module = $this->app->EntityManager->getConnection()->fetchAllAssociative(
+        "SELECT module,action FROM userrights WHERE user= :userid AND permission='1'",
+        ['userid' => $this->app->User->GetID()]
+    );
+    $navigation_alternative = $this->app->EntityManager->getConnection()->fetchAllAssociative(
+        "SELECT * FROM navigation_alternative WHERE aktiv = 1 AND first != '' AND module != '' AND action != '' AND sec != '' ORDER BY first, sec, prio");
     if($navigation_alternative)
     {
       foreach($navigation_alternative as $v)
@@ -7010,7 +7014,7 @@ title: 'Abschicken',
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Dokumenten Scanner','docscan','list');
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Gutschriften / '.$this->Firmendaten("bezeichnungstornorechnung"),'gutschrift','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kontoausz&uuml;ge','kontoauszuege','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Kontoauszüge','kontoauszuege','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Lieferantengutschriften','lieferantengutschrift','list');
 
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Mahnwesen','mahnwesen','list');
@@ -7058,7 +7062,7 @@ title: 'Abschicken',
     $navarray['menu']['admin'][$menu]['sec'][]  = array('RMA Lieferungen','rma','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Service & Support','service','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Etikettendrucker','etikettendrucker','list');
-    $navarray['menu']['admin'][$menu]['sec'][]  = array('W&auml;hrungen','waehrungumrechnung','list');
+    $navarray['menu']['admin'][$menu]['sec'][]  = array('Währungen','waehrungumrechnung','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Ticketregeln','ticketregeln','list');
     $navarray['menu']['admin'][$menu]['sec'][]  = array('Zeitkonten','zeiterfassung','list');
 
