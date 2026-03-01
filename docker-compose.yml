@@ -12,7 +12,11 @@ services:
     ports:
       - "5173:5173"
   app_init:
-    image: openxe:test
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: dev
+    image: openxe:dev
     volumes:
       - .:/var/www/html
     working_dir: /var/www/html/upgrade
@@ -24,7 +28,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    image: openxe:test
+      target: dev
+    image: openxe:dev
     volumes:
       - .:/var/www/html
     ports:
