@@ -2,7 +2,7 @@
 declare(strict_types = 1);
 
 use Xentral\Components\Http\JsonResponse;
-use Xentral\Components\Http\Request;
+use Symfony\Component\HttpFoundation\Request;
 use Xentral\Components\Http\Response;
 use Xentral\Components\Logger\LogLevel;
 use Xentral\Modules\Log\Exception\InvalidArgumentException;
@@ -45,7 +45,7 @@ class Log
         }
         $this->logService = $app->Container->get('DatabaseLogService');
         $this->configService = $app->Container->get('LoggerConfigService');
-        $this->request = $app->Container->get('Request');
+        $this->request = $app->SymfonyContainer->get('request_stack')->getCurrentRequest();
         $this->app->ActionHandlerInit($this);
         $this->app->ActionHandler("list", "LogList");
         $this->app->ActionHandler("settings", "LogSettings");
@@ -207,7 +207,7 @@ class Log
     public function LogSettings(): void
     {
         $this->LogMenu();
-        if ($this->request->post->has('submit')) {
+        if ($this->request->request->has('submit')) {
             try {
                 $this->saveSettings();
             } catch (InvalidArgumentException $e) {
@@ -257,7 +257,8 @@ class Log
      */
     protected function saveSettings(): void
     {
-        $level = $this->request->post->getAlpha('level', '');
+        $level = $this->request->request->getAlpha('level', '');
+        print $level;
         $this->configService->setLogLevel(strtolower($level));
     }
 
