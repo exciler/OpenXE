@@ -1,28 +1,43 @@
-<!--
+{#
 SPDX-FileCopyrightText: 2023 Andreas Palm
 SPDX-FileCopyrightText: 2019 Xentral ERP Software GmbH, Fuggerstrasse 11, D-86150 Augsburg
 
 SPDX-License-Identifier: LicenseRef-EGPL-3.1
--->
+#}
+{% extends 'base.html.twig' %}
 
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' {{ tpl.ADDITIONALCSPHEADER|default }};">
-    <title>{{ tpl.HTMLTITLE }}</title>
+{% block title %}{{ tpl.HTMLTITLE }}{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="./themes/new/css/normalize.min.css?v=6">
     <link rel="stylesheet" href="./themes/new/css/color3.css?v=7">
     <style>
         :root {
-            {{ tpl.COLORCSS|default|raw }}
+        {{ tpl.COLORCSS|default|raw }}
         }
     </style>
 
     <link rel="stylesheet" href="./themes/new/css/styles.css?v=32">
     <link rel="stylesheet" href="./themes/new/css/resp-menu.css?v=5">
+    <link rel="stylesheet" type="text/css" href="./js/datatables/datatables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="./themes/new/css/datatables_custom.css?v=3"/>
+    <link rel="stylesheet" type="text/css" href="./themes/new/css/jquery.dataTables.min.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="./themes/new/css/buttons.dataTables.min.css" media="screen">
 
+    <link href="./css/bootstrap.min.css?v=4" rel="stylesheet" type="text/css" media="screen">
+    <link href="./css/bootstrap-mobile.css?v=2" rel="stylesheet" type="text/css" media="screen">
+    <link rel="stylesheet" href="./themes/new/css/calendar.css?v=3">
+    <link type="text/css" href="./themes/new/css/start/jquery-ui-1.10.3.custom.css?v=4" rel="Stylesheet" />
+    <link href="./themes/new/css/colorPicker.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        {{ tpl.YUICSS|default|raw }}
+    </style>
+    {{ tpl.FINALCSSLINKS|default|raw }}
+    {{ tpl.MODULESTYLESHEET|default|raw }}
+{% endblock %}
+
+{% block javascripts %}
     <script type="text/javascript" src="./js/event.js"></script>
     <script type="text/javascript" src="./js/jquery/jquery-3.5.0.min.js"></script>
     <script type="text/javascript" src="./js/jquery/jquery-migrate-3.2.0.min.js"></script>
@@ -33,14 +48,8 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     <script type="text/javascript" src="./js/jquery-multidownload.js" ></script>
     <script type="text/javascript" src="./js/jquery.loadingOverlay.js" ></script>
     <script type="text/javascript" src="./js/lib/vue.min.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="./js/datatables/datatables.min.css"/>
-    <link rel="stylesheet" type="text/css" href="./themes/new/css/datatables_custom.css?v=3"/>
-    <link rel="stylesheet" type="text/css" href="./themes/new/css/jquery.dataTables.min.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="./themes/new/css/buttons.dataTables.min.css" media="screen">
     <script type="text/javascript" src="./js/datatables/datatables.min.js?v=3"></script>
     <script type="text/javascript" src="./js/jquery.dataTables.columnFilter.js"></script>
-
     <script type="text/javascript" src="./js/jquery.inputhighlight.min.js"></script>
     <script type="text/javascript" src="./js/jquery.base64.min.js"></script>
     <script type="text/javascript" src="./js/grider.js" ></script>
@@ -50,18 +59,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     <script type="text/javascript" src="./js/chart-helper.js?v=2" ></script>
     <script type="text/javascript" src="./js/textvorlagen.js"></script>
     <script type="text/javascript" src="./js/sidebar.js"></script>
-
-    <link href="./css/bootstrap.min.css?v=4" rel="stylesheet" type="text/css" media="screen">
-    <link href="./css/bootstrap-mobile.css?v=2" rel="stylesheet" type="text/css" media="screen">
-    <link rel="stylesheet" href="./themes/new/css/calendar.css?v=3">
     <script type="text/javascript" src="./js/bootstrap.min.js" ></script>
-
-    <link rel="icon" type="image/png" sizes="32x32" href="./themes/new/images/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./themes/new/images/favicon/favicon-16x16.png">
-    <link rel="shortcut icon" href="./themes/new/images/favicon/favicon.ico">
-
-    <link type="text/css" href="./themes/new/css/start/jquery-ui-1.10.3.custom.css?v=4" rel="Stylesheet" />
-    <link href="./themes/new/css/colorPicker.css" rel="stylesheet" type="text/css" />
 
     <script src="./js/ckeditor/ckeditor.js"></script>
     <script src="./js/ckeditor/adapters/jquery.js"></script>
@@ -101,15 +99,16 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     </script>
     <script src="./themes/new/js/scripts.js?v=4"></script>
     {{ tpl.ADDITIONALJAVASCRIPT|default|raw }}
-    <style>
-        {{ tpl.YUICSS|default|raw }}
-    </style>
-    {{ tpl.FINALCSSLINKS|default|raw }}
+
     {{ tpl.MODULEJAVASCRIPTHEAD|default|raw }}
     {{ tpl.JAVASCRIPTMODULES|default|raw }}
-    {{ tpl.MODULESTYLESHEET|default|raw }}
-</head>
-<body class="layoutfix" data-module="{{ app.request.query.get('module') }}" data-action="{{ app.request.query.get('action') }}" data-version="{{ tpl.REVISION }}">
+{% endblock %}
+
+{% block body %}
+<body class="layoutfix"
+      data-module="{{ app.request.query.get('module') }}"
+      data-action="{{ app.request.query.get('action') }}"
+      data-version="{{ tpl.REVISION }}">
 {{ render(controller('OpenXE\\Controller\\NavigationController::sidebar')) }}
 
 <div id="main">
@@ -274,7 +273,7 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
     <div class="clear"></div>
 
     <div id="page_container" class="{{ tpl.MODULE~tpl.ACTION }}">
-        {{ tpl.PAGE|default|raw }}
+        {% block page %}{{ tpl.PAGE|default|raw }}{% endblock %}
     </div>
 </div>
 
@@ -297,4 +296,4 @@ SPDX-License-Identifier: LicenseRef-EGPL-3.1
 <script type="text/javascript" src="./js/ajax_end.js?v=8"></script>
 <script type="text/javascript" src="./js/scrollfix.js"></script>
 </body>
-</html>
+{% endblock %}

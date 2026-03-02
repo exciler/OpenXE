@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' {{ tpl.ADDITIONALCSPHEADER|default }};">
     <title>{% block title %}OpenXE{% endblock %}</title>
     <link id="shortcuticon" rel="shortcut icon" href="{{ asset('images/favicon/favicon.ico') }}" type="image/x-icon">
     <link rel="icon" id="favicon" type="image/x-icon" href="{{ asset('images/favicon/favicon.ico') }}" >
@@ -14,7 +14,8 @@
     {% block javascripts %}
     {% endblock %}
 </head>
+{% block body %}
 <body>
-{% block body %}{% endblock %}
 </body>
+{% endblock %}
 </html>
