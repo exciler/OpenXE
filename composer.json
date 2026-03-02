@@ -36,7 +36,8 @@
     "symfony/flex": "^2.10",
     "doctrine/doctrine-bundle": "^2.18",
     "doctrine/doctrine-migrations-bundle": "^3.7",
-    "doctrine/orm": "^3.6"
+    "doctrine/orm": "^3.6",
+    "symfony/runtime": "^7.4"
   },
   "replace": {
     "itbz/fpdf": "*"
@@ -83,7 +84,8 @@
       "ext-ldap": "8.2.0"
     },
     "allow-plugins": {
-      "symfony/flex": true
+      "symfony/flex": true,
+      "symfony/runtime": true
     }
   },
   "require-dev": {

@@ -1,23 +1,11 @@
 <?php
 
 use OpenXE\Kernel;
-use Symfony\Component\HttpFoundation\Request;
 
 ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
-$loader = require_once __DIR__ . '/../vendor/autoload.php';
 
-$rootDir = dirname(__DIR__);
+require_once dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
-
-$dotenv = new Symfony\Component\Dotenv\Dotenv();
-$dotenv->bootEnv($rootDir . '/.env');
-
-$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
-$request = Request::createFromGlobals();
-$response = $kernel->handle($request);
-if ($response->isNotFound() === false) {
-    $response->send();
-} else {
-    require 'index.php';
-}
-$kernel->terminate($request, $response);
+return function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool)$context['APP_DEBUG']);
+};

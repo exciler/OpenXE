@@ -1,50 +1,63 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters: {}
+
 services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-  OpenXE\:
-    resource: '../src/'
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
 
-  Acl:
-    class: Acl
+    OpenXE\:
+        resource: '../src/'
 
-  Application:
-    alias: erpooSystem
-  ApplicationCore:
-    alias: Application
+    Acl:
+        class: Acl
 
-  Config:
-    class: Config
-    factory: ['Xentral\Core\LegacyConfig\ConfigLoader', 'load']
+    Application:
+        alias: erpooSystem
+    ApplicationCore:
+        alias: Application
 
-  erpooSystem:
-    class: erpooSystem
-    arguments:
-      $serviceContainer: '@service_container'
-    properties:
-      Tpl: '@TemplateParser'
-      EntityManager: '@Doctrine\ORM\EntityManagerInterface'
-      acl: '@Acl'
-    calls:
-      - SetRequestStack: ['@request_stack']
+    Config:
+        class: Config
+        factory: ['Xentral\Core\LegacyConfig\ConfigLoader', 'load']
 
-  Page:
-    class: Page
+    erpooSystem:
+        class: erpooSystem
+        arguments:
+            $serviceContainer: '@service_container'
+        properties:
+            Tpl: '@TemplateParser'
+            EntityManager: '@Doctrine\ORM\EntityManagerInterface'
+            acl: '@Acl'
+        calls:
+            - SetRequestStack: ['@request_stack']
 
-  Player:
-    class: Player
+    Page:
+        class: Page
 
-  Session:
-    class: Session
+    Player:
+        class: Player
 
-  TemplateParser:
-    class: TemplateParser
+    Session:
+        class: Session
 
-  User:
-    class: User
+    TemplateParser:
+        class: TemplateParser
 
-  twigpublic:
-    alias: twig
-    public: true
+    User:
+        class: User
+
+    twigpublic:
+        alias: twig
+        public: true
