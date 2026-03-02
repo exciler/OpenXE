@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 services:
   _defaults:
     autowire: true
@@ -25,6 +26,7 @@ services:
     properties:
       Tpl: '@TemplateParser'
       EntityManager: '@Doctrine\ORM\EntityManagerInterface'
+      acl: '@Acl'
     calls:
       - SetRequestStack: ['@request_stack']
 

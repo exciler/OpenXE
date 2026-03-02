@@ -3,6 +3,7 @@
 use OpenXE\Kernel;
 use Symfony\Component\HttpFoundation\Request;
 
+ini_set('error_reporting', E_ALL & ~E_DEPRECATED);
 $loader = require_once __DIR__ . '/../vendor/autoload.php';
 
 $rootDir = dirname(__DIR__);
